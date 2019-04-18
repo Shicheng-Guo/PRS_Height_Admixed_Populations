@@ -12,7 +12,7 @@ In this directory you will find all scripts to recreate analyses described in ou
 
 Height is a very polygenic trait and well-studied in humans. GWAS summary statistics for height used hundreds of thousands of individuals of European ancestry. It is unclear how well polygenic risk scores (PRS) predict height in non-Europeans in comparison to Europeans. Here we explore and quantify this, and then provide improvements.
 
-Subdirectories in this repo:
+**Subdirectories in this repo**
 
 *WHI, JHS, etc: names of datasets
 *outfiles: where Rds files and such are stores, not to be pushed to repo.
