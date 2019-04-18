@@ -1,8 +1,6 @@
 ###############################
 # Height_Prediction_PRS ####
 
-#Author: Bar√rbara Bitarello
-
 #Date created: April 18th 2019
 ###############################
 
