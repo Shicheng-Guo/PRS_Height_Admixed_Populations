@@ -1,8 +1,8 @@
 Here we evaluate the effect of recombination rates on prediction power of SNPs used in the PRS.
 
-**Stratify genome into 4 quantiles of rec rate (for AA and CEU maps, separately).
+*Stratify genome into 4 quantiles of rec rate (for AA and CEU maps, separately).
 
-**Using one chosen pruning strategy, take only pruned SNPs within a given quantile and calcualte PRS
+*Using one chosen pruning strategy, take only pruned SNPs within a given quantile and calculate PRS
 
 ```
 for i in strat_prs_ukb_afr.R strat_prs_ukb_eur.R strat_prs_penn_afr.R strat_prs_penn_eur.R strat_prs_JHS.R strat_prs_WHI.R;
@@ -16,6 +16,10 @@ done
 ```
 
 See if there are differences.
+
+```
+cd scripts
+```
 
 In R, run:
 

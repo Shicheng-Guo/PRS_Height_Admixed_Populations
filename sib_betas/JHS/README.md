@@ -1,6 +1,6 @@
 *select intersection of UKBiobank and WHI SNPs*
 ```
-bsub -M 20000 -o logGiant -e logGiant Rscript --vanilla /project/mathilab/bbita/gwas_admix/height_prediction/sib_gwas/JHS/scripts/giant_sib.R ALL F
+Rscript --vanilla scripts/giant_sib.R temp
 ```
 *Prune using different methods*
 
