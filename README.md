@@ -1,18 +1,26 @@
-**Date created: April 18th 2019**
+Date created: April 18th 2019
 
 In this directory you will find all scripts to recreate analyses described in our paper.
 
-**Intro**
+*Intro*
 
 Height is a very polygenic trait and well-studied in humans. GWAS summary statistics for height used hundreds of thousands of individuals of European ancestry. It is unclear how well polygenic risk scores (PRS) predict height in non-Europeans in comparison to Europeans. Here we explore and quantify this, and then provide improvements.
 
-**Subdirectories in this repo**
+Subdirectories in this repo
 
-*WHI, JHS, etc: names of datasets
-*outfiles: where Rds files and such are stores, not to be pushed to repo.
-*figs: where figures are stores, not to be pushed to repo.
+*WHI, JHS, etc: names of datasets 
+
+
+*strat_prs, sib_betas, etc: names of blocks of analyses
+
+
+*outfiles: where Rds files and such are stores, not to be pushed to repo. 
+
+*figs: where figures are stores, not to be pushed to repo. 
+
 *input files: where modified input files are stored, not to be pushed to repo.
-*scripts and READMEs: should be pushed to repo.
 
+
+ *scripts and READMEs: should be pushed to repo.
 
 This will be updated as needed.

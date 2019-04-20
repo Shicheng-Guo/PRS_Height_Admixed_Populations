@@ -1,4 +1,4 @@
-*select intersection of UKBiobank and WHI SNPs*
+*Select intersection of UKBiobank and WHI SNPs*
 ```
 Rscript --vanilla scripts/make_vcf.R temp
 ```
