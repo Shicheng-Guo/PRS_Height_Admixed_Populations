@@ -30,7 +30,7 @@ do
 Rscript --vanilla run_AS_GWAS.R ${chr}
 echo ${chr}
 done
-``
+```
 *Plot results for ancestry specific beta estimation[ongoing]*
 ```
 cd scripts/
