@@ -1,4 +1,4 @@
-!/usr/bin/env Rscript
+#!/usr/bin/env Rscript
 args = commandArgs(trailingOnly=TRUE)
 if (length(args)==0) {
   stop("At least one argument must be supplied (a name for this run).n", call.=FALSE)
@@ -9,10 +9,11 @@ library(data.table)
 library(dplyr)
 library(asbio)
 ########################################
-#calculate PRS function
-source('PRS_calc.R')
+home<-"/home/bbita"
+dir<-"height_prediction/strat_prs/scripts"
+source(paste0(home, "/", dir,'/PRS_calc.R'))
 #partial R2 function
-source('Rqs_R2.R')
+source(paste0(home, "/", dir,'/Rsq_R2.R'))
 ########################################
 #####################################################################################################
 #### First part: calculate recombination rates for PRS SNPs and divide them into quantiles ##########
@@ -21,10 +22,10 @@ source('Rqs_R2.R')
 rate.dist<-as.numeric(args[1])
 w_map<-args[2]
 PRS<-vector('list', 22)
-eur<-fread('/project/mathilab/bbita/gwas_admix/new_height/pennBB_eur_betas_100000_0.0005.txt')
-lapply(1:22, function(chr) fread(paste0('zcat /project/mathilab/data/maps/hm2/hm2/genetic_map_GRCh37_chr', chr,'.txt.gz'))[,CHR:=gsub("chr","",Chromosome)][, Chromosome:=NULL])-> rec
+eur<-fread('/project/mathilab/bbita/gwas_admix/new_height/pennBB_eur_betas_100000_0.0005.txt') #need to fix this path
+lapply(1:22, function(chr) fread(paste0('zcat /project/mathilab/data/maps/hm2/hm2/genetic_map_GRCh37_chr', chr,'.txt.gz'))[,CHR:=gsub("chr","",Chromosome)][, Chromosome:=NULL])-> rec #need to fix this path
 for(chr in 1:22){colnames(rec[[chr]])<-c('POS', 'RATE_cM_Mb', 'MAP_cM', 'CHR')}
-lapply(1:22, function(chr) fread(paste0('zcat /project/mathilab/data/maps_b37/maps_chr.', chr, '.gz')))-> maps
+lapply(1:22, function(chr) fread(paste0('zcat /project/mathilab/data/maps_b37/maps_chr.', chr, '.gz')))-> maps #need to fix this path
 for(chr in 1:22){colnames(maps[[chr]])[1]<-"POS"}
 lapply(1:22, function(chr) setkey(rec[[chr]],POS))
 lapply(1:22, function(chr) setkey(maps[[chr]],POS))
@@ -74,7 +75,7 @@ q3<-eur[diff>=lev[3] & diff<lev[4]]
 q4<-eur[diff>=lev[4]]
 cat('checkpoint\n')
 #calculate PRS for each of these quantiles
-hei<-lapply(1:22, function(chr) readRDS('/project/mathilab/bbita/gwas_admix/new_height/pennBB_eur/hei_phys_100000_0.0005_v2.Rds')[[chr]])
+hei<-lapply(1:22, function(chr) readRDS('/project/mathilab/bbita/gwas_admix/new_height/pennBB_eur/hei_phys_100000_0.0005_v2.Rds')[[chr]]) #need to fix this path
 hei<-do.call(rbind, hei)
 hei[MarkerName %in% q1$MarkerName]-> hei_q1
 hei[MarkerName %in% q2$MarkerName]-> hei_q2
@@ -113,8 +114,8 @@ saveRDS(PRS2, file=paste0('../output/PRS2_pennBB_eur_',rate.dist,"_", w_map, '.R
 #########################################################
 
 #read in phenotype data
-setDT(readRDS('/project/pmbb_mathi_lab/phenotypes/cov_eur_nophi_170815.RDS'))-> Pheno_pennBB_eur
-fread('/project/mathilab/bbita/gwas_admix/height/pennBB/eur/Final_EUR_Height_Weight_BMI.txt')-> Pheno2_pennBB_eur
+setDT(readRDS('/project/pmbb_mathi_lab/phenotypes/cov_eur_nophi_170815.RDS'))-> Pheno_pennBB_eur #need to fix this path
+fread('/project/mathilab/bbita/gwas_admix/height/pennBB/eur/Final_EUR_Height_Weight_BMI.txt')-> Pheno2_pennBB_eur #need to fix this path
 
 #fix some columns and set keys for merging data tables
 Pheno_pennBB_eur[,GENO_ID:=paste0(GENO_ID, "_", GENO_ID)]
@@ -124,7 +125,7 @@ setkey(Pheno2_pennBB_eur, GENO_ID)
 Pheno_pennBB_eur[Pheno2_pennBB_eur, nomatch=0]-> Pheno3_pennBB_eur
 
 #add ancestry
-anc_pennBB_eur<-cbind(fread('/project/mathilab/bbita/gwas_admix/height/pennBB/eur/PRUNED.2.Q'), fread('/project/mathilab/bbita/gwas_admix/height/pennBB/eur/PRUNED.fam')[,V2])
+anc_pennBB_eur<-cbind(fread('/project/mathilab/bbita/gwas_admix/height/pennBB/eur/PRUNED.2.Q'), fread('/project/mathilab/bbita/gwas_admix/height/pennBB/eur/PRUNED.fam')[,V2]) #need to fix this path
 colnames(anc_pennBB_eur)<-c("EUR_ANC","AFR_ANC","GENO_ID")
 anc_pennBB_eur[,GENO_ID:=paste0(GENO_ID, "_", GENO_ID)]
 setkey(anc_pennBB_eur, GENO_ID)

@@ -6,7 +6,7 @@ library(RColorBrewer)
 library(MASS)
 library(cowplot)
 
-source('fancy_scientific.R')
+source('heigth_prediction/strat_prs/scripts/fancy_scientific.R')
 a_list<-vector('list', 2)
 names(a_list)<-c("AA","CEU")
 

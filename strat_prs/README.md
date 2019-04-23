@@ -19,13 +19,7 @@ See if there are differences.
 
 ```
 cd scripts
-```
-
-In R, run:
-
-
-```
-source('Plot.R')
+Rscript --vanilla Plot.R'
 ```
 
 
