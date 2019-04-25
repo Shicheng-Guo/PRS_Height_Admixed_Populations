@@ -12,7 +12,8 @@ options(scipen=10)
 options(digits=10)
 
 currentdir<-paste0(getwd(), "/")
-parentdir<-gsub("scripts/", "")
+print(currentdir)
+parentdir<-gsub("scripts/", "", currentdir)
 
 print(args[1])
 #vector('list', length(args))-> res_list
