@@ -1,7 +1,7 @@
 ####
 *Select SNPs and prepare the data*
 ```
-for D in WHI JHS pennBB_afr pennBB_eur ukb_afr ukb_eur;
+for D in JHS WHI pennBB_afr pennBB_eur ukb_afr ukb_eur;
 do
 Rscript --vanilla ~/height_prediction/scripts/make_vcf.R temp sib_betas $D
 done
@@ -9,7 +9,7 @@ done
 *Prune using different methods* #[ongoing]
 ```
 #combine stuff from above first
-cd scripts/
+ ~/height_prediction/scripts/
 bash LD_prun.bash
 bash combine_Rds_v2.sh
 bash run_this.sh
