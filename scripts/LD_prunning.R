@@ -8,7 +8,7 @@ options(scipen=10)
 options(digits=10)
 #
 
-currentdir=paste0(getwd(), "/")
+currentdir="~/height_prediction/scripts/"
 parentdir=gsub("scripts/","", currentdir)
 
 TIME.start <- Sys.time() #record time spent running this script.
@@ -86,7 +86,7 @@ suppressMessages(library(dplyr))
 suppressMessages(library(biomaRt))
 suppressMessages(library(rlist))
 
-source('LD_prun.R') #clumping function.
+source('~/height_prediction/scripts/LD_prun.R') #clumping function.
 
 cat ('Beginning clumping process\n')
 
