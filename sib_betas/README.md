@@ -9,8 +9,12 @@ done
 *Prune using different methods* #[ongoing]
 ```
 #combine stuff from above first
- ~/height_prediction/scripts/
-bash LD_prun.bash
+
+for D in JHS WHI pennBB_afr pennBB_eur ukb_afr ukb_eur;
+do
+~/height_prediction/scripts/LD_prun.bash sib_betas $D
+done
+
 bash combine_Rds_v2.sh
 bash run_this.sh
 cd ..
