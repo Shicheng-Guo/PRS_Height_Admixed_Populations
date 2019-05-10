@@ -1,0 +1,10 @@
+D1:	/project/mathilab/bbita/gwas_admix/new_height/runSmartpCA-master
+indivname:	D1/UKB_AFR.bas_renamed_pops.ind
+snpname:	D1/UKB_AFR.bas.snp
+genotypename:	D1/UKB_AFR.bas.geno
+numoutliter:	0
+numoutevec:	10
+evecoutname:	D1/UKB_AFR.bas.evec
+phylipname:	D1/pca_fst.phyl
+poplistname:	D1/pop2.txt
+lsqproject:	YES

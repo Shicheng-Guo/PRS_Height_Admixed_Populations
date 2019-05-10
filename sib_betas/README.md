@@ -15,9 +15,10 @@ do
 ~/height_prediction/scripts/LD_prun.bash sib_betas $D
 done
 
-bash combine_Rds_v2.sh
-bash run_this.sh
-cd ..
+for D in JHS WHI pennBB_afr pennBB_eur ukb_afr ukb_eur;
+do
+~/height_prediction/scripts/combine_Rds_v2.sh sib_betas $D
+done
 ```
 *Run polygenic scores*
 ```

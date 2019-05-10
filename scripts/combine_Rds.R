@@ -5,9 +5,9 @@ args = commandArgs(trailingOnly=TRUE)
 if (length(args)==0) {
   stop("At least one argument must be supplied (a name for this run).n", call.=FALSE)
 }
-library("optparse")
-library(data.table)
-library(dplyr)
+suppressMessages(library("optparse"))
+suppressMessages(library(data.table))
+suppressMessages(library(dplyr))
 options(scipen=10)
 options(digits=10)
 
