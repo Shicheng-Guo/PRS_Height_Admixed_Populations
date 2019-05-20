@@ -5,7 +5,7 @@ plink<-fread('~/height_prediction/runSmartpCA-master/UKB_AFR/association.Height.
 colnames(plink)[2]<-'MarkerName'
 colnames(plink)[1]<-'CHR'
 #
-plink2<-fread('~/height_prediction//runSmartpCA-master/UKB_AFR/test.txt', fill=T)
+plink2<-fread('~/height_prediction/runSmartpCA-master/UKB_AFR/test.txt', fill=T)
 colnames(plink2)<-c("CHR","POS", "MarkerName","REF","ALT","A1","TEST"," OBS_CT","BETA", "SE","T_STAT", "UNADJ")
 setkey(plink, MarkerName, CHR, UNADJ)
 setkey(plink2, MarkerName, CHR, UNADJ)
