@@ -1,11 +1,11 @@
 library(data.table)
 library(dplyr)
 source('~/height_prediction/scripts/my_manhattan.R')
-plink<-fread('/project/mathilab/bbita/gwas_admix/new_height/runSmartpCA-master/UKB_AFR/association.Height.glm.linear.adjusted', header=T, fill=T)
+plink<-fread('~/height_prediction/runSmartpCA-master/UKB_AFR/association.Height.glm.linear.adjusted', header=T, fill=T)
 colnames(plink)[2]<-'MarkerName'
 colnames(plink)[1]<-'CHR'
 #
-plink2<-fread('/project/mathilab/bbita/gwas_admix/new_height/runSmartpCA-master/UKB_AFR/test.txt', fill=T)
+plink2<-fread('~/height_prediction//runSmartpCA-master/UKB_AFR/test.txt', fill=T)
 colnames(plink2)<-c("CHR","POS", "MarkerName","REF","ALT","A1","TEST"," OBS_CT","BETA", "SE","T_STAT", "UNADJ")
 setkey(plink, MarkerName, CHR, UNADJ)
 setkey(plink2, MarkerName, CHR, UNADJ)
@@ -31,7 +31,7 @@ combo[,TEST:=NULL]
 
 local_anc<-vector('list', 22)
 for(I in 1:22){
-	local_anc[[I]]<-fread(paste0('/project/mathilab/bbita/gwas_admix/new_height/ukb_afr/AS_Beta_chr', I, 'example.txt'))
+	local_anc[[I]]<-fread(paste0('~/height_prediction/gwas/ukb_afr/output/AS_Beta_chr', I, 'example.txt'))
 }
 
 do.call(rbind, local_anc)-> local_anc
