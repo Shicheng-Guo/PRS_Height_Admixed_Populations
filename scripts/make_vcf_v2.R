@@ -34,7 +34,7 @@ ukb_height[order(CHR,POS)]-> ukb_height
 #*************************
 # select UKB  SNPs *
 #*************************
-fread(paste0('zcat ', parentdir, 'output/hei_SNPs_chr', args[1],'.vcf.gz'))-> dt
+fread(paste0('zcat ', parentdir, 'output/hei_SNPs_chr', args[1],'.vcf.gz'), sep="\t", fill=T)-> dt
 colnames(dt)[1:4]<-c('CHR','POS', 'MarkerName', 'REF')
 setkey(dt, CHR, POS)
 unique(dt)-> dt
