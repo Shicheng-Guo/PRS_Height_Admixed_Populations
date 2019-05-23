@@ -6,7 +6,7 @@ parentdir<-gsub("scripts/", "", parentdir)
 
 LD_prun<-function(W=NULL,p_thresh=NULL, dis=opt$method, CHR=opt$chromosome, r2=NULL, dataset1=opt$dataset1, dataset2=opt$dataset2){
 	as.numeric(W)-> W;as.numeric(p_thresh)-> p_thresh
-	readRDS(paste0(parentdir, opt$dataset1, "/", opt$dataset2, "/output/hei_ALL_chr", CHR, '.Rds'))-> hei
+	readRDS(paste0(parentdir, opt$dataset1, "/", opt$dataset2, "/output/hei_chr", CHR, '.Rds'))-> hei
 	cat('checkpoint 1\n')
 	hei[order(p)]-> tp
 	cat('checkpoint 2\n')
@@ -32,9 +32,9 @@ LD_prun<-function(W=NULL,p_thresh=NULL, dis=opt$method, CHR=opt$chromosome, r2=N
 		setwd(paste0(parentdir, opt$dataset1, "/", opt$dataset2, "/plink2/output/"))
 #run PLINK with these parameters #TO DO TO DO TO DO TO DO TO DO TO DO TO DO TO DO
 		if(dataset1=='sib_betas'){
-		a.str<- paste(paste0("plink \\", "--noweb \\", "--bfile chr", CHR, " \\",  "--clump output/sib_beta_gwas_p.txt \\", paste0("--clump-p1 ", p_thresh, " \\"), paste0("--clump-r2 ", r2, " \\"),  paste0("--clump-kb ", W/1000," \\"), paste0("--out giant_out_clump_p1_", p_thresh, "_r2_", r2, "_kb_", W/1000, "_chr_", CHR), sep="\n"))
+		a.str<- paste(paste0("plink \\", "--noweb \\", "--bfile chr", CHR, " \\",  "--clump sib_beta_gwas_p.txt \\", paste0("--clump-p1 ", p_thresh, " \\"), paste0("--clump-r2 ", r2, " \\"),  paste0("--clump-kb ", W/1000," \\"), paste0("--out giant_out_clump_p1_", p_thresh, "_r2_", r2, "_kb_", W/1000, "_chr_", CHR), sep="\n"))
 		} else if (dataset1=='gwas'){
-		a.str<- paste(paste0("plink \\", "--noweb \\", "--bfile chr", CHR, " \\",  "--clump output/50.assoc.tsv \\", paste0("--clump-p1 ", p_thresh, " \\"), paste0("--clump-r2 ", r2, " \\"),  paste0("--clump-kb ", W/1000," \\"), paste0("--out giant_out_clump_p1_", p_thresh, "_r2_", r2, "_kb_", W/1000, "_chr_", CHR), sep="\n"))
+		a.str<- paste(paste0("plink \\", "--noweb \\", "--bfile chr", CHR, " \\",  "--clump 50.assoc.tsv \\", paste0("--clump-p1 ", p_thresh, " \\"), paste0("--clump-r2 ", r2, " \\"),  paste0("--clump-kb ", W/1000," \\"), paste0("--out giant_out_clump_p1_", p_thresh, "_r2_", r2, "_kb_", W/1000, "_chr_", CHR), sep="\n"))
 		}
 		system(a.str)
 		Sys.sleep(60)

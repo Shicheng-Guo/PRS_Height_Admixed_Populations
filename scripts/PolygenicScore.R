@@ -17,11 +17,13 @@
 #************
 #NOTE: WHI data and ubnphased genotypes
 home="~/height_prediction/"
-PolScore<- function(panel='sib_betas', panel2='WHI', tag='phys_100000_5e-08', CHR=22){
-	if(panel2=='WHI'){
-	readRDS(paste0(home, panel, "/", panel2,  '/output/hei_', tag, '_v2.Rds'))-> hei	
-	hei[[CHR]]-> hei2
-        samps<-colnames(hei2)[9:(ncol(hei2)-6)]
+PolScore<- function(panel='sib_betas', panel2='WHI', tag='phys_100000_0.0005', CHR=22){
+	readRDS(paste0(home, panel, "/", panel2,  '/output/hei_', tag, '_v2.Rds'))-> hei
+        hei[[CHR]]-> hei2	
+	if(panel=='sib_betas'){
+        	samps<-colnames(hei2)[9:(ncol(hei2)-6)]
+		} else if (panel=='gwas'){
+	        samps<-colnames(hei2)[9:(ncol(hei2)-8)] 
 	}
         hei2[ALT==Allele1]-> temp1
         hei2[REF==Allele1]-> temp2 #im ignoring the other two rows for now

@@ -14,13 +14,7 @@ library(ggplot2)
 beta<-vector('list', 22)
 prun<-args[1]
 #prun<-"phys_100000_0.0005"
-if(args[1]=='wood'){
-fread('/project/mathilab/data/gwas_stats/wood_697_variants.txt', sep="\t", fill=T)->snp_list
-snp_list[,1:3]-> snp_list
-colnames(snp_list)<-c("MarkerName", "CHR", "POS")
-} else{
 hei<-readRDS(paste0('~/height_prediction/gwas/ukb_afr/output/hei_', prun, '_v2.Rds'))
-}
 for(chr in 1:22){
 #chr<-22
 cat('start chr ')
@@ -34,7 +28,6 @@ snps <- read.table(paste0("UKB_kgCY_chr", chr, ".phsnp"), as.is=TRUE)
 colnames(snps) <- c("ID", "CHR", "Map", "POS", "REF", "ALT")
 betas <- cbind(snps, betas)
 setDT(betas)
-if(args[1]!='wood'){
 snp_list<-hei[[chr]]
 #snp_list<-readRDS(paste0('/project/mathilab/bbita/gwas_admix/new_height/WHI/prunned_1kg/LD_prunned_hei_chr', chr, "_", prun, ".Rds"))
 grch37_snp = useMart(biomart="ENSEMBL_MART_SNP", host="grch37.ensembl.org", path="/biomart/martservice",dataset="hsapiens_snp")
@@ -42,9 +35,7 @@ ID_posgrch37<-getBM(attributes = c('refsnp_id','allele', 'chr_name','chrom_start
 setDT(ID_posgrch37)
 colnames(ID_posgrch37)<-c('MarkerName','Allele','CHR','POS')
 ID_posgrch37[CHR==chr]-> ID_posgrch37
-} else{ 
-snp_list[CHR==chr]-> ID_posgrch37
-}
+
 cat('checkpoint \n')
 AA.rate <- approxfun(maps$Physical_Pos, maps$AA_Map)
 YRI.rate <- approxfun(maps$Physical_Pos, maps$YRI_LD)
@@ -96,7 +87,6 @@ pdf(paste0('~/height_prediction/gwas/ukb_afr/figs/all_chr_rate_against_AA_map_',
 #geom_point() + 
 #geom_line(bmodel)
 #abline(model$coefficients, col="red")
-
 ggplot(beta, aes(x=AA.rate, y=y2)) + geom_point() + geom_smooth(method='lm') + facet_wrap(~CHR, nrow=5, scales='free') 
 dev.off()
 

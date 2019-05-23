@@ -16,8 +16,8 @@ what <- paste0("~/height_prediction/gwas/ukb_afr/input/UKB_kgCY_chr", args[1])
 #Copy the test files:
 #>scp pmacs:/project/mathilab/data/WHI/data/WHI_phenotypes.txt .
 
-system(paste0('cp /project/mathilab/data/UKB/phased/hapi-ur/UKB_kgCY_chr', args[1],'.ph* ~/height_prediction/gwas/ukb_afr/input/'))
-system(paste0('cp /project/mathilab/data/UKB/local_ancestry/RFMix/UKB_kgCY_chr', args[1], '_rfmix_out.0.Viterbi.txt.gz ~/height_prediction/gwas/ukb_afr/input/'))
+system(paste0('cp /project/mathilab/data/UKB/phased/hapi-ur/UKB_kgCY_chr', args[1],'.ph* ~/height_prediction/input/ukb_afr/'))
+system(paste0('cp /project/mathilab/data/UKB/local_ancestry/RFMix/UKB_kgCY_chr', args[1], '_rfmix_out.0.Viterbi.txt.gz ~/height_prediction/input/ukb_afr/'))
 
 #Load genotype and ancestry data. 
 ind<-read.table(paste0(what, ".phind"), as.is=TRUE)

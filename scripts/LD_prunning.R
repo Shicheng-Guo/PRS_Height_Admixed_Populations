@@ -102,7 +102,7 @@ cat('Another checkpoint\n')
 if(opt$method=="LD"){
 #	system('cd ..')
 #	setwd('/project/mathilab/bbita/gwas_admix/sib_gwas/JHS/')
-	saveRDS(res,file=paste0(parentdir, "prunned_1kg/LD_prunned_hei_chr", opt$chromosome, '_', opt$method, '_', opt$windowsize, '_', opt$pvalue, '_', opt$r2, '.Rds'))
+	saveRDS(res,file=paste0(parentdir, opt$dataset1, "/", opt$dataset2, "/prunned_1kg/LD_prunned_hei_chr", opt$chromosome, '_', opt$method, '_', opt$windowsize, '_', opt$pvalue, '_', opt$r2, '.Rds'))
 
 } else if (opt$method=="LD_block"){
 	saveRDS(res[['AFR']], file=paste0(parentdir,opt$dataset1, "/", opt$dataset2, "/prunned_1kg/LD_prunned_hei_chr", opt$chromosome, '_', opt$method, '_', opt$windowsize, '_', opt$pvalue, '_AFR.Rds'))

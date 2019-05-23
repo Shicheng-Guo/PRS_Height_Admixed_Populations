@@ -20,7 +20,7 @@ dir<-paste0(home, args[2], "/", args[3], "/")
 	test<-vector('list', 22)
 	#print(args[I])
 	for(X in 1:22){
-	fread(paste0('zcat ', dir, 'output/hei_SNPs_chr', X, '.vcf.gz'))-> vcf
+	fread(paste0('zcat ', dir, 'output/hei_SNPs_chr', X, '.vcf.gz'), sep = "\t", fill = TRUE)-> vcf
 	setDT(vcf)
 	colnames(vcf)[3]<-'MarkerName'
 	setkey(vcf, MarkerName)
@@ -29,6 +29,9 @@ dir<-paste0(home, args[2], "/", args[3], "/")
 	colnames(test[[X]])<-'MarkerName'
 	setkey(test[[X]], MarkerName)
 	vcf[test[[X]], nomatch=0]-> test[[X]]
+	remove(vcf);remove(bla)
+	gc()
+
 	}
 	#do.call(rbind, test)-> testB
 	names(test)<-seq(1:22)
