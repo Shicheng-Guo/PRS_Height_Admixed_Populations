@@ -49,3 +49,20 @@ rm tmp1
 rm tmp
 #p value in GWAS
 
+
+
+##a test
+
+plink2 --bfile UKB_AFR --pheno PHENO.txt --allow-no-sex --covar Pheno.txt --covar-name Sex, Age, PC1,PC2,PC3,PC4,PC5,PC6,PC7,PC8,PC9,PC10 --out association_v2 --linear --adjust
+plink2 --bfile UKB_AFR --pheno PHENO.txt --allow-no-sex --covar Pheno.txt --covar-name Sex,Age,PC1,PC2,PC3,PC4,PC5,PC6,PC7,PC8,PC9,PC10 --out association_v3 --glm --adjust
+
+
+
+grep ADD association_v3.Height.glm.linear > test.txt
+
+paste <(awk 'OFS="\t"{print $2,$1,$3,$4}' association_v3.Height.glm.linear.adjusted|sort -k 1) <(sort -k 3 <(grep ADD association_v3.Height.glm.linear)|awk 'OFS="\t"{print $3,$1,$2,$4,$5,$6,$7,$8,$9,$10,$11,$
+12}')|awk '$1==$5;OFS="\t"{print $1,$2,$3,$4,$7,$8,$9,$10,$12,$13,$14,$15,$16}' > tmp1
+cat <(echo -e "ID\tCHR\tUNADJ\tGC\tPOS\tREF\tALT\tA1\tOBS_CT\tBETA\tSE\tT_STAT\tP") tmp1 > ukb_afr_gwas_AA_v3.txt
+rm tmp1
+rm tmp
+
