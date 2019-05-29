@@ -1,4 +1,5 @@
 library(data.table)
+library(ggplot2)
 library(dplyr)
 source('~/height_prediction/scripts/my_manhattan.R')
 plink<-fread('~/height_prediction/runSmartpCA-master/UKB_AFR/association_v3.Height.glm.linear.adjusted', header=T, fill=T)
@@ -50,6 +51,9 @@ with(combo_prs, cor.test(BETA,POP1)) #POP1 is AFR in the local ancestry analysis
 
 
 
+combo_prs[, Beta_Diff:=abs(BETA-ALL)] #investigate which snps have large beta diff
+
+
 ##QQ plot for plink UKB
 
 observed <- sort(combo_prs$UNADJ)
@@ -82,3 +86,10 @@ df2[,BP:=POS][,POS:=NULL]
 df2[,P:=GC][,GC:=NULL]
 df2[,SNP:=MarkerName][,MarkerName:=NULL]
 arrange(df2, CHR, BP) %>% as.data.table-> df2
+
+
+
+pdf('figs/manhattan_LA_UKB.pdf')
+manhattan(df2, genomwideline=F, suggestiveline=F)
+dev.off()
+
