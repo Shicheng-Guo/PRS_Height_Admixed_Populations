@@ -14,7 +14,7 @@ library(ggplot2)
 beta<-vector('list', 22)
 prun<-args[1]
 #prun<-"phys_100000_0.0005"
-hei<-readRDS(paste0('~/height_prediction/gwas/ukb_afr/output/hei_', prun, '_v2.Rds'))
+hei<-readRDS(paste0('~/height_prediction/gwas/WHI/output/hei_', prun, '_v2.Rds'))
 for(chr in 1:22){
 #chr<-22
 cat('start chr ')
@@ -22,9 +22,9 @@ cat(chr)
 cat('\n')
 #rate.dist <- 20000
 rate.dist<-as.numeric(args[2])
-betas <-read.table(paste0('~/height_prediction/gwas/ukb_afr/output/AS_Beta_chr', chr, 'example.txt'), as.is=T, header=T)
+betas <-read.table(paste0('~/height_prediction/gwas/WHI/output/AS_Beta_chr', chr, 'example.txt'), as.is=T, header=T)
 maps<-fread(paste0('zcat /project/mathilab/data/maps_b37/maps_chr.', chr, '.gz'))
-snps <- read.table(paste0("~/height_prediction/input/ukb_afr/UKB_kgCY_chr", chr, ".phsnp"), as.is=TRUE)
+snps <- read.table(paste0("~/height_prediction/input/WHI/WHI_b37_strand_include_kgCY_chr", chr, ".phsnp"), as.is=TRUE)
 colnames(snps) <- c("ID", "CHR", "Map", "POS", "REF", "ALT")
 betas <- cbind(snps, betas)
 setDT(betas)
@@ -61,8 +61,8 @@ for(i in 1:NROW(betas)){
     betas$CEU_YRI_diff.rate[i] <- abs(CEU.x-YRI.x)
 }
 betas$y <- abs(betas$POP1-betas$POP2)
-#At this point you will restrict the betas to the SNPS that you are using in the PRS. 
-betas<-betas[which(betas$POS %in% ID_posgrch37$POS),] 
+#At this point you will restrict the betas to the SNPS that you are using in the PRS
+betas<-betas[which(betas$POS %in% ID_posgrch37$POS),] #
 setkey(betas, CHR, POS)
 setkey(snp_list, CHR, POS)
 betas[snp_list[,.(CHR, POS, b,SE)]]-> betas
@@ -81,23 +81,23 @@ do.call(rbind, beta)-> beta
 setDT(beta)
 beta[order(CHR, POS)]-> beta
 as.factor(beta$CHR)-> beta$CHR
-pdf(paste0('~/height_prediction/gwas/ukb_afr/figs/all_chr_rate_against_AA_map_', args[2], '.pdf'))
+pdf(paste0('~/height_prediction/gwas/WHI/figs/all_chr_rate_against_AA_map_', args[2], '.pdf'))
 ggplot(beta, aes(x=AA.rate, y=Beta_Diff_Chisq)) + geom_point() + geom_smooth(method='lm') + facet_wrap(~CHR, nrow=5, scales='free') 
 dev.off()
 
 #Plot against AA map - no significant effect! If anything a negative effect. 
-pdf(paste0("~/height_prediction/gwas/ukb_afr/figs/all_chr_rate_against_Diff_map_", args[2], ".pdf"))
-ggplot(beta, aes(x=CEU_YRI_diff.rate,y=Beta_Diff_Chisq)) + geom_point() + geom_smooth(method='lm') + ggtitle(paste0(args[2], " distance"))
+pdf(paste0("~/height_prediction/gwas/WHI/figs/all_chr_rate_against_Diff_map_", args[2], ".pdf"))
+ggplot(beta, aes(x=CEU_YRI_diff.rate,y=Beta_Diff_Chisq)) + geom_point() + geom_smooth(method='lm') + ggtitle(paste0(args[2], " distance WHI"))
 dev.off()
 
-pdf(paste0("~/height_prediction/gwas/ukb_afr/figs/all_chr_rate_against_AA_map_combined", args[2], ".pdf"))
-ggplot(beta[AA.rate<=0.05], aes(x=AA.rate, y=Beta_Diff_Chisq)) + geom_point() + geom_smooth(method='lm') + ggtitle(paste0(args[2], " distance"))
+pdf(paste0("~/height_prediction/gwas/WHI/figs/all_chr_rate_against_AA_map_combined", args[2], ".pdf"))
+ggplot(beta[AA.rate<=0.05], aes(x=AA.rate, y=Beta_Diff_Chisq)) + geom_point() + geom_smooth(method='lm') + ggtitle(paste0(args[2], " distance WHI"))
 dev.off()
 
-pdf(paste0("~/height_prediction/gwas/ukb_afr/figs/all_chr_rate_against_CEU_map_combined", args[2], ".pdf"))
-ggplot(beta[CEU.rate<=0.05], aes(x=CEU.rate, y=Beta_Diff_Chisq)) + geom_point() + geom_smooth(method='lm') + ggtitle(paste0(args[2], " distance"))
+pdf(paste0("~/height_prediction/gwas/WHI/figs/all_chr_rate_against_CEU_map_combined", args[2], ".pdf"))
+ggplot(beta[CEU.rate<=0.05], aes(x=CEU.rate, y=Beta_Diff_Chisq)) + geom_point() + geom_smooth(method='lm') + ggtitle(paste0(args[2], " distance WHI"))
 dev.off()
 
-saveRDS(beta, file=paste0('~/height_prediction/gwas/ukb_afr/output/betas_', args[1], '_', args[2], '.Rds'))
+saveRDS(beta, file=paste0('~/height_prediction/gwas/WHI/output/betas_', args[1], '_', args[2], '.Rds'))
 
 

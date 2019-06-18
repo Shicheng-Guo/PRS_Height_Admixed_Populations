@@ -85,9 +85,12 @@ library(qqman)
 combo_local[, P_all:=2*(pt(abs(Tstat_all), df=N-13, lower.tail=F))]
 combo_local[, P_pop1:=2*(pt(abs(Tstat_pop1), df=N-13, lower.tail=F))]
 combo_local[, P_pop2:=2*(pt(abs(Tstat_pop2), df=N-13, lower.tail=F))]
-combo_local[, P_all_GC:= pchisq(qchisq(P_all, df=1)/qchisq(0.5, df=1), df=1)]
-combo_local[, P_pop1_GC:= pchisq(qchisq(P_pop1, df=1)/qchisq(0.5, df=1), df=1)]
-combo_local[, P_pop2_GC:= pchisq(qchisq(P_pop2, df=1)/qchisq(0.5, df=1), df=1)]
+lamb<- median(qchisq(P_all, df=1))/qchisq(0.5, df=1)
+combo_local[, P_all_GC:= pchisq(qchisq(P_all, df=1)/lamb, df=1)]
+lamb1<- median(qchisq(P_pop1, df=1))/qchisq(0.5, df=1)
+combo_local[, P_pop1_GC:= pchisq(qchisq(P_pop1, df=1)/lamb1, df=1)]
+lamb2<- median(qchisq(P_pop2, df=1))/qchisq(0.5, df=1)
+combo_local[, P_pop2_GC:= pchisq(qchisq(P_pop2, df=1)/lamb2, df=1)]
 
 df2<-combo_local[,.(CHR,POS,MarkerName,GC)]
 df2[,BP:=POS][,POS:=NULL]

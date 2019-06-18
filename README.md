@@ -25,3 +25,51 @@ WHI, JHS, etc: names of datasets
 *scripts and READMEs: should be pushed to repo.
 
 Note: This will be updated as needed.
+####
+*Select SNPs and prepare the data*
+```
+for D in JHS WHI pennBB_afr pennBB_eur ukb_afr ukb_eur HRS_eur;
+do
+Rscript --vanilla ~/height_prediction/scripts/make_vcf.R temp sib_betas $D
+Rscript --vanilla ~/height_prediction/scripts/make_vcf.R temp gwas $D
+done
+``
+*Prune using different methods* #[ongoing]
+```
+*Prune
+
+```
+for D in JHS WHI pennBB_afr pennBB_eur ukb_afr ukb_eur HRS_eur;
+do
+~/height_prediction/scripts/LD_prun.bash sib_betas $D
+~/height_prediction/scripts/LD_prun.bash gwas $D
+done
+```
+
+*Combine
+```
+for D in JHS WHI pennBB_afr pennBB_eur ukb_afr ukb_eur HRS_eur;
+do
+~/height_prediction/scripts/combine_Rds_v2.sh sib_betas $D
+~/height_prediction/scripts/combine_Rds_v2.sh gwas $D
+done
+```
+
+*Run polygenic scores*
+
+```
+for D in JHS WHI pennBB_afr pennBB_eur ukb_afr ukb_eur HRS_eur;
+do
+~/height_prediction/scripts/calc_PGS.sh sib_betas $D
+~/height_prediction/scripts/calc_PGS.sh gwas $D
+done
+```
+
+*Combine PGS results
+
+for D in JHS WHI pennBB_afr pennBB_eur ukb_afr ukb_eur HRS_eur;
+do
+~/height_prediction/scripts/combine_Rds_PGS.sh sib_betas $D
+~/height_prediction/scripts/combine_Rds_PGS.sh gwas $D
+done
+```

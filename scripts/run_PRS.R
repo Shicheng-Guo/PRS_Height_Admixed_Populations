@@ -60,7 +60,7 @@ cat('Got SNP IDs, CHR and POS.\n')
 if((args[3] %in% c("LD_50000_0.01_0.5", "LD_100000_0.01_0.5", "LD_250000_0.01_0.5"))){
        hei<-vector('list', 22)
        for(Z in 1:22){
-             	fread(paste0('zcat ',home, args[1], '/', args[2],'/output/hei_SNPs_chr', Z, '.vcf.gz'), header=T)-> hei[[Z]]
+             	fread(paste0('zcat ',home, args[1], '/', args[2],'/output/hei_chr', Z, '.vcf.gz'), header=T)-> hei[[Z]]
                 colnames(hei[[Z]])<-unlist(fread(paste0(home, 'input/header_', args[2], '.txt'), header=F, sep="\t"))
                 colnames(hei[[Z]])[1]<-'CHR'
 		colnames(hei[[Z]])[3]<-'MarkerName'
