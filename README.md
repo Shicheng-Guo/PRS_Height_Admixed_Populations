@@ -73,3 +73,10 @@ do
 ~/height_prediction/scripts/combine_Rds_PGS.sh gwas $D
 done
 ```
+
+
+*Plots
+
+bsub -M 100000 Rscript --vanilla ~/height_prediction/sib_betas/WHI/scripts/Plots_WHI.R
+bsub -M 100000 -e ~/height_prediction/gwas/WHI/logs/logplot -o ~/height_prediction/gwas/WHI/logs/logplot Rscript --vanilla ~/height_prediction/gwas/WHI/scripts/Plots_WHI.R
+bsub -M 100000 Rscript --vanilla ~/height_prediction/sib_betas/JHS/scripts/Plots_WHI.R
