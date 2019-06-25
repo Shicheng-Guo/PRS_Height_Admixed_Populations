@@ -10,14 +10,14 @@ library(data.table)
 library(readr)
 
 #add ancestry
-what <- paste0("~/height_prediction/input/WHI/WHI_b37_strand_include_kgCY_chr", args[1])  #pop1 is AFR
-ancestry <- read_fwf(paste0(what, "_rfmix_out.0.Viterbi.txt"), fwf_empty(paste0(what, "_rfmix_out.0.Viterbi.txt")))
+what <- paste0("~/height_prediction/input/ukb_afr/UKB_kgCY_chr", args[1])  #pop1 is AFR
+ancestry <- read_fwf(paste0(what, "_rfmix_out.0.Viterbi.txt.gz"), fwf_empty(paste0(what, "_rfmix_out.0.Viterbi.txt.gz")))
 gc()
 
 ind<-read.table(paste0(what, ".phind"), as.is=TRUE)
 #Remove reference samples
-samples.to.include <- ind[,3]=="Case"
-ind <- ind[samples.to.include,]
+exclude.samples<-grep("\\bNA",ind$V1)
+ind <- ind[-exclude.samples,]
 
 indiv<-vector('list', ncol(ancestry))
 for(I in 1:ncol(ancestry)){
@@ -40,6 +40,5 @@ for(I in seq(from=1,to=length(indiv), by=2)){
 #admixture (obsolete)
 #anc_WHI<-cbind(fread('~/height_prediction/input/WHI/WHI_b37_strand_prune_include.2.Q'), fread('~/height_prediction/input/WHI/WHI_b37_strand_prune_include.fam')[,V2])
 #colnames(anc_WHI)<-c("AFR_ANC","EUR_ANC","SUBJID")
-anc_WHI<-data.table(AFR_ANC=unlist(indiv2), EUR_ANC=1-unlist(indiv2), SUBJID=as.integer(unique(gsub("_[A|B]", "",gsub("0:","",ind[,1])))), CHR=args[1])
-anc_WHI[,SUBJID:=paste0("0_", SUBJID)]
-fwrite(anc_WHI, file=paste0('~/height_prediction/input/WHI/rfmix_anc_chr',args[1], '.txt'), sep="\t")
+anc_UKB<-data.table(AFR_ANC=unlist(indiv2), EUR_ANC=1-unlist(indiv2), SUBJID=as.integer(unique(gsub("_[A|B]", "",gsub("[0-9]+:","",ind[,1])))), CHR=args[1])
+fwrite(anc_UKB, file=paste0('~/height_prediction/input/ukb_afr/rfmix_anc_chr',args[1], '.txt'), sep="\t")
