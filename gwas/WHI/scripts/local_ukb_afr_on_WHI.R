@@ -3,7 +3,11 @@ library(data.table)
 library(reshape2)
 library(asbio)
 library(ggplot2)
+library(dplyr)
+library(parallel)
 #########################
+source('~/height_prediction/strat_prs/scripts/Rsq_R2.R')
+########################
 PolScore<- function(beta='all'){
         samps<-colnames(prun2)[9:(ncol(prun2)-11)]
         setDT(prun2)
@@ -50,89 +54,112 @@ PolScore<- function(beta='all'){
 	if(beta==2){
                 if(nrow(temp1)>0 & nrow(temp2)>0){
                for(i  in samps){
-                        sum(temp1[which(temp1[,i, with=F]=="0/0"),b2]*0) + sum(temp1[which(temp1[,i,with=F]=="0/1"),b2]*1) + sum(temp1[which(temp1[,i,with=F]=="1/0"),b2]*1) + sum(temp1[which(temp1[,i,with=F]=="1/1"),b2]*2)-> temp_list[[i]]
-                        temp_list[[i]] + sum(temp2[which(temp2[,i, with=F]=="0/0"),b2]*2) + sum(temp2[which(temp2[,i,with=F]=="0/1"),b2]*1) + sum(temp2[which(temp2[,i,with=F]=="1/0"),b2]*1) + sum(temp2[which(temp2[,i,with=F]=="1/1"),b2]*0)-> temp_list[[i]]
+                        sum(temp1[which(temp1[,i, with=F]=="0/0"),b2]*0, na.rm=T) + sum(temp1[which(temp1[,i,with=F]=="0/1"),b2]*1, na.rm=T) + sum(temp1[which(temp1[,i,with=F]=="1/0"),b2]*1, na.rm=T) + sum(temp1[which(temp1[,i,with=F]=="1/1"),b2]*2, na.rm=T)-> temp_list[[i]]
+                        temp_list[[i]] + sum(temp2[which(temp2[,i, with=F]=="0/0"),b2]*2, na.rm=T) + sum(temp2[which(temp2[,i,with=F]=="0/1"),b2]*1, na.rm=T) + sum(temp2[which(temp2[,i,with=F]=="1/0"),b2]*1, na.rm=T) + sum(temp2[which(temp2[,i,with=F]=="1/1"),b2]*0, na.rm=T)-> temp_list[[i]]
                 }
         } else if (nrow(temp1)>0){
                 for(i in samps){
-                        sum(temp1[which(temp1[,i, with=F]=="0/0"),b2]*0) + sum(temp1[which(temp1[,i,with=F]=="0/1"),b2]*1) + sum(temp1[which(temp1[,i,with=F]=="1/0"),b2]*1) + sum(temp1[which(temp1[,i,with=F]=="1/1"),b2]*2)-> temp_list[[i]]
+                        sum(temp1[which(temp1[,i, with=F]=="0/0"),b2]*0, na.rm=T) + sum(temp1[which(temp1[,i,with=F]=="0/1"),b2]*1, na.rm=T) + sum(temp1[which(temp1[,i,with=F]=="1/0"),b2]*1, na.rm=T) + sum(temp1[which(temp1[,i,with=F]=="1/1"),b2]*2, na.rm=T)-> temp_list[[i]]
                 }
         } else if (nrow(temp2)>0){
                 for(i in samps){
-                        sum(temp2[which(temp2[,i, with=F]=="0/0"),b2]*2) + sum(temp2[which(temp2[,i,with=F]=="0/1"),b2]*1) + sum(temp2[which(temp2[,i,with=F]=="1/0"),b2]*1) + sum(temp2[which(temp2[,i,with=F]=="1/1"),b2]*0)-> temp_list[[i]]
+                        sum(temp2[which(temp2[,i, with=F]=="0/0"),b2]*2, na.rm=T) + sum(temp2[which(temp2[,i,with=F]=="0/1"),b2]*1, na.rm=T) + sum(temp2[which(temp2[,i,with=F]=="1/0"),b2]*1, na.rm=T) + sum(temp2[which(temp2[,i,with=F]=="1/1"),b2]*0, na.rm=T)-> temp_list[[i]]
                 }
         }
 	}
+	if(beta=='plink'){
+                if(nrow(temp1)>0 & nrow(temp2)>0){
+               for(i  in samps){
+                        sum(temp1[which(temp1[,i, with=F]=="0/0"),BETA]*0, na.rm=T) + sum(temp1[which(temp1[,i,with=F]=="0/1"),BETA]*1, na.rm=T) + sum(temp1[which(temp1[,i,with=F]=="1/0"),BETA]*1, na.rm=T) + sum(temp1[which(temp1[,i,with=F]=="1/1"),BETA]*2, na.rm=T)-> temp_list[[i]]
+                        temp_list[[i]] + sum(temp2[which(temp2[,i, with=F]=="0/0"),BETA]*2, na.rm=T) + sum(temp2[which(temp2[,i,with=F]=="0/1"),BETA]*1, na.rm=T) + sum(temp2[which(temp2[,i,with=F]=="1/0"),BETA]*1, na.rm=T) + sum(temp2[which(temp2[,i,with=F]=="1/1"),BETA]*0, na.rm=T)-> temp_list[[i]]
+                }
+        } else if (nrow(temp1)>0){
+                for(i in samps){
+                        sum(temp1[which(temp1[,i, with=F]=="0/0"),BETA]*0, na.rm=T) + sum(temp1[which(temp1[,i,with=F]=="0/1"),BETA]*1, na.rm=T) + sum(temp1[which(temp1[,i,with=F]=="1/0"),BETA]*1, na.rm=T) + sum(temp1[which(temp1[,i,with=F]=="1/1"),BETA]*2, na.rm=T)-> temp_list[[i]]
+                }
+        } else if (nrow(temp2)>0){
+                for(i in samps){
+                        sum(temp2[which(temp2[,i, with=F]=="0/0"),BETA]*2, na.rm=T) + sum(temp2[which(temp2[,i,with=F]=="0/1"),BETA]*1, na.rm=T) + sum(temp2[which(temp2[,i,with=F]=="1/0"),BETA]*1, na.rm=T) + sum(temp2[which(temp2[,i,with=F]=="1/1"),BETA]*0, na.rm=T)-> temp_list[[i]]
+                }
+        }
+        }
 #acollect sample names for this population from 1000G data.
         return(temp_list)
 }
 
-#########################
+########################
 
-###########
-rsq.R2 <- function(formula1, formula2, data, indices) {
-  d <- data[indices,] # allows boot to select sample
-  fit <- lm(formula1, data=d)
-  fit2<- lm(formula2, data=d)
-  res<-partial.R2(fit, fit2)
-  return(res)
-}
-##############
-
-res<-vector('list', 22)
-
-for(args in 1:22){
-
-#args<-22
-	what <- paste0("~/height_prediction/input/ukb_afr/UKB_kgCY_chr", args)
-
-	betas<-fread(paste0('~/height_prediction/gwas/ukb_afr/output/AS_Beta_chr', args,'example.txt'))
-
-	prun<-setDT(readRDS('~/height_prediction/gwas/WHI/output/hei_phys_100000_0.0005_v2.Rds')[[args]])
-
-	fread(paste0('~/height_prediction/input/ukb_afr/UKB_kgCY_chr',args, '.phsnp'))-> snps
-	colnames(snps)<-c("ID", "CHR", "V3", "POS","REF","ALT")
-
-	tag='phys_100000_0.0005'
-
-	cbind(betas, snps)-> betas2
-	data<-betas2[which(betas2[, POS] %in% prun[, POS]),]
-	prun[POS %in% betas2[, POS]]-> prun2
-	#data$POS==prun2$POS
-	prun2[, b1:=data$POP1]
-	prun2[, b2:=data$POP2]
-	prun2[, b3:=data$ALL]
-
-	res[[args]]<-vector('list', 3)
-
-	test<-PolScore(beta=1)
-	test2<-PolScore(beta=2)
-	test3<-PolScore(beta='all')
-	res[[args]][[1]]<-test
-	res[[args]][[2]]<-test2
-	res[[args]][[3]]<-test3
-	cat('chr ', args, ' done\n')
+short_fun<-function(args=22){
+        what <- paste0("~/height_prediction/input/ukb_afr/UKB_kgCY_chr", args)
+        betas<-fread(paste0('~/height_prediction/gwas/ukb_afr/output/AS_Beta_chr', args,'example.txt'))
+        prun<-setDT(readRDS('~/height_prediction/gwas/WHI/output/hei_phys_100000_0.0005_v2.Rds')[[args]])
+        fread(paste0(what, '.phsnp'))-> snps
+        colnames(snps)<-c("ID", "CHR", "V3", "POS","REF","ALT")
+        tag='phys_100000_0.0005'
+        cbind(betas, snps)-> betas2
+        data<-betas2[which(betas2[, POS] %in% prun[, POS]),]
+        prun[POS %in% betas2[, POS]]-> prun2
+        #data$POS==prun2$POS
+        prun2[, b1:=data$POP1]
+        prun2[, b2:=data$POP2]
+        prun2[, b3:=data$ALL]
+        res[[args]]<-vector('list', 4)
+	final_plink[CHR==args]-> plink
+	setkey(plink, CHR, POS)
+	prun2[plink, nomatch=0]-> prun2
+        test<-PolScore(beta=1)
+        test2<-PolScore(beta=2)
+        test3<-PolScore(beta='all')
+	test4<-PolScore(beta='plink')
+	return(list(test1,test2,test3,test4))
 }
 
-saveRDS(res, file="~/height_prediction/gwas/WHI/output/all_prs.Rds")
+plink<-fread('~/height_prediction/runSmartpCA-master/UKB_AFR/association_v3.Res.Height.glm.linear.adjusted', header=T, fill=T)
+colnames(plink)[2]<-'MarkerName'
+colnames(plink)[1]<-'CHR'
+N<-8816*2
+#
+plink2<-fread('~/height_prediction/runSmartpCA-master/UKB_AFR/test3.txt', fill=T)
+colnames(plink2)<-c("CHR","POS", "MarkerName","REF","ALT","A1","TEST"," OBS_CT","BETA", "SE","T_STAT", "UNADJ")
+setkey(plink, MarkerName, CHR, UNADJ)
+setkey(plink2, MarkerName, CHR, UNADJ)
+plink[plink2, nomatch=0]-> final_plink
+final_plink$CHR<-as.numeric(final_plink$CHR)
+arrange(final_plink, CHR,POS) %>% as.data.table -> final_plink
+setkey(final_plink, MarkerName, CHR, POS)
 
-data.table(SUBJID=names(test), 
+mclapply(1:22, function(X) short_fun(args=X))-> res
+
+
+#saveRDS(res, file="~/height_prediction/gwas/WHI/output/all_prs.Rds")
+
+saveRDS(res, file="~/height_prediction/gwas/WHI/output/all_prs_v2.Rds")
+
+data.table(SUBJID=names(res[[1]][[1]]), 
 PRS_POP1=(unlist(res[[1]][[1]])+unlist(res[[2]][[1]])+unlist(res[[3]][[1]])+unlist(res[[4]][[1]])+unlist(res[[5]][[1]])+unlist(res[[6]][[1]])+unlist(res[[7]][[1]])+unlist(res[[8]][[1]])+unlist(res[[9]][[1]])+unlist(res[[10]][[1]])+unlist(res[[11]][[1]])+unlist(res[[12]][[1]])+unlist(res[[13]][[1]])+unlist(res[[14]][[1]])+unlist(res[[15]][[1]])+unlist(res[[16]][[1]])+unlist(res[[17]][[1]])+ unlist(res[[18]][[1]])+unlist(res[[19]][[1]])+unlist(res[[20]][[1]])+unlist(res[[21]][[1]])+unlist(res[[22]][[1]])), 
 PRS_POP2=(unlist(res[[1]][[2]])+unlist(res[[2]][[2]])+unlist(res[[3]][[2]])+unlist(res[[4]][[2]])+unlist(res[[5]][[2]])+unlist(res[[6]][[2]])+unlist(res[[7]][[2]])+unlist(res[[8]][[2]])+unlist(res[[9]][[2]])+unlist(res[[10]][[2]])+unlist(res[[11]][[2]])+unlist(res[[12]][[2]])+unlist(res[[13]][[2]])+unlist(res[[14]][[2]])+unlist(res[[15]][[2]])+unlist(res[[16]][[2]])+unlist(res[[17]][[2]])+ unlist(res[[18]][[2]])+unlist(res[[19]][[2]])+unlist(res[[20]][[2]])+unlist(res[[21]][[2]])+unlist(res[[22]][[2]])), 
 PRS_all=(unlist(res[[1]][[3]])+unlist(res[[2]][[3]])+unlist(res[[3]][[3]])+unlist(res[[4]][[3]])+unlist(res[[5]][[3]])+unlist(res[[6]][[3]])+unlist(res[[7]][[3]])+unlist(res[[8]][[3]])+unlist(res[[9]][[3]])+unlist(res[[10]][[3]])+unlist(res[[11]][[3]])+unlist(res[[12]][[3]])+unlist(res[[13]][[3]])+unlist(res[[14]][[3]])+unlist(res[[15]][[3]])+unlist(res[[16]][[3]])+unlist(res[[17]][[3]])+ unlist(res[[18]][[3]])+unlist(res[[19]][[3]])+unlist(res[[20]][[3]])+unlist(res[[21]][[3]])+unlist(res[[22]][[3]])), 
 PRS_EUR=unlist(readRDS('~/height_prediction/gwas/WHI/output/PGS_WHI_phys_100000_0.0005.Rds')))-> a
 
+a[, PRS_POP1:=scale(PRS_POP1)]
+a[, PRS_POP2:=scale(PRS_POP2)]
+a[, PRS_all:=scale(PRS_all)]
+a[, PRS_EUR:=scale(PRS_EUR)]
 
 fread('~/height_prediction/input/WHI/WHI_phenotypes.txt')-> Pheno_WHI
 
 Pheno_WHI[, SUBJID:=paste0("0_", as.character(Pheno_WHI[, SUBJID]))]
 setkey(Pheno_WHI, SUBJID)
 #add ancestry
+#admixture, obsolete
 
-anc_WHI<-cbind(fread('~/height_prediction/input/WHI/WHI_b37_strand_prune_include.2.Q'), fread('~/height_prediction/input/WHI/WHI_b37_strand_prune_include.fam')[,V2])
-colnames(anc_WHI)<-c("AFR_ANC","EUR_ANC","SUBJID")
-anc_WHI[,SUBJID:=paste0("0_", SUBJID)]
+ancestry<-do.call(rbind, lapply(1:22, function(X) fread(paste0('~/height_prediction/input/WHI/rfmix_anc_chr', X, '.txt'))))
+
+anc_WHI<-ancestry %>% group_by(SUBJID) %>% summarise(AFR_ANC=mean(AFR_ANC), EUR_ANC=1-mean(AFR_ANC)) %>% as.data.table #mean across chromosomes for each individual
+
 setkey(anc_WHI, SUBJID)
+
+##
 setkey(a, SUBJID)
 setkey(Pheno_WHI, SUBJID)
 
@@ -143,15 +170,21 @@ final[,c("SUBJID","PRS_POP1","PRS_POP2","PRS_all", "PRS_EUR", "SEX", "HEIGHTX", 
 #ok, so for ukb_afr and WHI (both), POP1 is AFR
 cat('another checkpoint\n')
 
-final2[,AGE2:=AGE^2][, PRS_eur_afr:=((mean(EUR_ANC)*scale(PRS_EUR))+(mean(AFR_ANC)*scale(PRS_POP1)))]
+
+final2[,AGE2:=AGE^2][, PRS_eur_afr:=(mean(EUR_ANC)*(PRS_EUR))+(mean(AFR_ANC)*PRS_all)]
 
 
-partial.R2(lm(HEIGHTX~AGE+AGE2+EUR_ANC, data=final2), lm(HEIGHTX~AGE+AGE2+EUR_ANC+PRS_EUR, data=final2)) #4.1%
-partial.R2(lm(HEIGHTX~AGE+AGE2+EUR_ANC, data=final2), lm(HEIGHTX~AGE+AGE2+EUR_ANC+PRS_all, data=final2)) #0.005676512%
-partial.R2(lm(HEIGHTX~AGE+AGE2+EUR_ANC, data=final2), lm(HEIGHTX~AGE+AGE2+EUR_ANC+PRS_POP1, data=final2)) #0.003577538 %
-partial.R2(lm(HEIGHTX~AGE+AGE2+EUR_ANC, data=final2), lm(HEIGHTX~AGE+AGE2+EUR_ANC+PRS_POP2, data=final2)) #0.03868322%
+partial.R2(lm(HEIGHTX~AGE+AGE2+EUR_ANC, data=final2), lm(HEIGHTX~AGE+AGE2+EUR_ANC+PRS_EUR, data=final2))*100 #4.1%
+partial.R2(lm(HEIGHTX~AGE+AGE2+EUR_ANC, data=final2), lm(HEIGHTX~AGE+AGE2+EUR_ANC+PRS_all, data=final2))*100 #0.015%
+partial.R2(lm(HEIGHTX~AGE+AGE2+EUR_ANC, data=final2), lm(HEIGHTX~AGE+AGE2+EUR_ANC+PRS_POP1, data=final2))*100 #0.0019 %
+partial.R2(lm(HEIGHTX~AGE+AGE2+EUR_ANC, data=final2), lm(HEIGHTX~AGE+AGE2+EUR_ANC+PRS_POP2, data=final2))*100 #0.04%
 
-partial.R2(lm(HEIGHTX~AGE+AGE2+EUR_ANC, data=final2), lm(HEIGHTX~AGE+AGE2+EUR_ANC+PRS_eur_afr, data=final2)) #0.65%
+partial.R2(lm(HEIGHTX~AGE+AGE2+EUR_ANC, data=final2), lm(HEIGHTX~AGE+AGE2+EUR_ANC+PRS_eur_afr, data=final2))*100 #0.5%
+
+
+#read in plink betas
+
+combo_prs<-fread('/height_prediction/gwas/ukb_afr/output/combo_prs.Rds')
 
 
 a_vec<-seq(0,1,0.1)
