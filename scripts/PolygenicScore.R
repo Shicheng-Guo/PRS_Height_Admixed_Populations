@@ -18,7 +18,7 @@
 #NOTE: WHI data and ubnphased genotypes
 home="~/height_prediction/"
 PolScore<- function(panel='sib_betas', panel2='WHI', tag='phys_100000_0.0005', CHR=22){
-	readRDS(paste0(home, panel, "/", panel2,  '/output/hei_', tag, '_v2.Rds'))-> hei
+	#readRDS(paste0(home, panel, "/", panel2,  '/output/hei_', tag, '_v2.Rds'))-> hei
         hei[[CHR]]-> hei2	
 	if(panel=='sib_betas'){
         	samps<-colnames(hei2)[9:(ncol(hei2)-6)]
@@ -29,20 +29,28 @@ PolScore<- function(panel='sib_betas', panel2='WHI', tag='phys_100000_0.0005', C
         hei2[REF==Allele1]-> temp2 #im ignoring the other two rows for now
         vector('list', length(samps))-> temp_list
         names(temp_list)<-samps
+	
+	cat('Number of samples is', length(samps), '\n')
         if(nrow(temp1)>0 & nrow(temp2)>0){
+	counter<-0
                for(i  in samps){
                         sum(temp1[which(temp1[,i, with=F]=="0/0"),b]*0) + sum(temp1[which(temp1[,i,with=F]=="0/1"),b]*1) + sum(temp1[which(temp1[,i,with=F]=="1/0"),b]*1) + sum(temp1[which(temp1[,i,with=F]=="1/1"),b]*2)-> temp_list[[i]]
                         temp_list[[i]] + sum(temp2[which(temp2[,i, with=F]=="0/0"),b]*2) + sum(temp2[which(temp2[,i,with=F]=="0/1"),b]*1) + sum(temp2[which(temp2[,i,with=F]=="1/0"),b]*1) + sum(temp2[which(temp2[,i,with=F]=="1/1"),b]*0)-> temp_list[[i]]
+		counter<-counter+1
+		cat(counter,'\r')
                 }
+	cat('Finished first for loop\n')
         } else if (nrow(temp1)>0){
                 for(i in samps){
                         sum(temp1[which(temp1[,i, with=F]=="0/0"),b]*0) + sum(temp1[which(temp1[,i,with=F]=="0/1"),b]*1) + sum(temp1[which(temp1[,i,with=F]=="1/0"),b]*1) + sum(temp1[which(temp1[,i,with=F]=="1/1"),b]*2)-> temp_list[[i]]
                 }
+	cat('Finished second  for loop\n')
         } else if (nrow(temp2)>0){
                 for(i in samps){
                         sum(temp2[which(temp2[,i, with=F]=="0/0"),b]*2) + sum(temp2[which(temp2[,i,with=F]=="0/1"),b]*1) + sum(temp2[which(temp2[,i,with=F]=="1/0"),b]*1) + sum(temp2[which(temp2[,i,with=F]=="1/1"),b]*0)-> temp_list[[i]]
                 }
         }
+	        cat('Finished third  for loop\n')
 #acollect sample names for this population from 1000G data.
         return(temp_list)
 }

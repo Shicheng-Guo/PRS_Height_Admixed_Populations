@@ -14,10 +14,12 @@ LD_prun<-function(W=NULL,p_thresh=NULL, dis=opt$method, CHR=opt$chromosome, r2=N
 	cat('Method is ', dis, "\n")
 	cat('Chromosome is ', CHR, "\n")
 	if (dis =='phys'){   
+		tp[p<=p_thresh]-> tp
 		tp %>% dplyr::arrange(p) %>% as.data.table-> tp
 		tp[1,POS]->p1
 		tp[, Dist:=abs(POS-p1)]
 	} else if (dis == 'genet'){
+		tp[p<=p_thresh]-> tp
 		fread(paste0('zcat /project/mathilab/data/maps/hm2/hm2/genetic_map_GRCh37_chr', CHR,'.txt.gz'))[,CHR:=gsub("chr","",Chromosome)][, Chromosome:=NULL]-> rec
 		colnames(rec)<-c('POS', 'RATE_cM_Mb', 'MAP_cM', 'CHR')
 		rec[, MAP_bp:=POS-POS[1]]

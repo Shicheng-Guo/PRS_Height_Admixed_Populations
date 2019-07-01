@@ -3,7 +3,7 @@ args = commandArgs(trailingOnly=TRUE)
 #**************************************
 #*      CALCULATE POLYGENIC SCORES   **
 #**************************************
-source('~/height_prediction/scripts/PolygenicScore.R')
+source('~/height_prediction/scripts/PolygenicScore_v2.R')
 library("optparse")
 library(data.table)
 library(dplyr)
@@ -60,8 +60,8 @@ cat('Got SNP IDs, CHR and POS.\n')
 if((args[3] %in% c("LD_50000_0.01_0.5", "LD_100000_0.01_0.5", "LD_250000_0.01_0.5"))){
        hei<-vector('list', 22)
        for(Z in 1:22){
-             	fread(paste0('zcat ',home, args[1], '/', args[2],'/output/hei_chr', Z, '.vcf.gz'), header=T)-> hei[[Z]]
-                colnames(hei[[Z]])<-unlist(fread(paste0(home, 'input/header_', args[2], '.txt'), header=F, sep="\t"))
+             	fread(paste0('zcat ',home, args[1], '/', args[2],'/output/hei_SNPs_chr', Z, '.vcf.gz'), header=T)-> hei[[Z]]
+                colnames(hei[[Z]])<-unlist(fread(paste0(home, 'input/', args[2], '/header_', args[2], '.txt'), header=F, sep="\t"))
                 colnames(hei[[Z]])[1]<-'CHR'
 		colnames(hei[[Z]])[3]<-'MarkerName'
 		unique(hei[[Z]], by=c('CHR','POS'))-> hei[[Z]]
@@ -78,13 +78,16 @@ if((args[3] %in% c("LD_50000_0.01_0.5", "LD_100000_0.01_0.5", "LD_250000_0.01_0.
 	cat('another checkpoint\n')
 } else{
         saveRDS(snp_list, file=paste0(home, args[1], '/', args[2],'/output/hei_', args[3], '_v2.Rds'))
+	snp_list-> hei
+	remove(snp_list)
+	gc()
 }
 cat('checkpoint 3\n')
 PGS<-vector('list',22)
 names(PGS)<-c(1:22)
 for (CR in 1:22){
 	print(paste0("Chromosome is ", CR))
-        try(PolScore(CHR=CR, panel=args[1], panel2=args[2], tag=args[3]))-> PGS[[CR]]
+        try(PolScore2(CHR=CR, panel=args[1], panel2=args[2], tag=args[3]))-> PGS[[CR]]
         cat(paste0(CR, '  done\n'))
 }
 
