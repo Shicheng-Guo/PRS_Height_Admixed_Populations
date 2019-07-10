@@ -18,28 +18,25 @@ library(boot)
 #combine all
 
 ##
-readRDS('WHI/results.WHI.Rds')-> results.WHI
-readRDS('JHS/results.JHS.Rds')-> results.JHS
-readRDS('pennBB_afr/results.pennBB_afr.Rds')-> results.pennBB_afr
-readRDS('pennBB_eur/results.pennBB_eur.Rds')-> results.pennBB_eur
-readRDS('ukb_afr/results.UKB_afr.Rds')-> results.UKB_afr
-readRDS('ukb_eur/results.UKB_eur.Rds')-> results.UKB_eur
-readRDS('WHI/B_WHI.Rds')->B_WHI
-readRDS('JHS/B_JHS.Rds')->B_JHS
-readRDS('pennBB_afr/B_pennBB_afr.Rds')-> B_pennBB_afr
-readRDS('pennBB_eur/B_pennBB_eur_v2.Rds')-> B_pennBB_eur
-readRDS('ukb_eur/B_UKB_eur_v2.Rds')->B_UKB_eur
-readRDS('ukb_afr/B_UKB_afr.Rds')-> B_UKB_afr
-readRDS('pennBB_afr/PGS3_pennBB_afr.Rds')-> PGS3_pennBB_afr
-readRDS('pennBB_eur/PGS3_pennBB_eur.Rds')-> PGS3_pennBB_eur
-readRDS('ukb_afr/PGS3_UKB_afr.Rds')-> PGS3_UKB_afr
-readRDS('ukb_eur/PGS3_UKB_eur.Rds')-> PGS3_UKB_eur
-readRDS('WHI/PGS3_WHI.Rds')-> PGS3_WHI
-readRDS('JHS/PGS3_JHS.Rds')-> PGS3_JHS
+readRDS('~/height_prediction/gwas/WHI/output/results.WHI.Rds')-> results.WHI
+readRDS('~/height_prediction/gwas/JHS/output/results.JHS.Rds')-> results.JHS
+readRDS('~/height_prediction/gwas/ukb_afr/output/results.UKB_afr.Rds')-> results.UKB_afr
+readRDS('~/height_prediction/gwas/HRS_eur/output/results.HRS_eur.Rds')-> results.HRS_eur
+readRDS('~/height_prediction/gwas/HRS_afr/output/results.HRS_afr.Rds')-> results.HRS_afr
+readRDS('~/height_prediction/gwas/WHI/output/B_WHI.Rds')->B_WHI
+readRDS('~/height_prediction/gwas/JHS/output/B_JHS.Rds')->B_JHS
+readRDS('~/height_prediction/gwas/ukb_afr/output/B_UKB_afr.Rds')-> B_UKB_afr
+readRDS('~/height_prediction/gwas/HRS_eur/output/B_HRS_eur.Rds')-> B_HRS_eur
+readRDS('~/height_prediction/gwas/HRS_afr/output/B_HRS_afr.Rds')-> B_HRS_afr
+readRDS('~/height_prediction/gwas/ukb_afr/output/PGS3_UKB_afr.Rds')-> PGS3_UKB_afr
+readRDS('~/height_prediction/gwas/WHI/output/PGS3_WHI.Rds')-> PGS3_WHI
+readRDS('~/height_prediction/gwas/JHS/output/PGS3_JHS.Rds')-> PGS3_JHS
+readRDS('~/height_prediction/gwas/HRS_eur/output/PGS3_HRS_eur.Rds')-> PGS3_HRS_eur
+readRDS('~/height_prediction/gwas/HRS_afr/output/PGS3_HRS_afr.Rds')-> PGS3_HRS_afr
 
 for(I in names(B_JHS)){ #JHS lacks the LD prunning methods
-	ALL<-rbind(B_JHS[[I]][1:2,], B_WHI[[I]][1:5,], B_UKB_afr[[I]][1:4,], B_pennBB_afr[[I]][1:2,], B_UKB_eur[[I]], B_pennBB_eur[[I]])
-	rbind(ALL[!(Dataset %in% c('UKB_EUR', 'pennBB_EA'))], ALL[Dataset %in% c('UKB_EUR', 'pennBB_EA')][, Med_Eur_Anc:=1])-> ALL
+	ALL<-rbind(B_JHS[[I]][1:2,], B_WHI[[I]][1:4,], B_UKB_afr[[I]][1:4,],B_HRS_afr[[I]][1:3,],  B_HRS_eur[[I]])
+	#rbind(ALL[!(Dataset %in% c('UKB_EUR', 'pennBB_EA'))], ALL[Dataset %in% c('UKB_EUR', 'pennBB_EA')][, Med_Eur_Anc:=1])-> ALL
 	my_plot<-ggplot(ALL, aes(x=Med_Eur_Anc, y=R_sq,group=Dataset, colour=Dataset)) +
 	geom_point(size=1.5, shape=21, fill="white") +
 	geom_errorbar(aes(x=Med_Eur_Anc, group=Dataset, colour=Dataset,ymin=boots_perc_L, ymax=boots_perc_U), width=0.05, size=0.8) +
@@ -48,16 +45,16 @@ for(I in names(B_JHS)){ #JHS lacks the LD prunning methods
 	labs(title = "All Datasets") + ylab("R-squared")+ xlab("European Ancestry Proportion") +
 	theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15), axis.text.x=element_text(size=9), axis.text.y=element_text(size=9))
 	print(my_plot)
-	ggsave(paste0('figs/error_bars_all_v2_', I, '.png'))
+	ggsave(paste0('~/height_prediction/figs/error_bars_all_v2_', I, '.png'))
 }
 #
 ALL2<-vector('list', length(names(B_JHS)))
 names(ALL2)<-names(B_JHS)
 
 for(I in names(B_JHS)){
-	ALL2[[I]]<-rbind(B_JHS[[I]][1:2,],B_WHI[[I]][1:5,], B_UKB_afr[[I]][1:4,], B_pennBB_afr[[I]][1:2,], B_UKB_eur[[I]], B_pennBB_eur[[I]])
-	rbind(ALL2[[I]][!(Dataset %in% c('UKB_EUR', 'pennBB_EA'))], ALL2[[I]][Dataset %in% c('UKB_EUR', 'pennBB_EA')][, Med_Eur_Anc:=1])-> ALL2[[I]]
-	tmp<-1/c(var(results.JHS[[I]][[1]]$t), var(results.JHS[[I]][[2]]$t), var(results.WHI[[I]][[1]]$t), var(results.WHI[[I]][[2]]$t), var(results.WHI[[I]][[3]]$t), var(results.WHI[[I]][[4]]$t), var(results.WHI[[I]][[5]]$t), var(results.UKB_afr[[I]][[1]]$t),var(results.UKB_afr[[I]][[2]]$t), var(results.UKB_afr[[I]][[3]]$t), var(results.UKB_afr[[I]][[4]]$t), var(results.pennBB_afr[[I]][[1]]$t), var(results.pennBB_afr[[I]][[2]]$t), var(results.UKB_eur[[I]]$total$t), var(results.pennBB_eur[[I]]$total$t))  #weighing lm by boostrap replicates.
+	ALL2[[I]]<-rbind(B_JHS[[I]][1:2,], B_WHI[[I]][1:4,], B_UKB_afr[[I]][1:4,], B_HRS_afr[[I]][1:3,], B_HRS_eur[[I]])
+	#rbind(ALL2[[I]][!(Dataset %in% c('UKB_EUR', 'pennBB_EA'))], ALL2[[I]][Dataset %in% c('UKB_EUR', 'pennBB_EA')][, Med_Eur_Anc:=1])-> ALL2[[I]]
+	tmp<-1/c(var(results.JHS[[I]][[1]]$t), var(results.JHS[[I]][[2]]$t), var(results.WHI[[I]][[1]]$t), var(results.WHI[[I]][[2]]$t), var(results.WHI[[I]][[3]]$t), var(results.WHI[[I]][[4]]$t), var(results.UKB_afr[[I]][[1]]$t),var(results.UKB_afr[[I]][[2]]$t), var(results.UKB_afr[[I]][[3]]$t), var(results.UKB_afr[[I]][[4]]$t), var(results.HRS_eur[[I]]$t))  #weighing lm by boostrap replicates.
 	cbind(ALL2[[I]], W=tmp)-> ALL2[[I]]
 	my_plot2<-ggplot(ALL2[[I]], aes(x=Med_Eur_Anc, y=R_sq)) +
 		geom_point(size=1.5, shape=21, fill="white") + stat_smooth(method = "lm", mapping = aes(weight = W), col='black') +
@@ -65,37 +62,37 @@ for(I in names(B_JHS)){
 		labs(title = "All Datasets") + ylab("R-squared") + xlab("European Ancestry Proportion")+
 		theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15),  axis.text.x=element_text(size=9), axis.text.y=element_text(size=9))
 	print(my_plot2)
-	ggsave(paste0('figs/error_bars_all_v3_', I, '.png'))
+	ggsave(paste0('~/height_prediction/figs/error_bars_all_v3_', I, '.png'))
 }
 
 ALL2b<-vector('list', length(names(B_JHS)))
 names(ALL2b)<-names(B_JHS)
 
 for(I in names(B_JHS)){
-        ALL2b[[I]]<-rbind(B_JHS[[I]][1:2,], B_WHI[[I]][1:5,], B_UKB_afr[[I]][1:4,], B_pennBB_afr[[I]][1:2,], B_pennBB_eur[[I]])
-        rbind(ALL2b[[I]][!(Dataset %in% 'pennBB_EA')], ALL2b[[I]][Dataset %in% 'pennBB_EA'][, Med_Eur_Anc:=1])-> ALL2b[[I]]
-        tmp<-1/c(var(results.JHS[[I]][[1]]$t), var(results.JHS[[I]][[2]]$t),var(results.WHI[[I]][[1]]$t), var(results.WHI[[I]][[2]]$t), var(results.WHI[[I]][[3]]$t), var(results.WHI[[I]][[4]]$t), var(results.WHI[[I]][[5]]$t), var(results.UKB_afr[[I]][[1]]$t),var(results.UKB_afr[[I]][[2]]$t), var(results.UKB_afr[[I]][[3]]$t), var(results.UKB_afr[[I]][[4]]$t),var(results.pennBB_afr[[I]][[1]]$t), var(results.pennBB_afr[[I]][[2]]$t),var(results.pennBB_eur[[I]]$total$t))  #weighing lm by boostrap replicates.
-        cbind(ALL2b[[I]], W=tmp)-> ALL2b[[I]]
+	ALL2b[[I]]<-rbind(B_JHS[[I]][1:2,], B_WHI[[I]][1:4,], B_UKB_afr[[I]][1:4,], B_HRS_afr[[I]][1:3,], B_HRS_eur[[I]])
+       # rbind(ALL2b[[I]][!(Dataset %in% 'pennBB_EA')], ALL2b[[I]][Dataset %in% 'pennBB_EA'][, Med_Eur_Anc:=1])-> ALL2b[[I]]
+        tmp<-1/c(var(results.JHS[[I]][[1]]$t), var(results.JHS[[I]][[2]]$t), var(results.WHI[[I]][[1]]$t), var(results.WHI[[I]][[2]]$t), var(results.WHI[[I]][[3]]$t), var(results.WHI[[I]][[4]]$t), var(results.UKB_afr[[I]][[1]]$t),var(results.UKB_afr[[I]][[2]]$t), var(results.UKB_afr[[I]][[3]]$t), var(results.UKB_afr[[I]][[4]]$t), var(results.HRS_afr[[I]][[1]]$t), var(results.HRS_afr[[I]][[2]]$t), var(results.HRS_afr[[I]][[3]]$t),var(results.HRS_eur[[I]]$t))
+	cbind(ALL2b[[I]], W=tmp)-> ALL2b[[I]]
         my_plot2<-ggplot(ALL2b[[I]], aes(x=Med_Eur_Anc, y=R_sq)) +
                 geom_point(size=1.5, shape=21, fill="white") + stat_smooth(method = "lm", mapping = aes(weight = W), col='black') +
                 scale_color_brewer(palette="Dark2") +
                 labs(title = "All Datasets") + ylab("R-squared") + xlab("European Ancestry Proportion")+
                 theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15),  axis.text.x=element_text(size=9), axis.text.y=element_text(size=9))
         print(my_plot2)
-        ggsave(paste0('figs/error_bars_all_v3b_', I, '.png'))
+        ggsave(paste0('~/height_prediction/figs/error_bars_all_v3b_', I, '.png'))
 }
 
 
 for(I in names(B_JHS)){
         my_plot<-ggplot(ALL2[[I]], aes(x=Med_Eur_Anc, y=R_sq,colour=Dataset)) +
-        geom_point(size=1.5, shape=21, fill="white") + stat_smooth(data=ALL2[[I]][Dataset != "UKB_EUR"],method = "lm", mapping = aes(weight = W), col='black') +
+        geom_point(size=1.5, shape=21, fill="white") + stat_smooth(data=ALL2[[I]],,method = "lm", mapping = aes(weight = W), col='black') +
         geom_errorbar(aes(x=Med_Eur_Anc, group=Dataset, colour=Dataset,ymin=boots_perc_L, ymax=boots_perc_U), width=0.05, size=0.8) +
         #geom_line(color='lightgray')+
         geom_errorbarh(aes(x=Med_Eur_Anc, group=Dataset, colour=Dataset, xmin=HVB_L, xmax=HVB_U), width=0.05, size=0.5) +  scale_color_brewer(palette="Dark2")+
         labs(title = "All Datasets") + ylab("R-squared")+ xlab("European Ancestry Proportion") +
 	theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15), axis.text.x=element_text(size=9), axis.text.y=element_text(size=9))
         print(my_plot)
-        ggsave(paste0('figs/error_bars_all_v4_', I, '.png'))
+        ggsave(paste0('~/height_prediction/figs/error_bars_all_v4_', I, '.png'))
 }
 #
 
@@ -103,14 +100,15 @@ ALL3<-vector('list', length(names(B_JHS)))
 names(ALL3)<- names(B_JHS)
 
 for (I in names(B_JHS)){
-	ALL3[[I]]<-rbind(B_JHS[[I]][1:2,], B_WHI[[I]][1:5,],B_UKB_afr[[I]][1:4,], B_pennBB_afr[[I]][1:2,], B_UKB_eur[[I]], B_pennBB_eur[[I]])
-	rbind(ALL3[[I]][!(Dataset %in% c('UKB_EUR', 'pennBB_EA'))], ALL3[[I]][Dataset %in% c('UKB_EUR', 'pennBB_EA')][, Med_Eur_Anc:=1])-> ALL3[[I]]
+	ALL3[[I]]<-rbind(B_JHS[[I]][1:2,], B_WHI[[I]][1:4,], B_UKB_afr[[I]][1:4,],B_HRS_afr[[I]][1:3,], B_HRS_eur[[I]])
+	#rbind(ALL3[[I]][!(Dataset %in% c('UKB_EUR', 'pennBB_EA'))], ALL3[[I]][Dataset %in% c('UKB_EUR', 'pennBB_EA')][, Med_Eur_Anc:=1])-> ALL3[[I]]
 	ALL3[[I]][,Set:=I]
 	tmp<-lm(R_sq~Med_Eur_Anc,weights=1/
-	c(var(results.JHS[[I]][[1]]$t),var(results.JHS[[I]][[2]]$t), var(results.WHI[[I]][[1]]$t), var(results.WHI[[I]][[2]]$t), var(results.WHI[[I]][[3]]$t), var(results.WHI[[I]][[4]]$t), var(results.WHI[[I]][[5]]$t),var(results.UKB_afr[[I]][[1]]$t),var(results.UKB_afr[[I]][[2]]$t), var(results.UKB_afr[[I]][[3]]$t), var(results.UKB_afr[[I]][[4]]$t), var(results.pennBB_afr[[I]][[1]]$t),var(results.pennBB_afr[[I]][[2]]$t), var(results.UKB_eur[[I]]$total$t), var(results.pennBB_eur[[I]]$total$t)), data=ALL3[[I]])  #weight lm
-	readRDS('Nr_SNPs_WHI.Rds')[Name==I][, Nr]->a
-	readRDS('Nr_SNPs_UKB.Rds')[Name==I][, Nr]->b
-	readRDS('Nr_SNPs_JHS.Rds')[Name==I][, Nr]->d
+	c(var(results.JHS[[I]][[1]]$t), var(results.JHS[[I]][[2]]$t), var(results.WHI[[I]][[1]]$t), var(results.WHI[[I]][[2]]$t), var(results.WHI[[I]][[3]]$t), var(results.WHI[[I]][[4]]$t), var(results.UKB_afr[[I]][[1]]$t),var(results.UKB_afr[[I]][[2]]$t), var(results.UKB_afr[[I]][[3]]$t), var(results.UKB_afr[[I]][[4]]$t), var(results.HRS_afr[[I]][[1]]$t), var(results.HRS_afr[[I]][[2]]$t), var(results.HRS_afr[[I]][[3]]$t),var(results.HRS_eur[[I]]$t)), data=ALL3[[I]]
+	#c(var(results.JHS[[I]][[1]]$t),var(results.JHS[[I]][[2]]$t), var(results.WHI[[I]][[1]]$t), var(results.WHI[[I]][[2]]$t), var(results.WHI[[I]][[3]]$t), var(results.WHI[[I]][[4]]$t), var(results.WHI[[I]][[5]]$t),var(results.UKB_afr[[I]][[1]]$t),var(results.UKB_afr[[I]][[2]]$t), var(results.UKB_afr[[I]][[3]]$t), var(results.UKB_afr[[I]][[4]]$t), var(results.pennBB_afr[[I]][[1]]$t),var(results.pennBB_afr[[I]][[2]]$t), var(results.UKB_eur[[I]]$total$t), var(results.pennBB_eur[[I]]$total$t)), data=ALL3[[I]])  #weight lm
+	readRDS('~/height_prediction/gwas/WHI/output/Nr_SNPs_WHI.Rds')[Name==I][, Nr]->a
+	readRDS('~/height_prediction/gwas/ukb_afr/output/Nr_SNPs_UKB.Rds')[Name==I][, Nr]->b
+	readRDS('~/height_prediction/gwas/JHS/output/Nr_SNPs_JHS.Rds')[Name==I][, Nr]->d
 	readRDS('Nr_SNPs_pennBB_afr.Rds')[Name==I][, Nr]->f
 	readRDS('Nr_SNPs_pennBB_eur.Rds')[Name==I][, Nr]->g
 	ALL3[[I]][,Intercept:=coef(tmp)[[1]]][,Slope:=coef(tmp)[[2]]]
