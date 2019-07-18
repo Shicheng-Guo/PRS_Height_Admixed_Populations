@@ -1,8 +1,11 @@
+#!/usr/bin/env Rscript
+############################
+args = commandArgs(trailingOnly=TRUE)
+if (length(args)==0) {
+  stop("At least one argument must be supplied (a name for this run).n", call.=FALSE)
+}
 ##preable
-#combine all
-
-
-#brary("optparse")
+library("optparse")
 library(data.table)
 library(dplyr)
 library(ggplot2);library(reshape2); library(wesanderson)
@@ -18,24 +21,24 @@ library(boot)
 #combine all
 
 ##
-readRDS('~/height_prediction/gwas/WHI/output/results.WHI.Rds')-> results.WHI
-readRDS('~/height_prediction/gwas/JHS/output/results.JHS.Rds')-> results.JHS
-readRDS('~/height_prediction/gwas/ukb_afr/output/results.UKB_afr.Rds')-> results.UKB_afr
-readRDS('~/height_prediction/gwas/HRS_eur/output/results.HRS_eur.Rds')-> results.HRS_eur
-readRDS('~/height_prediction/gwas/HRS_afr/output/results.HRS_afr.Rds')-> results.HRS_afr
-readRDS('~/height_prediction/gwas/WHI/output/B_WHI.Rds')->B_WHI
-readRDS('~/height_prediction/gwas/JHS/output/B_JHS.Rds')->B_JHS
-readRDS('~/height_prediction/gwas/ukb_afr/output/B_UKB_afr.Rds')-> B_UKB_afr
-readRDS('~/height_prediction/gwas/HRS_eur/output/B_HRS_eur.Rds')-> B_HRS_eur
-readRDS('~/height_prediction/gwas/HRS_afr/output/B_HRS_afr.Rds')-> B_HRS_afr
-readRDS('~/height_prediction/gwas/ukb_afr/output/PGS3_UKB_afr.Rds')-> PGS3_UKB_afr
-readRDS('~/height_prediction/gwas/WHI/output/PGS3_WHI.Rds')-> PGS3_WHI
-readRDS('~/height_prediction/gwas/JHS/output/PGS3_JHS.Rds')-> PGS3_JHS
-readRDS('~/height_prediction/gwas/HRS_eur/output/PGS3_HRS_eur.Rds')-> PGS3_HRS_eur
-readRDS('~/height_prediction/gwas/HRS_afr/output/PGS3_HRS_afr.Rds')-> PGS3_HRS_afr
+readRDS(paste0('~/height_prediction/', args[1], '/WHI/output/results.WHI.Rds'))-> results.WHI
+readRDS(paste0('~/height_prediction/',args[1], '/JHS/output/results.JHS.Rds'))-> results.JHS
+readRDS(paste0('~/height_prediction/',args[1], '/ukb_afr/output/results.UKB_afr.Rds'))-> results.UKB_afr
+readRDS(paste0('~/height_prediction/',args[1], '/HRS_eur/output/results.HRS_eur.Rds'))-> results.HRS_eur
+readRDS(paste0('~/height_prediction/',args[1], '/HRS_afr/output/results.HRS_afr.Rds'))-> results.HRS_afr
+readRDS(paste0('~/height_prediction/',args[1], '/WHI/output/B_WHI.Rds'))->B_WHI
+readRDS(paste0('~/height_prediction/',args[1], '/JHS/output/B_JHS.Rds'))->B_JHS
+readRDS(paste0('~/height_prediction/',args[1], '/ukb_afr/output/B_UKB_afr.Rds'))-> B_UKB_afr
+readRDS(paste0('~/height_prediction/',args[1], '/HRS_eur/output/B_HRS_eur.Rds'))-> B_HRS_eur
+readRDS(paste0('~/height_prediction/',args[1],'/HRS_afr/output/B_HRS_afr.Rds'))-> B_HRS_afr
+readRDS(paste0('~/height_prediction/',args[1],'/ukb_afr/output/PGS3_UKB_afr.Rds'))-> PGS3_UKB_afr
+readRDS(paste0('~/height_prediction/',args[1],'/WHI/output/PGS3_WHI.Rds'))-> PGS3_WHI
+readRDS(paste0('~/height_prediction/',args[1],'/JHS/output/PGS3_JHS.Rds'))-> PGS3_JHS
+readRDS(paste0('~/height_prediction/',args[1],'/HRS_eur/output/PGS3_HRS_eur.Rds'))-> PGS3_HRS_eur
+readRDS(paste0('~/height_prediction/',args[1],'/HRS_afr/output/PGS3_HRS_afr.Rds'))-> PGS3_HRS_afr
 
 for(I in names(B_JHS)){ #JHS lacks the LD prunning methods
-	ALL<-rbind(B_JHS[[I]][1:2,], B_WHI[[I]][1:4,], B_UKB_afr[[I]][1:4,],B_HRS_afr[[I]][1:3,],  B_HRS_eur[[I]])
+	ALL<-rbind(B_JHS[[I]][1:2,], B_WHI[[I]][1:4,], B_UKB_afr[[I]][1:4,],B_HRS_afr[[I]][1:2,],  B_HRS_eur[[I]])
 	#rbind(ALL[!(Dataset %in% c('UKB_EUR', 'pennBB_EA'))], ALL[Dataset %in% c('UKB_EUR', 'pennBB_EA')][, Med_Eur_Anc:=1])-> ALL
 	my_plot<-ggplot(ALL, aes(x=Med_Eur_Anc, y=R_sq,group=Dataset, colour=Dataset)) +
 	geom_point(size=1.5, shape=21, fill="white") +
@@ -45,16 +48,20 @@ for(I in names(B_JHS)){ #JHS lacks the LD prunning methods
 	labs(title = "All Datasets") + ylab("R-squared")+ xlab("European Ancestry Proportion") +
 	theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15), axis.text.x=element_text(size=9), axis.text.y=element_text(size=9))
 	print(my_plot)
+	if(args=='sib_betas'){
+	ggsave(paste0('~/height_prediction/figs/sib_error_bars_all_v2_', I, '.png'))
+	} else{
 	ggsave(paste0('~/height_prediction/figs/error_bars_all_v2_', I, '.png'))
+	}
 }
 #
 ALL2<-vector('list', length(names(B_JHS)))
 names(ALL2)<-names(B_JHS)
 
 for(I in names(B_JHS)){
-	ALL2[[I]]<-rbind(B_JHS[[I]][1:2,], B_WHI[[I]][1:4,], B_UKB_afr[[I]][1:4,], B_HRS_afr[[I]][1:3,], B_HRS_eur[[I]])
+	ALL2[[I]]<-rbind(B_JHS[[I]][1:2,], B_WHI[[I]][1:4,], B_UKB_afr[[I]][1:4,], B_HRS_afr[[I]][1:2,], B_HRS_eur[[I]])
 	#rbind(ALL2[[I]][!(Dataset %in% c('UKB_EUR', 'pennBB_EA'))], ALL2[[I]][Dataset %in% c('UKB_EUR', 'pennBB_EA')][, Med_Eur_Anc:=1])-> ALL2[[I]]
-	tmp<-1/c(var(results.JHS[[I]][[1]]$t), var(results.JHS[[I]][[2]]$t), var(results.WHI[[I]][[1]]$t), var(results.WHI[[I]][[2]]$t), var(results.WHI[[I]][[3]]$t), var(results.WHI[[I]][[4]]$t), var(results.UKB_afr[[I]][[1]]$t),var(results.UKB_afr[[I]][[2]]$t), var(results.UKB_afr[[I]][[3]]$t), var(results.UKB_afr[[I]][[4]]$t), var(results.HRS_eur[[I]]$t))  #weighing lm by boostrap replicates.
+	tmp<-1/c(var(results.JHS[[I]][[1]]$t), var(results.JHS[[I]][[2]]$t), var(results.WHI[[I]][[1]]$t), var(results.WHI[[I]][[2]]$t), var(results.WHI[[I]][[3]]$t), var(results.WHI[[I]][[4]]$t), var(results.UKB_afr[[I]][[1]]$t),var(results.UKB_afr[[I]][[2]]$t), var(results.UKB_afr[[I]][[3]]$t), var(results.UKB_afr[[I]][[4]]$t), var(results.HRS_afr[[I]][[1]]$t), var(results.HRS_afr[[I]][[2]]$t), var(results.HRS_eur[[I]]$t))  #weighing lm by boostrap replicates.
 	cbind(ALL2[[I]], W=tmp)-> ALL2[[I]]
 	my_plot2<-ggplot(ALL2[[I]], aes(x=Med_Eur_Anc, y=R_sq)) +
 		geom_point(size=1.5, shape=21, fill="white") + stat_smooth(method = "lm", mapping = aes(weight = W), col='black') +
@@ -62,16 +69,19 @@ for(I in names(B_JHS)){
 		labs(title = "All Datasets") + ylab("R-squared") + xlab("European Ancestry Proportion")+
 		theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15),  axis.text.x=element_text(size=9), axis.text.y=element_text(size=9))
 	print(my_plot2)
+	if(args[1]=='sib_betas'){
+	ggsave(paste0('~/height_prediction/figs/sib_error_bars_all_v3_', I, '.png'))
+	} else{
 	ggsave(paste0('~/height_prediction/figs/error_bars_all_v3_', I, '.png'))
+	}
 }
-
 ALL2b<-vector('list', length(names(B_JHS)))
 names(ALL2b)<-names(B_JHS)
 
 for(I in names(B_JHS)){
 	ALL2b[[I]]<-rbind(B_JHS[[I]][1:2,], B_WHI[[I]][1:4,], B_UKB_afr[[I]][1:4,], B_HRS_afr[[I]][1:3,], B_HRS_eur[[I]])
        # rbind(ALL2b[[I]][!(Dataset %in% 'pennBB_EA')], ALL2b[[I]][Dataset %in% 'pennBB_EA'][, Med_Eur_Anc:=1])-> ALL2b[[I]]
-        tmp<-1/c(var(results.JHS[[I]][[1]]$t), var(results.JHS[[I]][[2]]$t), var(results.WHI[[I]][[1]]$t), var(results.WHI[[I]][[2]]$t), var(results.WHI[[I]][[3]]$t), var(results.WHI[[I]][[4]]$t), var(results.UKB_afr[[I]][[1]]$t),var(results.UKB_afr[[I]][[2]]$t), var(results.UKB_afr[[I]][[3]]$t), var(results.UKB_afr[[I]][[4]]$t), var(results.HRS_afr[[I]][[1]]$t), var(results.HRS_afr[[I]][[2]]$t), var(results.HRS_afr[[I]][[3]]$t),var(results.HRS_eur[[I]]$t))
+        tmp<-1/c(var(results.JHS[[I]][[1]]$t), var(results.JHS[[I]][[2]]$t), var(results.WHI[[I]][[1]]$t), var(results.WHI[[I]][[2]]$t), var(results.WHI[[I]][[3]]$t), var(results.WHI[[I]][[4]]$t), var(results.UKB_afr[[I]][[1]]$t),var(results.UKB_afr[[I]][[2]]$t), var(results.UKB_afr[[I]][[3]]$t), var(results.UKB_afr[[I]][[4]]$t), var(results.HRS_afr[[I]][[1]]$t), var(results.HRS_afr[[I]][[2]]$t),var(results.HRS_eur[[I]]$t))
 	cbind(ALL2b[[I]], W=tmp)-> ALL2b[[I]]
         my_plot2<-ggplot(ALL2b[[I]], aes(x=Med_Eur_Anc, y=R_sq)) +
                 geom_point(size=1.5, shape=21, fill="white") + stat_smooth(method = "lm", mapping = aes(weight = W), col='black') +
@@ -79,9 +89,12 @@ for(I in names(B_JHS)){
                 labs(title = "All Datasets") + ylab("R-squared") + xlab("European Ancestry Proportion")+
                 theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15),  axis.text.x=element_text(size=9), axis.text.y=element_text(size=9))
         print(my_plot2)
+	if(args[1]=='sib_betas'){
+	ggsave(paste0('~/height_prediction/figs/sib_error_bars_all_v3b_', I, '.png'))	
+	} else{
         ggsave(paste0('~/height_prediction/figs/error_bars_all_v3b_', I, '.png'))
+	}
 }
-
 
 for(I in names(B_JHS)){
         my_plot<-ggplot(ALL2[[I]], aes(x=Med_Eur_Anc, y=R_sq,colour=Dataset)) +
@@ -92,7 +105,11 @@ for(I in names(B_JHS)){
         labs(title = "All Datasets") + ylab("R-squared")+ xlab("European Ancestry Proportion") +
 	theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15), axis.text.x=element_text(size=9), axis.text.y=element_text(size=9))
         print(my_plot)
+	if(args[1]=='sib_betas'){
+	ggsave(paste0('~/height_prediction/figs/sib_error_bars_all_v4_', I, '.png'))
+	} else{
         ggsave(paste0('~/height_prediction/figs/error_bars_all_v4_', I, '.png'))
+	}
 }
 #
 
@@ -100,24 +117,25 @@ ALL3<-vector('list', length(names(B_JHS)))
 names(ALL3)<- names(B_JHS)
 
 for (I in names(B_JHS)){
-	ALL3[[I]]<-rbind(B_JHS[[I]][1:2,], B_WHI[[I]][1:4,], B_UKB_afr[[I]][1:4,],B_HRS_afr[[I]][1:3,], B_HRS_eur[[I]])
+	ALL3[[I]]<-rbind(B_JHS[[I]][1:2,], B_WHI[[I]][1:4,], B_UKB_afr[[I]][1:4,],B_HRS_afr[[I]][1:2,], B_HRS_eur[[I]])
 	#rbind(ALL3[[I]][!(Dataset %in% c('UKB_EUR', 'pennBB_EA'))], ALL3[[I]][Dataset %in% c('UKB_EUR', 'pennBB_EA')][, Med_Eur_Anc:=1])-> ALL3[[I]]
 	ALL3[[I]][,Set:=I]
 	tmp<-lm(R_sq~Med_Eur_Anc,weights=1/
-	c(var(results.JHS[[I]][[1]]$t), var(results.JHS[[I]][[2]]$t), var(results.WHI[[I]][[1]]$t), var(results.WHI[[I]][[2]]$t), var(results.WHI[[I]][[3]]$t), var(results.WHI[[I]][[4]]$t), var(results.UKB_afr[[I]][[1]]$t),var(results.UKB_afr[[I]][[2]]$t), var(results.UKB_afr[[I]][[3]]$t), var(results.UKB_afr[[I]][[4]]$t), var(results.HRS_afr[[I]][[1]]$t), var(results.HRS_afr[[I]][[2]]$t), var(results.HRS_afr[[I]][[3]]$t),var(results.HRS_eur[[I]]$t)), data=ALL3[[I]]
+	c(var(results.JHS[[I]][[1]]$t), var(results.JHS[[I]][[2]]$t), var(results.WHI[[I]][[1]]$t), var(results.WHI[[I]][[2]]$t), var(results.WHI[[I]][[3]]$t), var(results.WHI[[I]][[4]]$t), var(results.UKB_afr[[I]][[1]]$t),var(results.UKB_afr[[I]][[2]]$t), var(results.UKB_afr[[I]][[3]]$t), var(results.UKB_afr[[I]][[4]]$t), var(results.HRS_afr[[I]][[1]]$t), var(results.HRS_afr[[I]][[2]]$t),var(results.HRS_eur[[I]]$t)), data=ALL3[[I]])
 	#c(var(results.JHS[[I]][[1]]$t),var(results.JHS[[I]][[2]]$t), var(results.WHI[[I]][[1]]$t), var(results.WHI[[I]][[2]]$t), var(results.WHI[[I]][[3]]$t), var(results.WHI[[I]][[4]]$t), var(results.WHI[[I]][[5]]$t),var(results.UKB_afr[[I]][[1]]$t),var(results.UKB_afr[[I]][[2]]$t), var(results.UKB_afr[[I]][[3]]$t), var(results.UKB_afr[[I]][[4]]$t), var(results.pennBB_afr[[I]][[1]]$t),var(results.pennBB_afr[[I]][[2]]$t), var(results.UKB_eur[[I]]$total$t), var(results.pennBB_eur[[I]]$total$t)), data=ALL3[[I]])  #weight lm
-	readRDS('~/height_prediction/gwas/WHI/output/Nr_SNPs_WHI.Rds')[Name==I][, Nr]->a
-	readRDS('~/height_prediction/gwas/ukb_afr/output/Nr_SNPs_UKB.Rds')[Name==I][, Nr]->b
-	readRDS('~/height_prediction/gwas/JHS/output/Nr_SNPs_JHS.Rds')[Name==I][, Nr]->d
-	readRDS('Nr_SNPs_pennBB_afr.Rds')[Name==I][, Nr]->f
-	readRDS('Nr_SNPs_pennBB_eur.Rds')[Name==I][, Nr]->g
+	readRDS(paste0('~/height_prediction/', args[1],'/WHI/output/Nr_SNPs_WHI.Rds'))[Name==I][, Nr]->a
+	readRDS(paste0('~/height_prediction/', args[1],'/ukb_afr/output/Nr_SNPs_UKB_afr.Rds'))[Name==I][, Nr]->b
+	readRDS(paste0('~/height_prediction/', args[1],'/JHS/output/Nr_SNPs_JHS.Rds'))[Name==I][, Nr]->d
+	readRDS(paste0('~/height_prediction/', args[1],'/HRS_eur/output/Nr_SNPs_HRS.Rds'))[Name==I][, Nr]->f
+	#readRDS('Nr_SNPs_pennBB_afr.Rds')[Name==I][, Nr]->f
+	#readRDS('Nr_SNPs_pennBB_eur.Rds')[Name==I][, Nr]->g
 	ALL3[[I]][,Intercept:=coef(tmp)[[1]]][,Slope:=coef(tmp)[[2]]]
 	ALL3[[I]][,Slope_Intercept:=sum(coef(tmp))]
 	ALL3[[I]][, Nr_SNPs_WHI:=a]
 	ALL3[[I]][, Nr_SNPs_UKB:=b]
 	ALL3[[I]][, Nr_SNPs_JHS:=d]
-	ALL3[[I]][, Nr_SNPs_pennBB_afr:=f]
-	ALL3[[I]][, Nr_SNPs_pennBB_eur:=g]
+	ALL3[[I]][, Nr_SNPs_HRS_eur:=f]
+	ALL3[[I]][, Nr_SNPs_HRS_afr:=f]
 	cat(I, ' \n')
 }
 
@@ -144,14 +162,14 @@ as.factor(dt_LD$window)-> dt_LD$window
 factor(dt_LD$window, levels(dt_LD$window)[c(1,4,2,3)])-> dt_LD$window
 
 ggplot(dt_LD,aes(x=method, y=value, colour=window, shape=variable)) + geom_point(size=2.5, alpha=1) + theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15), axis.text.x=element_text(size=9), axis.text.y=element_text(size=9))
-ggsave('figs/reg_rsq_eur_anc_LD.png')
+ggsave('~/height_prediction/figs/reg_rsq_eur_anc_LD.png')
 #
 #
 melt(dt_genet)->dt_genet
 dt_genet[, c("method", "window","p") := tstrsplit(Set, "_")]
 as.factor(dt_genet$window)-> dt_genet$window
 ggplot() + geom_point(data=dt_genet,aes(x=p, y=value, colour=window, shape=variable), size=2.5, alpha = 1) + theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15), axis.text.x=element_text(size=9), axis.text.y=element_text(size=9)) 
-ggsave('figs/reg_rsq_eur_anc_genet.png')
+ggsave('~/height_prediction/figs/reg_rsq_eur_anc_genet.png')
 #
 #
 
@@ -160,7 +178,7 @@ dt_phys[, c("method", "window","p") := tstrsplit(Set, "_")]
 as.factor(dt_phys$window)-> dt_phys$window
 factor(dt_phys$window, levels(dt_phys$window)[c(3,7,2,8,6,4,1,5)])-> dt_phys$window
 ggplot() + geom_point(data=dt_phys,aes(x=p, y=value, colour=window, shape=variable), size=2.5, alpha = 1) + theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15), axis.text.x=element_text(size=9), axis.text.y=element_text(size=9))
-ggsave('figs/reg_rsq_eur_anc_phys.png')
+ggsave('~/height_prediction/figs/reg_rsq_eur_anc_phys.png')
 
 #plot as function of Nr_SNPs
 
@@ -212,13 +230,13 @@ dt_genet[A1,nomatch=0]-> dt_genet
 
 #
 ggplot() + geom_point(data=dt_phys,aes(x=Nr_SNPs, y=value, colour=window, shape=variable), size=2.5, alpha = 1) + theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15), axis.text.x=element_text(size=9), axis.text.y=element_text(size=9))
-ggsave('figs/reg_rsq_eur_anc_phys_v2.png')
+ggsave('~/height_prediction/figs/reg_rsq_eur_anc_phys_v2.png')
 
 ggplot() + geom_point(data=dt_genet,aes(x=Nr_SNPs, y=value, colour=window, shape=variable), size=2.5, alpha = 1) + theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15), axis.text.x=element_text(size=9), axis.text.y=element_text(size=9))
-ggsave('figs/reg_rsq_eur_anc_genet_v2.png')
+ggsave('~/height_prediction/figs/reg_rsq_eur_anc_genet_v2.png')
 
 ggplot() + geom_point(data=dt_LD,aes(x=Nr_SNPs, y=value, colour=Set, shape=variable), size=2.5, alpha = 1) + theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15), axis.text.x=element_text(size=9), axis.text.y=element_text(size=9))
-ggsave('figs/reg_rsq_eur_anc_LD_v2.png')
+ggsave('~/height_prediction/figs/reg_rsq_eur_anc_LD_v2.png')
 
 #try to use just one plot
 dt_LD[, p:=0.01]
@@ -227,21 +245,21 @@ rbind(dt_phys,dt_genet, dt_LD)-> dt
 
 cat('STOP HERE STOP HERE\n')
 ggplot() + geom_point(data=dt,aes(x=Nr_SNPs, y=value, colour=method, shape=p), size=1.2, alpha = 0.7) + theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15), axis.text.x=element_text(size=9), axis.text.y=element_text(size=9)) + facet_wrap(~variable, nrow=2, scales='free_y')
-ggsave('figs/test.png')
+ggsave('~/height_prediction/figs/test.png')
 
 
 ggplot() + geom_point(data=dt[variable=='R_sq'], ,aes(x=Nr_SNPs, y=value, colour=method, shape=p), size=1.2, alpha = 0.7) + theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15), axis.text.x=element_text(size=9), axis.text.y=element_text(size=9)) 
-ggsave('figs/testb.png')
+ggsave('~/height_prediction/figs/testb.png')
 
 ggplot(dt, aes(x=Nr_SNPs, y=value, colour=method, shape=p)) + geom_point(size=1.2, alpha = 0.7) + scale_shape_manual(values=c(16,3,15,0,17,12)) + geom_line(alpha=0.4) + theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15), axis.text.x=element_text(size=9), axis.text.y=element_text(size=9)) +  facet_wrap(~variable, nrow=2, scales='free_y')
-ggsave('figs/test2.png')
+ggsave('~/height_prediction/figs/test2.png')
 
 
 ggplot(dt[variable=='R_sq'], aes(x=Nr_SNPs, y=value, colour=method, shape=p)) + geom_point(size=1.2, alpha = 0.7) + scale_shape_manual(values=c(16,3,15,0,17,12)) + geom_line(alpha=0.4) + theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15), axis.text.x=element_text(size=9), axis.text.y=element_text(size=9))
-ggsave('figs/test2b.png')
+ggsave('~/height_prediction/figs/test2b.png')
 
 ggplot(dt, aes(x=Nr_SNPs, y=value, colour=window, shape=method)) + geom_point(size=1.2, alpha = 0.7) + scale_shape_manual(values=c(16,3,13,0,17,12)) + geom_line(alpha=0.4) + theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15), axis.text.x=element_text(size=9), axis.text.y=element_text(size=9)) +  facet_wrap(~variable, nrow=2, scales='free_y')
-ggsave('figs/test3.png')
+ggsave('~/height_prediction/figs/test3.png')
 
 
 #ggplot(dt, aes(x=Nr_SNPs, y=value, shape=p, colour=int)) + geom_point(size=1.2, alpha = 0.7) + geom_line(alpha=0.4) +  facet_wrap(~variable, nrow=2, scales='free_y')
