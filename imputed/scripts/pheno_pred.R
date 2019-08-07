@@ -135,5 +135,7 @@ setkey(dt, Name)[hrs_afr][hrs_eur]-> dt2
 dt2[, HRS_afr:=Part_R2]
 dt2[, HRS_eur:=i.Part_R2]
 dt2[,i.Nr:=NULL][,Part_R2:=NULL][,i.Part_R2:=NULL]
-
+dt2[,eur_diff:=HRS_eur_imp-HRS_eur]
+dt2[,afr_diff:=HRS_afr_imp-HRS_afr]
+dt2[,Nr_diff:=Nr_imp-Nr]
 saveRDS(dt2,'~/height_prediction/imputed/output/comparison.Rds')

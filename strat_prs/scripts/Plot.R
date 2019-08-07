@@ -1,3 +1,8 @@
+#!/usr/bin/env Rscript
+args = commandArgs(trailingOnly=TRUE)
+if (length(args)==0) {
+  stop("At least one argument must be supplied (a name for this run).n", call.=FALSE)
+}
 library(ggplot2)
 library(reshape2)
 library(data.table)
@@ -6,86 +11,83 @@ library(RColorBrewer)
 library(MASS)
 library(cowplot)
 
+dtset<-args[1]
 source('~/height_prediction/strat_prs/scripts/fancy_scientific.R')
 a_list<-vector('list', 2)
 names(a_list)<-c("AA","CEU")
 
-a_list[['AA']]<-vector('list', 7)
-a_list[['CEU']]<-vector('list', 7)
-names(a_list[['AA']])<-c("WHI","JHS","pennBB_afr","ukb_afr","pennBB_eur","UKB_eur", "HRS_eur")
-names(a_list[['CEU']])<-c("WHI","JHS","pennBB_afr","ukb_afr","pennBB_eur","UKB_eur", "HRS_eur")
+a_list[['AA']]<-vector('list', 5)
+a_list[['CEU']]<-vector('list', 5)
+names(a_list[['AA']])<-c("HRS_eur","JHS","WHI", "ukb_afr", "HRS_afr")
+names(a_list[['CEU']])<-c("HRS_eur","JHS","WHI","ukb_afr", "HRS_afr")
 
-for(I in c("WHI","JHS","pennBB_afr","ukb_afr","pennBB_eur","UKB_eur", "HRS_eur")){
+for(I in c("WHI","JHS","ukb_afr","HRS_eur", "HRS_afr")){
 	a_list[['AA']][[I]]<-vector('list', 3)
 	a_list[['CEU']][[I]]<-vector('list', 3)
 	names(a_list[['AA']][[I]])<-c("5000","10000","20000")
  	names(a_list[['CEU']][[I]])<-c("5000","10000","20000")
 	for(J in names(a_list[['AA']][[I]])){	
-		a_list[['AA']][[I]][[J]]<-readRDS(paste0('/project/mathilab/bbita/gwas_admix/height_prediction/strat_prs/output/part_R2_', I, "_", J, "_AA.Rds"))
-		a_list[['CEU']][[I]][[J]]<-readRDS(paste0('/project/mathilab/bbita/gwas_admix/height_prediction/strat_prs/output/part_R2_', I, "_", J, "_CEU.Rds"))
+		a_list[['AA']][[I]][[J]]<-readRDS(paste0('~/height_prediction/strat_prs/output/part_R2_', I,"_",dtset, "_", J, "_AA.Rds"))
+		a_list[['CEU']][[I]][[J]]<-readRDS(paste0('~/height_prediction/strat_prs/output/part_R2_', I, "_", dtset,"_", J, "_CEU.Rds"))
 	}
 }
 
+if(dtset=='gwas'){
+	r2_vec<-c(0.1210222,0.03587304,0.04100905,0.03776804,0.02376103)
+} else if (dtset=='sib_betas'){
+	r2_vec<-c(0.07511196,0.00967814,0.01993696,0.02717107,0.01060191)
+}
 df1<-data.table(Quantile=rep(c("q1","q2","q3","q4"),3),
 Win=c(rep(5000,4), rep(10000,4), rep(20000,4)),
-JHS=c(unlist(a_list[['AA']][[2]][[1]]), unlist(a_list[['AA']][[2]][[2]]), unlist(a_list[['AA']][[2]][[3]]))/0.03561384,
-WHI=c(unlist(a_list[['AA']][[1]][[1]]),  unlist(a_list[['AA']][[1]][[2]]),  unlist(a_list[['AA']][[1]][[3]]))/0.04100905, #updated
-PennBB_afr=c(unlist(a_list[['AA']][[3]][[1]]),unlist(a_list[['AA']][[3]][[2]]),unlist(a_list[['AA']][[3]][[3]]))/0.03432268,
-Ukb_afr=c(unlist(a_list[['AA']][[4]][[1]]), unlist(a_list[['AA']][[4]][[2]]), unlist(a_list[['AA']][[4]][[3]]))/0.0362177,
-PennBB_eur=c(unlist(a_list[['AA']][[5]][[1]]), unlist(a_list[['AA']][[5]][[2]]), unlist(a_list[['AA']][[5]][[3]]))/0.1500369,
-Ukb_eur=c(unlist(a_list[['AA']][[6]][[1]]), unlist(a_list[['AA']][[6]][[2]]), unlist(a_list[['AA']][[6]][[3]]))/0.225137,
-HRS_eur=c(unlist(a_list[['AA']][[7]][[1]]), unlist(a_list[['AA']][[7]][[2]]), unlist(a_list[['AA']][[7]][[3]]))/0.12
+HRS_eur=unlist(a_list[['AA']])[1:12]/r2_vec[1], #updated
+JHS=unlist(a_list[['AA']])[13:24]/r2_vec[2], #updated
+WHI=unlist(a_list[['AA']])[25:36]/r2_vec[3], #updated
+UKB_afr=unlist(a_list[['AA']])[37:48]/r2_vec[4], #updated
+HRS_afr=unlist(a_list[['AA']])[49:60]/r2_vec[5] #updaed
 )
 
 df3<-data.table(Quantile=rep(c("q1","q2","q3","q4"),3),
 Win=c(rep(5000,4), rep(10000,4), rep(20000,4)),
-JHS=c(unlist(a_list[['CEU']][[2]][[1]]), unlist(a_list[['CEU']][[2]][[2]]), unlist(a_list[['CEU']][[2]][[3]]))/0.03561384,
-WHI=c(unlist(a_list[['CEU']][[1]][[1]]), unlist(a_list[['CEU']][[1]][[2]]), unlist(a_list[['CEU']][[1]][[3]]))/0.04100905,#updated
-PennBB_afr=c(unlist(a_list[['CEU']][[3]][[1]]), unlist(a_list[['CEU']][[3]][[2]]), unlist(a_list[['CEU']][[3]][[3]]))/0.03432268,
-Ukb_afr=c(unlist(a_list[['CEU']][[4]][[1]]), unlist(a_list[['CEU']][[4]][[2]]), unlist(a_list[['CEU']][[4]][[3]]))/0.0362177,
-PennBB_eur=c(unlist(a_list[['CEU']][[5]][[1]]),unlist(a_list[['CEU']][[5]][[2]]), unlist(a_list[['CEU']][[5]][[3]]))/0.1500369,
-Ukb_eur=c(unlist(a_list[['CEU']][[6]][[1]]),unlist(a_list[['CEU']][[6]][[2]]), unlist(a_list[['CEU']][[6]][[3]]))/0.225137,
-HRS_eur=c(unlist(a_list[['CEU']][[7]][[1]]), unlist(a_list[['CEU']][[7]][[2]]), unlist(a_list[['CEU']][[7]][[3]]))/0.12
+HRS_eur=unlist(a_list[['CEU']])[1:12]/r2_vec[1], #updated
+JHS=unlist(a_list[['CEU']])[13:24]/r2_vec[2], #updated
+WHI=unlist(a_list[['CEU']])[25:36]/r2_vec[3], #updated
+UKB_afr=unlist(a_list[['CEU']])[37:48]/r2_vec[4], #updated
+HRS_afr=unlist(a_list[['CEU']])[49:60]/r2_vec[5] #updaed
 )
+
 
 df1[, Map:='AA']
 df3[, Map:='CEU']
 df4<-rbind(df1,df3)
 
 
-
 melt(df4, id=c("Quantile","Win", "Map"))-> df5
 
-plot1<-ggplot(df5[Win==10000], aes(x=Quantile, y=value, fill=variable)) + geom_bar(stat='identity', position='dodge', alpha=0.7) + facet_grid(. ~Map) + labs(y=expression(paste("Relative R"^"2")),x="Recombination Rate") +  scale_fill_brewer(name="Dataset", type="div", palette='Dark2') + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), legend.position = "none")
+plot1<-ggplot(df5[Win==10000], aes(x=Quantile, y=value, fill=variable)) + geom_bar(stat='identity', position='dodge', alpha=0.7) + facet_grid(. ~Map) + labs(y=expression(paste("Relative R"^"2")),x="Recombination Rate") +  scale_fill_brewer(name="Dataset", type="div", palette='Dark2') + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), legend.position = "bottom", legend.title=element_blank())
 
 print(plot1)
 
-ggsave('/project/mathilab/bbita/gwas_admix/height_prediction/strat_prs/figs/barplot_AA_CEU.pdf')
+ggsave(paste0('~/height_prediction/strat_prs/figs/barplot_AA_CEU_', dtset,'.pdf'))
 
 
 #
 
-
 df1<-data.table(Quantile=rep(c("q1","q2","q3","q4"),3),
 Win=c(rep(5000,4), rep(10000,4), rep(20000,4)),
-JHS=c(unlist(a_list[['AA']][[2]][[1]])/readRDS('~/height_prediction/strat_prs/output/Nr_SNPs_JHS_5000_AA.Rds'), unlist(a_list[['AA']][[2]][[2]])/readRDS('~/height_prediction/strat_prs/output/Nr_SNPs_JHS_10000_AA.Rds'), unlist(a_list[['AA']][[2]][[3]])/readRDS('~/height_prediction/strat_prs/output/Nr_SNPs_JHS_20000_AA.Rds')),
-WHI=c(unlist(a_list[['AA']][[1]][[1]])/readRDS('~/height_prediction/strat_prs/output/Nr_SNPs_WHI_5000_AA.Rds'), unlist(a_list[['AA']][[1]][[2]])/readRDS('~/height_prediction/strat_prs/output/Nr_SNPs_WHI_10000_AA.Rds'), unlist(a_list[['AA']][[1]][[3]])/readRDS('~/height_prediction/strat_prs/output/Nr_SNPs_WHI_20000_AA.Rds')),
-PennBB_afr=c(unlist(a_list[['AA']][[3]][[1]])/readRDS('~/height_prediction/strat_prs/output/Nr_SNPs_pennBB_afr_5000_AA.Rds'),unlist(a_list[['AA']][[3]][[2]])/readRDS('~/height_prediction/strat_prs/output/Nr_SNPs_pennBB_afr_10000_AA.Rds'),unlist(a_list[['AA']][[3]][[3]])/readRDS('~/height_prediction/strat_prs/output/Nr_SNPs_pennBB_afr_20000_AA.Rds')),
-Ukb_afr=c(unlist(a_list[['AA']][[4]][[1]])/readRDS('~/height_prediction/strat_prs/output/Nr_SNPs_ukb_afr_5000_AA.Rds'),unlist(a_list[['AA']][[4]][[2]])/readRDS('~/height_prediction/strat_prs/output/Nr_SNPs_ukb_afr_10000_AA.Rds'),unlist(a_list[['AA']][[4]][[3]])/readRDS('~/height_prediction/strat_prs/output/Nr_SNPs_ukb_afr_20000_AA.Rds')),
-PennBB_eur=c(unlist(a_list[['AA']][[5]][[1]])/readRDS('~/height_prediction/strat_prs/output/Nr_SNPs_pennBB_eur_5000_AA.Rds'), unlist(a_list[['AA']][[5]][[2]])/readRDS('~/height_prediction/strat_prs/output/Nr_SNPs_pennBB_eur_10000_AA.Rds'),unlist(a_list[['AA']][[5]][[3]])/readRDS('~/height_prediction/strat_prs/output/Nr_SNPs_pennBB_eur_20000_AA.Rds')),
-Ukb_eur=c(unlist(a_list[['AA']][[6]][[1]])/readRDS('~/height_prediction/strat_prs/output/Nr_SNPs_ukb_eur_5000_AA.Rds'), unlist(a_list[['AA']][[6]][[2]])/readRDS('~/height_prediction/strat_prs/output/Nr_SNPs_ukb_eur_10000_AA.Rds'), unlist(a_list[['AA']][[6]][[3]])/readRDS('~/height_prediction/strat_prs/output/Nr_SNPs_ukb_eur_20000_AA.Rds')),
-HRS_eur=c(unlist(a_list[['AA']][[6]][[1]])/readRDS('~/height_prediction/strat_prs/output/Nr_SNPs_HRS_eur_5000_AA.Rds'), unlist(a_list[['AA']][[6]][[2]])/readRDS('~/height_prediction/strat_prs/output/Nr_SNPs_HRS_eur_10000_AA.Rds'), unlist(a_list[['AA']][[6]][[3]])/readRDS('~/height_prediction/strat_prs/output/Nr_SNPs_HRS_eur_20000_AA.Rds'))
+HRS_eur=unlist(a_list[['AA']])[1:12]/c(readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_HRS_eur_',dtset, '_5000_AA.Rds')),readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_HRS_eur_', dtset, '_10000_AA.Rds')),readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_HRS_eur_', dtset, '_20000_AA.Rds'))),
+JHS=unlist(a_list[['AA']])[13:24]/c(readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_JHS_', dtset, '_5000_AA.Rds')),readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_JHS_', dtset, '_10000_AA.Rds')),readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_JHS_', dtset,'_20000_AA.Rds'))),
+WHI=unlist(a_list[['AA']])[25:36]/c(readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_WHI_', dtset, '_5000_AA.Rds')),readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_WHI_', dtset, '_10000_AA.Rds')), readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_WHI_',dtset,'_20000_AA.Rds'))),
+Ukb_afr=unlist(a_list[['AA']])[37:48]/c(readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_ukb_afr_', dtset,'_5000_AA.Rds')),readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_ukb_afr_', dtset, '_10000_AA.Rds')),readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_ukb_afr_',dtset,'_20000_AA.Rds'))),
+HRS_afr=unlist(a_list[['AA']])[49:60]/c(readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_HRS_afr_',dtset,'_5000_AA.Rds')),readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_HRS_afr_', dtset, '_10000_AA.Rds')),readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_HRS_afr_', dtset,'_20000_AA.Rds')))
 )
 
 df3<-data.table(Quantile=rep(c("q1","q2","q3","q4"),3),
 Win=c(rep(5000,4), rep(10000,4), rep(20000,4)),
-JHS=c(unlist(a_list[['CEU']][[2]][[1]])/readRDS('~/height_prediction/strat_prs/output/Nr_SNPs_JHS_5000_CEU.Rds'), unlist(a_list[['CEU']][[2]][[2]])/readRDS('~/height_prediction/strat_prs/output/Nr_SNPs_JHS_10000_CEU.Rds'), unlist(a_list[['CEU']][[2]][[3]])/readRDS('~/height_prediction/strat_prs/output/Nr_SNPs_JHS_20000_CEU.Rds')),
-WHI=c(unlist(a_list[['CEU']][[1]][[1]])/readRDS('~/height_prediction/strat_prs/output/Nr_SNPs_WHI_5000_CEU.Rds'), unlist(a_list[['CEU']][[1]][[2]])/readRDS('~/height_prediction/strat_prs/output/Nr_SNPs_WHI_10000_CEU.Rds'), unlist(a_list[['CEU']][[1]][[3]])/readRDS('~/height_prediction/strat_prs/output/Nr_SNPs_WHI_20000_CEU.Rds')),
-PennBB_afr=c(unlist(a_list[['CEU']][[3]][[1]])/readRDS('~/height_prediction/strat_prs/output/Nr_SNPs_pennBB_afr_5000_CEU.Rds'),unlist(a_list[['CEU']][[3]][[2]])/readRDS('~/height_prediction/strat_prs/output/Nr_SNPs_pennBB_afr_10000_CEU.Rds'),unlist(a_list[['CEU']][[3]][[3]])/readRDS('~/height_prediction/strat_prs/output/Nr_SNPs_pennBB_afr_20000_CEU.Rds')),
-Ukb_afr=c(unlist(a_list[['CEU']][[4]][[1]])/readRDS('~/height_prediction/strat_prs/output/Nr_SNPs_ukb_afr_5000_CEU.Rds'),unlist(a_list[['CEU']][[4]][[2]])/readRDS('~/height_prediction/strat_prs/output/Nr_SNPs_ukb_afr_10000_CEU.Rds'),unlist(a_list[['CEU']][[4]][[3]])/readRDS('~/height_prediction/strat_prs/output/Nr_SNPs_ukb_afr_20000_CEU.Rds')),
-PennBB_eur=c(unlist(a_list[['CEU']][[5]][[1]])/readRDS('~/height_prediction/strat_prs/output/Nr_SNPs_pennBB_eur_5000_CEU.Rds'), unlist(a_list[['CEU']][[5]][[2]])/readRDS('~/height_prediction/strat_prs/output/Nr_SNPs_pennBB_eur_10000_CEU.Rds'),unlist(a_list[['CEU']][[5]][[3]])/readRDS('~/height_prediction/strat_prs/output/Nr_SNPs_pennBB_eur_20000_CEU.Rds')),
-Ukb_eur=c(unlist(a_list[['CEU']][[6]][[1]])/readRDS('~/height_prediction/strat_prs/output/Nr_SNPs_ukb_eur_5000_CEU.Rds'), unlist(a_list[['CEU']][[6]][[2]])/readRDS('~/height_prediction/strat_prs/output/Nr_SNPs_ukb_eur_10000_CEU.Rds'), unlist(a_list[['CEU']][[6]][[3]])/readRDS('~/height_prediction/strat_prs/output/Nr_SNPs_ukb_eur_20000_CEU.Rds')),
-HRS_eur=c(unlist(a_list[['CEU']][[7]][[1]])/readRDS('~/height_prediction/strat_prs/output/Nr_SNPs_HRS_eur_5000_CEU.Rds'), unlist(a_list[['CEU']][[7]][[2]])/readRDS('~/height_prediction/strat_prs/output/Nr_SNPs_HRS_eur_10000_CEU.Rds'), unlist(a_list[['CEU']][[7]][[3]])/readRDS('~/height_prediction/strat_prs/output/Nr_SNPs_HRS_eur_20000_CEU.Rds'))
+HRS_eur=unlist(a_list[['CEU']])[1:12]/c(readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_HRS_eur_',dtset, '_5000_AA.Rds')),readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_HRS_eur_', dtset, '_10000_AA.Rds')),readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_HRS_eur_', dtset, '_20000_AA.Rds'))),
+JHS=unlist(a_list[['CEU']])[13:24]/c(readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_JHS_', dtset, '_5000_AA.Rds')),readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_JHS_', dtset, '_10000_AA.Rds')),readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_JHS_', dtset,'_20000_AA.Rds'))),
+WHI=unlist(a_list[['CEU']])[25:36]/c(readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_WHI_', dtset, '_5000_AA.Rds')),readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_WHI_', dtset, '_10000_AA.Rds')), readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_WHI_',dtset,'_20000_AA.Rds'))),
+Ukb_afr=unlist(a_list[['CEU']])[37:48]/c(readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_ukb_afr_', dtset,'_5000_AA.Rds')),readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_ukb_afr_', dtset, '_10000_AA.Rds')),readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_ukb_afr_',dtset,'_20000_AA.Rds'))),
+HRS_afr=unlist(a_list[['CEU']])[49:60]/c(readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_HRS_afr_',dtset,'_5000_AA.Rds')),readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_HRS_afr_', dtset, '_10000_AA.Rds')),readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_HRS_afr_', dtset,'_20000_AA.Rds')))
 )
 
 df1[, Map:='AA']
@@ -97,13 +99,44 @@ melt(df4, id=c("Quantile","Win","Map"))-> df5
 
 plot2<-ggplot(df5[Win==10000], aes(x=Quantile, y=value, fill=variable)) +  scale_y_continuous(labels=fancy_scientific) +
 geom_bar(stat='identity', position='dodge', alpha=0.7) + facet_grid(. ~Map) + labs(y=expression('R'^2*'/Number of SNPs'), x="Recombination Rate") + scale_fill_brewer(name="Dataset", type="div", palette='Dark2') + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-panel.background = element_blank(), axis.line = element_line(colour = "black"), legend.position='bottom') 
+panel.background = element_blank(), axis.line = element_line(colour = "black"), legend.position='bottom', legend.title=element_blank())
 print(plot2)
-ggsave('/project/mathilab/bbita/gwas_admix/height_prediction/strat_prs/figs/barplot_AA_CEU_v2.pdf')
+ggsave(paste0('~/height_prediction/strat_prs/figs/barplot_AA_CEU_v2_', dtset,'.pdf'))
+
+
+
+
+###
+
 
 
 plot_grid(plot1, plot2,labels = c("A", "B"), nrow=2, align="v")
 
-ggsave('/project/mathilab/bbita/gwas_admix/height_prediction/strat_prs/figs/barplot_ALL.pdf')
+ggsave(paste0('~/height_prediction/strat_prs/figs/barplot_ALL_',dtset,'.pdf'))
+
+
+
+##
+
+if(dtset=='gwas'){
+	beta<-readRDS(paste0('~/height_prediction/', dtset, '/WHI/output/betas_phys_100000_0.0005_10000.Rds'))
+} else {
+	beta<-do.call(rbind, readRDS(paste0('~/height_prediction/', dtset, '/WHI/output/betas_phys_100000_0.0005_10000.Rds')))
+}
+plot3<-ggplot(beta[AA.rate<=0.05], aes(x=AA.rate, y=Beta_Diff_Chisq)) + geom_point(cex=0.5, col='light gray') + geom_smooth(method='lm') + labs(y=expression('Chi'^2*'Beta Difference'), x="Recombination Rate (AA Map)") + scale_y_log10()
+
+#plot2b<-plot2 + theme(legend.text=element_text(size=8)) + theme(legend.title=element_blank())
+plot4<-ggplot(beta[CEU.rate<=0.05], aes(x=CEU.rate, y=Beta_Diff_Chisq)) + geom_point(cex=0.5, col='light gray') + geom_smooth(method='lm') + labs(y=expression('Chi'^2*'Beta Difference'), x="Recombination Rate (CEU Map)") + scale_y_log10()
+
+
+
+plot3<-ggplot(beta[AA.rate<=0.05], aes(x=AA.rate, y=y2)) + geom_point(cex=0.5, col='light gray') + geom_smooth(method='lm') + labs(y='Beta Difference', x="Recomb. Rate  (AA Map)") + scale_y_log10()
+
+#plot2b<-plot2 + theme(legend.text=element_text(size=8)) + theme(legend.title=element_blank())
+plot4<-ggplot(beta[CEU.rate<=0.05], aes(x=CEU.rate, y=y2)) + geom_point(cex=0.5, col='light gray') + geom_smooth(method='lm') + labs(y='Beta Difference', x="Recomb. Rate (CEU Map)") + scale_y_log10()
+
+plot1a<-plot1 + guides(fill=FALSE)
+plot_grid(plot1a, plot3,plot2,plot4,labels = c("A", "C", "B","D"), nrow=2, align="v")
+ggsave(paste0('~/height_prediction/strat_prs/figs/panel_', args[1], '.pdf'))
 
 
