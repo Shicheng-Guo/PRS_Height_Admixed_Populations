@@ -82,6 +82,92 @@ partial_R2<-lapply(nam, function(X) partial.R2(lm7_UKB_afr[[X]], lm8_UKB_afr[[X]
 names(partial_R2)<-nam
 
 
+lapply(PGS2_UKB_afr, function(X) X[, Quantile:= cut(EUR_ANC,
+                                breaks=quantile(EUR_ANC, probs=seq(0,1, by=0.25), na.rm=TRUE),
+                                include.lowest=TRUE)])-> PGS3_UKB_afr
+
+names(PGS3_UKB_afr)<-names(PGS2_UKB_afr)
+
+lapply(1:length(PGS3_UKB_afr), function(X) PGS3_UKB_afr[[X]][,Med_Eur_Anc:=median(EUR_ANC),by=Quantile])
+
+lapply(1:length(PGS3_UKB_afr), function(X) as.character(unique((PGS3_UKB_afr[[X]]$Quantile))))-> a
+
+lapply(a, function(X) c(X[2],X[4], X[3], X[1]))-> a1 #check
+
+names(a1)<-names(PGS3_UKB_afr)
+
+r2_UKB_afr<-vector('list', length(PGS3_UKB_afr))
+names(r2_UKB_afr)<-names(PGS3_UKB_afr)
+
+for(I in names(r2_UKB_afr)){
+        r2_UKB_afr[[I]]<-vector('list', length(a1[[I]]))
+        names(r2_UKB_afr[[I]])<-a1[[I]]
+        for(i in a1[[I]]){
+        r2_UKB_afr[[I]][[i]]<-partial.R2(lm(Height~Sex+Age+AGE2+EUR_ANC, PGS3_UKB_afr[[I]][Quantile==i]),lm(Height~Sex+Age+AGE2+EUR_ANC+PGS, PGS3_UKB_afr[[I]][Quantile==i]))
+        }
+}
+
+
+
+B_UKB_afr<-vector('list', length(r2_UKB_afr))
+names(B_UKB_afr)<-names(r2_UKB_afr)
+
+for (I in names(r2_UKB_afr)){
+        B_UKB_afr[[I]]<-data.table(Quant=c(a1[[I]], "total"),
+        R_sq=c(unlist(r2_UKB_afr[[I]]), partial_R2[[I]]),
+        Med_Eur_Anc=c(unique(PGS3_UKB_afr[[I]][Quantile==a1[[I]][1]][,Med_Eur_Anc]), unique(PGS3_UKB_afr[[I]][Quantile==a1[[I]][2]][,Med_Eur_Anc]),unique(PGS3_UKB_afr[[I]][Quantile==a1[[I]][3]][,Med_Eur_Anc]),unique(PGS3_UKB_afr[[I]][Quantile==a1[[I]][4]][,Med_Eur_Anc]), median(PGS3_UKB_afr[[I]][, EUR_ANC])))
+        B_UKB_afr[[I]][,N:=c(nrow(PGS3_UKB_afr[[I]][Quantile==a1[[I]][1]]), nrow(PGS3_UKB_afr[[I]][Quantile==a1[[I]][2]]), nrow(PGS3_UKB_afr[[I]][Quantile==a1[[I]][3]]), nrow(PGS3_UKB_afr[[I]][Quantile==a1[[I]][4]]),nrow(PGS3_UKB_afr[[I]]))]
+        B_UKB_afr[[I]][,K:=1] #number of predictors. Need to check later if this is correct.
+        B_UKB_afr[[I]][, LCL:=CI.Rsq(R_sq, k=K, n=N)[3]]
+        B_UKB_afr[[I]][, UCL:=CI.Rsq(R_sq, k=K, n=N)[4]]
+}
+### add confidence intervals calculated with bootstrap: https://www.statmethods.net/advstats/bootstrapping.html
+results.UKB_afr<-vector('list', length(PGS3_UKB_afr))
+names(results.UKB_afr)<-names(PGS3_UKB_afr)
+
+for (I in names(PGS3_UKB_afr)){
+results.UKB_afr[[I]]<-vector('list', length(a1[[I]])+1)
+        lapply(a1[[I]], function(i) boot(data=PGS3_UKB_afr[[I]][Quantile==i], statistic=rsq.R2,
+                R=999, formula1=Height~Sex+Age+AGE2+EUR_ANC, formula2=Height~Sex+Age+AGE2+EUR_ANC+PGS))-> results.UKB_afr[[I]]
+        cat(I)
+        cat(' done\n')
+}
+
+for (I in names(PGS3_UKB_afr)){
+        tp <- boot(data=PGS2_UKB_afr[[I]], statistic=rsq.R2, R=999, formula1=Height~Sex+Age+AGE2+EUR_ANC, formula2=Height~Sex+Age+AGE2+EUR_ANC+PGS)
+        list.append(results.UKB_afr[[I]], tp)-> results.UKB_afr[[I]]
+        names(results.UKB_afr[[I]])<-c(a1[[I]], "total")
+        cat(' done\n')
+}
+
+
+saveRDS(PGS3_UKB_afr, file='~/height_prediction/imputed/output/PGS3_UKB_afr.Rds')
+saveRDS(results.UKB_afr, file='~/height_prediction/imputed/output/results.UKB_afr.Rds')
+
+#confidence intervals
+
+boots.ci.UKB_afr<-lapply(results.UKB_afr, function(Y) lapply(Y, function(X) boot.ci(X, type = c("norm", 'basic', "perc"))))
+names(boots.ci.UKB_afr)<-names(results.UKB_afr)
+
+for (I in names(PGS3_UKB_afr)){
+        B_UKB_afr[[I]][1:4,]-> a
+        B_UKB_afr[[I]][5,]-> b
+        a[,HVB_L:=sapply(a$Quant, function(X) as.numeric(gsub("\\]","",gsub("\\(","",gsub("\\[","",strsplit(X,",")[[1]])))))[1,]]
+        a[,HVB_U:=sapply(a$Quant, function(X) as.numeric(gsub("\\]","",gsub("\\(","",gsub("\\[","",strsplit(X,",")[[1]])))))[2,]]
+        b[,HVB_L:=1]
+        b[,HVB_U:=1]
+        rbind(a,b)->B_UKB_afr[[I]]
+        B_UKB_afr[[I]][, Dataset:='UKB_AFR']
+        B_UKB_afr[[I]][, boots_norm_L:=sapply(1:5, function(X) boots.ci.UKB_afr[[I]][[X]]$normal[2])]
+        B_UKB_afr[[I]][, boots_norm_U:=sapply(1:5, function(X) boots.ci.UKB_afr[[I]][[X]]$normal[3])]
+        B_UKB_afr[[I]][, boots_perc_L:=sapply(1:5, function(X) boots.ci.UKB_afr[[I]][[X]]$perc[4])]
+        B_UKB_afr[[I]][, boots_perc_U:=sapply(1:5, function(X) boots.ci.UKB_afr[[I]][[X]]$perc[5])]
+        B_UKB_afr[[I]][, boots_basic_L:=sapply(1:5, function(X) boots.ci.UKB_afr[[I]][[X]]$basic[4])]
+        B_UKB_afr[[I]][, boots_basic_U:=sapply(1:5, function(X) boots.ci.UKB_afr[[I]][[X]]$basic[5])]
+}
+
+saveRDS(B_UKB_afr, file="~/height_prediction/imputed/output/B_UKB_afr.Rds")
+###################################
 ##now UKB_eur
 PGS_UKB_eur<-vector('list', 35)
 names(PGS_UKB_eur)<-nam

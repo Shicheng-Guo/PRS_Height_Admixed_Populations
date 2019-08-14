@@ -78,8 +78,102 @@ lapply(PGS2_HRS_afr, function(X) lm(HEIGHT~SEX+AGE+AGE2+EUR_ANC+PGS, X))-> lm8_H
 
 partial_R2<-lapply(nam, function(X) partial.R2(lm7_HRS_afr[[X]], lm8_HRS_afr[[X]]))
 names(partial_R2)<-nam
+#######################
+
+lapply(PGS2_HRS_afr, function(X) X[, Quantile:= cut(EUR_ANC,
+                                breaks=quantile(EUR_ANC, probs=seq(0,1, by=1/2), na.rm=TRUE),
+                                include.lowest=TRUE)])-> PGS3_HRS_afr
+
+names(PGS3_HRS_afr)<-names(PGS2_HRS_afr)
+
+lapply(1:length(PGS3_HRS_afr), function(X) PGS3_HRS_afr[[X]][,Med_Eur_Anc:=median(EUR_ANC),by=Quantile])
+
+lapply(1:length(PGS3_HRS_afr), function(X) as.character(unique((PGS3_HRS_afr[[X]]$Quantile))))-> a
+
+lapply(a, function(X) c(X[2],X[1]))-> a1 #check
+
+names(a1)<-names(PGS3_HRS_afr)
+
+r2_HRS_afr<-vector('list', length(PGS3_HRS_afr))
+names(r2_HRS_afr)<-names(PGS3_HRS_afr)
+
+for(I in names(r2_HRS_afr)){
+        r2_HRS_afr[[I]]<-vector('list', length(a1[[I]]))
+        names(r2_HRS_afr[[I]])<-a1[[I]]
+        for(i in a1[[I]]){
+        r2_HRS_afr[[I]][[i]]<-partial.R2(lm(HEIGHT~SEX+AGE+AGE2+EUR_ANC, PGS3_HRS_afr[[I]][Quantile==i]),lm(HEIGHT~SEX+AGE+AGE2+EUR_ANC+PGS, PGS3_HRS_afr[[I]][Quantile==i]))
+        }
+}
 
 
+B_HRS_afr<-vector('list', length(r2_HRS_afr))
+names(B_HRS_afr)<-names(r2_HRS_afr)
+
+for (I in names(r2_HRS_afr)){
+        B_HRS_afr[[I]]<-data.table(Quant=c(a1[[I]], "total"),
+        R_sq=c(unlist(r2_HRS_afr[[I]]), partial_R2[[I]]),
+        Med_Eur_Anc=c(unique(PGS3_HRS_afr[[I]][Quantile==a1[[I]][1]][,Med_Eur_Anc]), unique(PGS3_HRS_afr[[I]][Quantile==a1[[I]][2]][,Med_Eur_Anc]), median(PGS3_HRS_afr[[I]][, EUR_ANC])))
+        B_HRS_afr[[I]][,N:=c(nrow(PGS3_HRS_afr[[I]][Quantile==a1[[I]][1]]), nrow(PGS3_HRS_afr[[I]][Quantile==a1[[I]][2]]),nrow(PGS3_HRS_afr[[I]]))]
+        B_HRS_afr[[I]][,K:=1] #number of predictors. Need to check later if this is correct.
+        B_HRS_afr[[I]][, LCL:=CI.Rsq(R_sq, k=K, n=N)[3]]
+        B_HRS_afr[[I]][, UCL:=CI.Rsq(R_sq, k=K, n=N)[4]]
+}
+
+results.HRS_afr<-vector('list', length(PGS3_HRS_afr))
+names(results.HRS_afr)<-names(PGS3_HRS_afr)
+
+for (I in names(PGS3_HRS_afr)){
+results.HRS_afr[[I]]<-vector('list', length(a1[[I]])+1)
+        lapply(a1[[I]], function(i) boot(data=PGS3_HRS_afr[[I]][Quantile==i], statistic=rsq.R2,
+                R=999, formula1=HEIGHT~SEX+AGE+AGE2+EUR_ANC, formula2=HEIGHT~SEX+AGE+AGE2+EUR_ANC+PGS))-> results.HRS_afr[[I]]
+        cat(I)
+        cat(' done\n')
+}
+
+for (I in names(PGS3_HRS_afr)){
+        tp <- boot(data=PGS2_HRS_afr[[I]], statistic=rsq.R2, R=999, formula1=HEIGHT~SEX+AGE+AGE2+EUR_ANC, formula2=HEIGHT~SEX+AGE+AGE2+EUR_ANC+PGS)
+        list.append(results.HRS_afr[[I]], tp)-> results.HRS_afr[[I]]
+        names(results.HRS_afr[[I]])<-c(a1[[I]], "total")
+        cat(' done\n')
+}
+saveRDS(PGS3_HRS_afr, file='~/height_prediction/imputed/output/PGS3_HRS_afr.Rds')
+saveRDS(results.HRS_afr, file='~/height_prediction/imputed/output/results.HRS_afr.Rds')
+#confidence intervals
+
+boots.ci.HRS_afr<-lapply(results.HRS_afr, function(Y) lapply(Y, function(X) boot.ci(X, type = c("norm", 'basic', "perc"))))
+names(boots.ci.HRS_afr)<-names(results.HRS_afr)
+
+for (I in names(PGS3_HRS_afr)){
+        B_HRS_afr[[I]][1:2,]-> a
+        B_HRS_afr[[I]][3,]-> b
+        a[,HVB_L:=sapply(a$Quant, function(X) as.numeric(gsub("\\]","",gsub("\\(","",gsub("\\[","",strsplit(X,",")[[1]])))))[1,]]
+        a[,HVB_U:=sapply(a$Quant, function(X) as.numeric(gsub("\\]","",gsub("\\(","",gsub("\\[","",strsplit(X,",")[[1]])))))[2,]]
+        b[,HVB_L:=1]
+        b[,HVB_U:=1]
+        rbind(a,b)->B_HRS_afr[[I]]
+        B_HRS_afr[[I]][, Dataset:='HRS_AFR']
+        B_HRS_afr[[I]][, boots_norm_L:=sapply(1:3, function(X) boots.ci.HRS_afr[[I]][[X]]$normal[2])]
+        B_HRS_afr[[I]][, boots_norm_U:=sapply(1:3, function(X) boots.ci.HRS_afr[[I]][[X]]$normal[3])]
+        B_HRS_afr[[I]][, boots_perc_L:=sapply(1:3, function(X) boots.ci.HRS_afr[[I]][[X]]$perc[4])]
+        B_HRS_afr[[I]][, boots_perc_U:=sapply(1:3, function(X) boots.ci.HRS_afr[[I]][[X]]$perc[5])]
+        B_HRS_afr[[I]][, boots_basic_L:=sapply(1:3, function(X) boots.ci.HRS_afr[[I]][[X]]$basic[4])]
+        B_HRS_afr[[I]][, boots_basic_U:=sapply(1:3, function(X) boots.ci.HRS_afr[[I]][[X]]$basic[5])]
+}
+
+
+for (I in names(PGS3_HRS_afr)){
+       myp<-ggplot(B_HRS_afr[[I]][1:2,], aes(x=Med_Eur_Anc, y=R_sq)) +
+        geom_point(size=1.5, shape=21, fill="white") +
+        geom_errorbar(aes(x=Med_Eur_Anc, ymin=boots_perc_L, ymax=boots_perc_U), width=0.05, size=0.8, color="cornflowerblue") +
+        geom_line(color='lightgray')+
+        geom_errorbarh(aes(x=Med_Eur_Anc, xmin=HVB_L, xmax=HVB_U), width=0.05, size=0.5, color="cornflowerblue") +
+        labs(title = "HRS_AFR") + ylab(expression(Partial~R^2)) + xlab("European Ancestry Proportion")
+        print(myp)
+        ggsave(paste0('~/height_prediction/imputed/figs/HRS_afr_error_bars_', I, '.png'))
+}
+
+saveRDS(B_HRS_afr, file="~/height_prediction/imputed/output/B_HRS_afr.Rds")
+########################################
 ##now HRS_eur
 PGS_HRS_eur<-vector('list', 35)
 names(PGS_HRS_eur)<-nam
@@ -121,7 +215,57 @@ lapply(PGS2_HRS_eur, function(X) lm(HEIGHT~SEX+AGE+AGE2+PGS, X))-> lm8_HRS_eur
 partial_R2_eur<-lapply(nam, function(X) partial.R2(lm7_HRS_eur[[X]],lm8_HRS_eur[[X]])) #
 names(partial_R2_eur)<-nam
 
+lapply(PGS2_HRS_eur, function(X) X[, Quantile:='total'][,Med_Eur_Anc:=1])-> PGS3_HRS_eur
 
+
+B_HRS_eur<-vector('list', length(PGS3_HRS_eur))
+names(B_HRS_eur)<-names(PGS3_HRS_eur)
+
+for (I in names(PGS3_HRS_eur)){
+        B_HRS_eur[[I]]<-data.table(Quant="total",R_sq=partial_R2_eur[[I]],Med_Eur_Anc=1)
+        B_HRS_eur[[I]][,N:=nrow(PGS3_HRS_eur[[I]])]
+        B_HRS_eur[[I]][, K:=1] #number of predictors. Need to check later if this is correct.
+        B_HRS_eur[[I]][, LCL:=CI.Rsq(R_sq, k=K, n=N)[3]]
+        B_HRS_eur[[I]][, UCL:=CI.Rsq(R_sq, k=K, n=N)[4]]
+}
+
+### add confidence intervals calculated with bootstrap: https://www.statmethods.net/advstats/bootstrapping.html
+results.HRS_eur<-vector('list', length(PGS3_HRS_eur))
+names(results.HRS_eur)<-names(PGS3_HRS_eur)
+
+
+for (I in names(PGS3_HRS_eur)){
+        results.HRS_eur[[I]]<- boot(data=PGS2_HRS_eur[[I]], statistic=rsq.R2, R=999, formula1=HEIGHT~SEX+AGE+AGE2, formula2=HEIGHT~SEX+AGE+AGE2+PGS)
+        results.HRS_eur[[I]]
+        #names(results.HRS_eur[[I]])<-c(a1[[I]], "total")
+        cat(I, ' done\n')
+}
+
+
+#95% confidence intervals.
+saveRDS(results.HRS_eur, file='~/height_prediction/imputed/output/results.HRS_eur.Rds')
+saveRDS(PGS3_HRS_eur, file='~/height_prediction/imputed/output/PGS3_HRS_eur.Rds')
+
+
+boots.ci.HRS_eur<-lapply(results.HRS_eur, function(X)  boot.ci(X, type = c("norm", 'basic', "perc")))
+names(boots.ci.HRS_eur)<-names(results.HRS_eur)
+
+for (I in names(PGS3_HRS_eur)){
+        B_HRS_eur[[I]][,HVB_L:=1]
+        B_HRS_eur[[I]][,HVB_U:=1]
+        B_HRS_eur[[I]][, Dataset:='HRS_eur']
+        B_HRS_eur[[I]][, boots_norm_L:=boots.ci.HRS_eur[[I]]$normal[2]]
+        B_HRS_eur[[I]][, boots_norm_U:=boots.ci.HRS_eur[[I]]$normal[3]]
+        B_HRS_eur[[I]][, boots_perc_L:=boots.ci.HRS_eur[[I]]$perc[4]]
+        B_HRS_eur[[I]][, boots_perc_U:=boots.ci.HRS_eur[[I]]$perc[5]]
+        B_HRS_eur[[I]][, boots_basic_L:=boots.ci.HRS_eur[[I]]$basic[4]]
+        B_HRS_eur[[I]][, boots_basic_U:=boots.ci.HRS_eur[[I]]$basic[5]]
+}
+
+saveRDS(B_HRS_eur, file="~/height_prediction/imputed/output/B_HRS_eur.Rds")
+
+
+###################################################
 #combine all in a table
 
 readRDS('~/height_prediction/gwas/HRS_afr/output/Nr_SNPs_HRS_afr.Rds')[Name %in% paste0('phys_', nam)]-> hrs_afr

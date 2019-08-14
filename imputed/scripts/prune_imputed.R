@@ -27,7 +27,11 @@ for(chr in 22:1){
 	tmp<-ukb[CHR==chr]
 	tmp$POS<-as.numeric(tmp$POS)
 	tmp$CHR<-as.numeric(tmp$CHR)
-	bim<-fread(paste0('/project/mathilab/data/HRS/data/imputed/HRS_AFR_imputed_chr', chr, '.bim'))
+	if(args[3]=='HRS'){
+		bim<-fread(paste0('/project/mathilab/data/HRS/data/imputed/HRS_AFR_imputed_chr', chr, '.bim'))
+	} else if (args[3]=='UKB'){
+		bim<-fread(paste0('/project/mathilab/data/UKB/imputed/ukb_imp_chr', chr,'_afr.bim'))
+	}
 	colnames(bim)<-c('CHR', 'MarkerName', 'V3','POS', 'REF', 'ALT')
 	bim$POS<-as.numeric(bim$POS)
 	bim$CHR<-as.numeric(bim$CHR)
@@ -56,11 +60,18 @@ for(chr in 22:1){
 	vec2<-vec2[-1]
 	cat('Chr ', chr, ' done\n')
 	ukb[CHR!=chr]-> ukb
-	fwrite(as.data.frame(vec2[,5]),paste0('~/height_prediction/imputed/output/chr_', chr,'_', W,'_',p_thresh, '.txt'), sep="\t",col.names=F)
+	if(args[3]=='HRS'){
+		fwrite(as.data.frame(vec2[,5]),paste0('~/height_prediction/imputed/output/chr_', chr,'_', W,'_',p_thresh, '.txt'), sep="\t",col.names=F)
+	} else if(args[3]== 'UKB'){
+		fwrite(as.data.frame(vec2[,5]),paste0('~/height_prediction/imputed/output/UKB_chr_', chr,'_', W,'_',p_thresh, '.txt'), sep="\t",col.names=F)
+	}	
 	vec_all[[chr]]<-vec2
 	remove(vec2)
 }
-saveRDS(vec_all,file=paste0('~/height_prediction/imputed/output/vec_all_', W, '_', p_thresh, '.Rds'))
-
+if(args[3]=='HRS'){
+	saveRDS(vec_all,file=paste0('~/height_prediction/imputed/output/vec_all_', W, '_', p_thresh, '.Rds'))
+} else if(args[3]=='UKB'){
+	saveRDS(vec_all,file=paste0('~/height_prediction/imputed/output/UKB_vec_all_', W, '_', p_thresh, '.Rds'))
+}
 #
 

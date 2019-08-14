@@ -38,15 +38,15 @@ readRDS(paste0('~/height_prediction/',args[1],'/HRS_eur/output/PGS3_HRS_eur.Rds'
 readRDS(paste0('~/height_prediction/',args[1],'/HRS_afr/output/PGS3_HRS_afr.Rds'))-> PGS3_HRS_afr
 
 for(I in names(B_JHS)){ #JHS lacks the LD prunning methods
-	ALL<-rbind(B_JHS[[I]][1:2,], B_WHI[[I]][1:4,], B_UKB_afr[[I]][1:4,],B_HRS_afr[[I]][1:2,],  B_HRS_eur[[I]])
+	ALL<-rbind(B_JHS[[I]][1:2,][, Dataset:='JHS_afr'], B_WHI[[I]][1:4,][, Dataset:='WHI_afr'], B_UKB_afr[[I]][1:4,][,Dataset:='UKB_afr'],B_HRS_afr[[I]][1:2,][, Dataset:='HRS_afr'],  B_HRS_eur[[I]])
 	#rbind(ALL[!(Dataset %in% c('UKB_EUR', 'pennBB_EA'))], ALL[Dataset %in% c('UKB_EUR', 'pennBB_EA')][, Med_Eur_Anc:=1])-> ALL
-	my_plot<-ggplot(ALL, aes(x=Med_Eur_Anc, y=R_sq,group=Dataset, colour=Dataset)) +
-	geom_point(size=1.5, shape=21, fill="white") +
+	my_plot<-ggplot(ALL, aes(x=Med_Eur_Anc, y=R_sq, colour=Dataset, shape=Dataset)) +
+	geom_point(size=1.5, fill="white") +
 	geom_errorbar(aes(x=Med_Eur_Anc, group=Dataset, colour=Dataset,ymin=boots_perc_L, ymax=boots_perc_U), width=0.05, size=0.8) +
 	#geom_line(color='lightgray')+
-	geom_errorbarh(aes(x=Med_Eur_Anc, group=Dataset, colour=Dataset, xmin=HVB_L, xmax=HVB_U), width=0.05, size=0.5) +  scale_color_brewer(palette="Dark2")+
-	labs(title = "All Datasets") + ylab("R-squared")+ xlab("European Ancestry Proportion") +
-	theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15), axis.text.x=element_text(size=9), axis.text.y=element_text(size=9))
+	geom_errorbarh(aes(x=Med_Eur_Anc, group=Dataset, colour=Dataset, xmin=HVB_L, xmax=HVB_U), width=0.05, size=0.5) +  scale_color_brewer(palette="Dark2") +
+	ylab(expression(paste("Partial R"^"2"))) + xlab("European Ancestry Proportion") +
+	theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15),axis.text.x=element_text(size=9), axis.text.y=element_text(size=9),legend.key=element_blank(),legend.background=element_blank(),legend.title=element_blank())
 	print(my_plot)
 	if(args=='sib_betas'){
 	ggsave(paste0('~/height_prediction/figs/sib_error_bars_all_v2_', I, '.png'))
@@ -59,15 +59,15 @@ ALL2<-vector('list', length(names(B_JHS)))
 names(ALL2)<-names(B_JHS)
 
 for(I in names(B_JHS)){
-	ALL2[[I]]<-rbind(B_JHS[[I]][1:2,], B_WHI[[I]][1:4,], B_UKB_afr[[I]][1:4,], B_HRS_afr[[I]][1:2,], B_HRS_eur[[I]])
+	ALL2[[I]]<-rbind(B_JHS[[I]][1:2,][, Dataset:='JHS_afr'], B_WHI[[I]][1:4,][, Dataset:='WHI_afr'], B_UKB_afr[[I]][1:4,][,Dataset:='UKB_afr'],B_HRS_afr[[I]][1:2,][, Dataset:='HRS_afr'],  B_HRS_eur[[I]])
 	#rbind(ALL2[[I]][!(Dataset %in% c('UKB_EUR', 'pennBB_EA'))], ALL2[[I]][Dataset %in% c('UKB_EUR', 'pennBB_EA')][, Med_Eur_Anc:=1])-> ALL2[[I]]
 	tmp<-1/c(var(results.JHS[[I]][[1]]$t), var(results.JHS[[I]][[2]]$t), var(results.WHI[[I]][[1]]$t), var(results.WHI[[I]][[2]]$t), var(results.WHI[[I]][[3]]$t), var(results.WHI[[I]][[4]]$t), var(results.UKB_afr[[I]][[1]]$t),var(results.UKB_afr[[I]][[2]]$t), var(results.UKB_afr[[I]][[3]]$t), var(results.UKB_afr[[I]][[4]]$t), var(results.HRS_afr[[I]][[1]]$t), var(results.HRS_afr[[I]][[2]]$t), var(results.HRS_eur[[I]]$t))  #weighing lm by boostrap replicates.
 	cbind(ALL2[[I]], W=tmp)-> ALL2[[I]]
 	my_plot2<-ggplot(ALL2[[I]], aes(x=Med_Eur_Anc, y=R_sq)) +
 		geom_point(size=1.5, shape=21, fill="white") + stat_smooth(method = "lm", mapping = aes(weight = W), col='black') +
 		scale_color_brewer(palette="Dark2") +
-		labs(title = "All Datasets") + ylab("R-squared") + xlab("European Ancestry Proportion")+
-		theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15),  axis.text.x=element_text(size=9), axis.text.y=element_text(size=9))
+		ylab(expression(paste("Partial R"^"2"))) + xlab("European Ancestry Proportion") +
+		theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15),axis.text.x=element_text(size=9), axis.text.y=element_text(size=9), legend.key=element_blank(), legend.background=element_blank(),legend.title=element_blank())
 	print(my_plot2)
 	if(args[1]=='sib_betas'){
 	ggsave(paste0('~/height_prediction/figs/sib_error_bars_all_v3_', I, '.png'))
@@ -79,15 +79,15 @@ ALL2b<-vector('list', length(names(B_JHS)))
 names(ALL2b)<-names(B_JHS)
 
 for(I in names(B_JHS)){
-	ALL2b[[I]]<-rbind(B_JHS[[I]][1:2,], B_WHI[[I]][1:4,], B_UKB_afr[[I]][1:4,], B_HRS_afr[[I]][1:3,], B_HRS_eur[[I]])
+	ALL2b[[I]]<-rbind(B_JHS[[I]][1:2,][, Dataset:='JHS_afr'], B_WHI[[I]][1:4,][, Dataset:='WHI_afr'], B_UKB_afr[[I]][1:4,][,Dataset:='UKB_afr'],B_HRS_afr[[I]][1:2,][, Dataset:='HRS_afr'],  B_HRS_eur[[I]])
        # rbind(ALL2b[[I]][!(Dataset %in% 'pennBB_EA')], ALL2b[[I]][Dataset %in% 'pennBB_EA'][, Med_Eur_Anc:=1])-> ALL2b[[I]]
         tmp<-1/c(var(results.JHS[[I]][[1]]$t), var(results.JHS[[I]][[2]]$t), var(results.WHI[[I]][[1]]$t), var(results.WHI[[I]][[2]]$t), var(results.WHI[[I]][[3]]$t), var(results.WHI[[I]][[4]]$t), var(results.UKB_afr[[I]][[1]]$t),var(results.UKB_afr[[I]][[2]]$t), var(results.UKB_afr[[I]][[3]]$t), var(results.UKB_afr[[I]][[4]]$t), var(results.HRS_afr[[I]][[1]]$t), var(results.HRS_afr[[I]][[2]]$t),var(results.HRS_eur[[I]]$t))
 	cbind(ALL2b[[I]], W=tmp)-> ALL2b[[I]]
         my_plot2<-ggplot(ALL2b[[I]], aes(x=Med_Eur_Anc, y=R_sq)) +
                 geom_point(size=1.5, shape=21, fill="white") + stat_smooth(method = "lm", mapping = aes(weight = W), col='black') +
                 scale_color_brewer(palette="Dark2") +
-                labs(title = "All Datasets") + ylab("R-squared") + xlab("European Ancestry Proportion")+
-                theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15),  axis.text.x=element_text(size=9), axis.text.y=element_text(size=9))
+                ylab(expression(paste("Partial R"^"2"))) + xlab("European Ancestry Proportion") +
+		theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15),axis.text.x=element_text(size=9), axis.text.y=element_text(size=9), legend.key=element_blank(), legend.background=element_blank(),legend.title=element_blank())
         print(my_plot2)
 	if(args[1]=='sib_betas'){
 	ggsave(paste0('~/height_prediction/figs/sib_error_bars_all_v3b_', I, '.png'))	
@@ -98,13 +98,13 @@ for(I in names(B_JHS)){
 
 for(I in names(B_JHS)){
         my_plot<-ggplot(ALL2[[I]], aes(x=Med_Eur_Anc, y=R_sq,colour=Dataset)) +
-        geom_point(size=1.5, shape=21, fill="white") + stat_smooth(data=ALL2[[I]],,method = "lm", mapping = aes(weight = W), col='black') +
+        geom_point(aes(shape=Dataset), size=1.5, fill="white") + stat_smooth(data=ALL2[[I]],method = "lm", mapping = aes(weight = W), col='black') +
         geom_errorbar(aes(x=Med_Eur_Anc, group=Dataset, colour=Dataset,ymin=boots_perc_L, ymax=boots_perc_U), width=0.05, size=0.8) +
         #geom_line(color='lightgray')+
         geom_errorbarh(aes(x=Med_Eur_Anc, group=Dataset, colour=Dataset, xmin=HVB_L, xmax=HVB_U), width=0.05, size=0.5) +  scale_color_brewer(palette="Dark2")+
-        labs(title = "All Datasets") + ylab("R-squared")+ xlab("European Ancestry Proportion") +
-	theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15), axis.text.x=element_text(size=9), axis.text.y=element_text(size=9))
-        print(my_plot)
+        ylab(expression(paste("Partial R"^"2"))) + xlab("European Ancestry Proportion") +
+  	theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15),axis.text.x=element_text(size=9), axis.text.y=element_text(size=9), legend.key=element_blank(), legend.background=element_blank(), legend.title=element_blank()) 
+	print(my_plot)
 	if(args[1]=='sib_betas'){
 	ggsave(paste0('~/height_prediction/figs/sib_error_bars_all_v4_', I, '.png'))
 	} else{
@@ -117,7 +117,7 @@ ALL3<-vector('list', length(names(B_JHS)))
 names(ALL3)<- names(B_JHS)
 
 for (I in names(B_JHS)){
-	ALL3[[I]]<-rbind(B_JHS[[I]][1:2,], B_WHI[[I]][1:4,], B_UKB_afr[[I]][1:4,],B_HRS_afr[[I]][1:2,], B_HRS_eur[[I]])
+	ALL3[[I]]<-rbind(B_JHS[[I]][1:2,][, Dataset:='JHS_afr'], B_WHI[[I]][1:4,][, Dataset:='WHI_afr'], B_UKB_afr[[I]][1:4,][,Dataset:='UKB_afr'],B_HRS_afr[[I]][1:2,][, Dataset:='HRS_afr'],  B_HRS_eur[[I]])
 	#rbind(ALL3[[I]][!(Dataset %in% c('UKB_EUR', 'pennBB_EA'))], ALL3[[I]][Dataset %in% c('UKB_EUR', 'pennBB_EA')][, Med_Eur_Anc:=1])-> ALL3[[I]]
 	ALL3[[I]][,Set:=I]
 	tmp<-lm(R_sq~Med_Eur_Anc,weights=1/
@@ -270,29 +270,26 @@ combo<-vector('list', length(PGS3_JHS))
 names(combo)<-names(PGS3_JHS)
 
 for (I in names(PGS3_JHS)){
-	rbind(PGS3_WHI[[I]][,.(SUBJID,AGE, age2, HEIGHTX,PGS, SEX,EUR_ANC)][,SUBJ_ID:=SUBJID][, age:=AGE][, sex:='FEMALE'][, SUBJID:=NULL][, AGE:=NULL][, SEX:=NULL][,Dataset:='WHI'][, Res.Height:=resid(lm(HEIGHTX~age+age2))],
-	PGS3_pennBB_afr[[I]][,.(SUBJ_ID,age, age2, HEIGHTX,PGS, sex, EUR_ANC)][,Dataset:='pennBB_AA'][, Res.Height:=resid(lm(HEIGHTX~sex+age+age2))],
-	PGS3_pennBB_eur[[I]][,.(SUBJ_ID,age, age2, HEIGHTX,PGS, sex, EUR_ANC)][,Dataset:='pennBB_EA'][, Res.Height:=resid(lm(HEIGHTX~sex+age+age2))],
-	PGS3_UKB_afr[[I]][, sex:=Sex][, HEIGHTX:=Height][,SUBJ_ID:=ID][,.(SUBJ_ID, Age, age2, HEIGHTX, PGS, sex, EUR_ANC)][, age:=Age][, Age:=NULL][,Dataset:='UKB_AFR'][, Res.Height:=resid(lm(HEIGHTX~sex+age+age2))],
-	PGS3_UKB_eur[[I]][, sex:=Sex][, HEIGHTX:=Height][,SUBJ_ID:=ID][,.(SUBJ_ID, Age, age2, HEIGHTX, PGS, sex, EUR_ANC)][, age:=Age][, Age:=NULL][,Dataset:='UKB_EUR'][, Res.Height:=resid(lm(HEIGHTX~sex+age+age2))],
-	PGS3_JHS[[I]][,.(SUBJID, age, age2, HEIGHTX, PGS, sex, EUR_ANC)][,SUBJ_ID:=SUBJID][, SUBJID:=NULL][,Dataset:='JHS'][, Res.Height:=resid(lm(HEIGHTX~sex+age+age2))])[,Prun_Set:=I][,Nr_SNPs:=0]-> combo[[I]]
-	readRDS('Nr_SNPs_WHI.Rds')[Name==I][, Nr]-> a
-	readRDS('Nr_SNPs_UKB.Rds')[Name==I][, Nr]-> b
-	readRDS('Nr_SNPs_JHS.Rds')[Name==I][, Nr]-> d
-	readRDS('Nr_SNPs_pennBB_afr.Rds')[Name==I][, Nr]-> f
-	combo[[I]][Dataset=='WHI']$Nr_SNPs<-a
-	combo[[I]][Dataset=='JHS']$Nr_SNPs<-d
-	combo[[I]][Dataset=='UKB_AFR']$Nr_SNPs<-b
-	combo[[I]][Dataset=='UKB_EUR']$Nr_SNPs<-b
-	combo[[I]][Dataset=='pennBB_EA']$Nr_SNPs<-f
-	combo[[I]][Dataset=='pennBB_AA']$Nr_SNPs<-f
+	rbind(PGS3_WHI[[I]][,.(SUBJID,AGE, age2, HEIGHTX,PGS, SEX,EUR_ANC)][,SUBJ_ID:=SUBJID][, age:=AGE][, sex:='FEMALE'][, SUBJID:=NULL][, AGE:=NULL][, SEX:=NULL][,Dataset:='WHI_afr'][, Res.Height:=resid(lm(HEIGHTX~age+age2))],
+	PGS3_HRS_afr[[I]][,SUBJ_ID:=ID][, age:=AGE][, age2:=AGE2][, HEIGHTX:=HEIGHT][, sex:=SEX][,.(SUBJ_ID,age, age2, HEIGHTX,PGS, sex, EUR_ANC)][,Dataset:='HRS_afr'][, Res.Height:=resid(lm(HEIGHTX~sex+age+age2))],
+	PGS3_HRS_eur[[I]][,SUBJ_ID:=ID][, age:=AGE][, age2:=AGE2][, HEIGHTX:=HEIGHT][, sex:=SEX][,.(SUBJ_ID,age, age2, HEIGHTX,PGS, sex, EUR_ANC)][,Dataset:='HRS_eur'][, Res.Height:=resid(lm(HEIGHTX~sex+age+age2))],
+	PGS3_UKB_afr[[I]][, sex:=Sex][, HEIGHTX:=Height][,SUBJ_ID:=ID][,.(SUBJ_ID, Age, age2, HEIGHTX, PGS, sex, EUR_ANC)][, age:=Age][, Age:=NULL][,Dataset:='UKB_afr'][, Res.Height:=resid(lm(HEIGHTX~sex+age+age2))],
+	PGS3_JHS[[I]][,.(SUBJID, age, age2, HEIGHTX, PGS, sex, EUR_ANC)][,SUBJ_ID:=SUBJID][, SUBJID:=NULL][,Dataset:='JHS_afr'][, Res.Height:=resid(lm(HEIGHTX~sex+age+age2))])[,Prun_Set:=I][,Nr_SNPs:=0]-> combo[[I]]
+	readRDS(paste0('~/height_prediction/', args[1],'/WHI/output/Nr_SNPs_WHI.Rds'))[Name==I][, Nr]->a
+        readRDS(paste0('~/height_prediction/', args[1],'/ukb_afr/output/Nr_SNPs_UKB_afr.Rds'))[Name==I][, Nr]->b
+        readRDS(paste0('~/height_prediction/', args[1],'/JHS/output/Nr_SNPs_JHS.Rds'))[Name==I][, Nr]->d
+        readRDS(paste0('~/height_prediction/', args[1],'/HRS_eur/output/Nr_SNPs_HRS.Rds'))[Name==I][, Nr]->f
+	combo[[I]][Dataset=='WHI_afr']$Nr_SNPs<-a
+	combo[[I]][Dataset=='JHS_afr']$Nr_SNPs<-d
+	combo[[I]][Dataset=='UKB_afr']$Nr_SNPs<-b
+	combo[[I]][Dataset=='HRS_afr']$Nr_SNPs<-f
+	combo[[I]][Dataset=='HRS_eur']$Nr_SNPs<-f
 	combo[[I]][, Std.PRS:=scale(PGS), by=Dataset]-> combo[[I]]
 	cat(I, ' done\n')
 }
 do.call(rbind,combo)-> combo2
-combo2[Dataset=='UKB_EUR', EUR_ANC:=1]
 #combo2[Dataset=='pennBB_EA', EUR_ANC:=1]
-fwrite(combo2, file="WHI_pennBB_UKB_JHS_summ.txt", sep="\t")
+fwrite(combo2, file="~/height_prediction/output/WHI_JHS_UKB_HRS_summ.txt", sep="\t")
 #gzip('WHI_pennBB_UKB_summ.txt',destname='WHI_pennBB_UKB_summ.txt.gz')
 ###
 #Define F statistc	
@@ -325,7 +322,7 @@ F3_x<-function(x, data, data2){
 #p(x|y)
 y<-1-x
 z<-quantile(data[,Res.Height], probs=x)[[1]]
-z2<-quantile(data2[Dataset=='UKB_EUR'][,Std.PRS], probs=x)[[1]]
+z2<-quantile(data2[Dataset=='HRS_eur'][,Std.PRS], probs=x)[[1]]
 a<-nrow(data[Std.PRS>=z2])
 tp<-nrow(data[Std.PRS>=z2][Res.Height>=z])
 fp<-nrow(data[Std.PRS<z2][Res.Height>=z])
@@ -351,43 +348,40 @@ res<-list(F=((tp+0.5)/(a+0.5))/y, G=((fp+0.5)/(a+0.5))/y, f=tp/(tp+fn), g=fp/(fp
 return(res)
 }
 
-lapply(1:length(names(B_JHS)), function(Y) do.call(rbind,lapply(seq(from=0.5,to=0.99, by=0.01), function(X) data.frame(F3_X=F3_x(x=X,data=combo[[Y]][Dataset=='WHI'],  data2=combo[[Y]]), Quantile=X))))-> AA
+lapply(1:length(names(B_JHS)), function(Y) do.call(rbind,lapply(seq(from=0.5,to=0.99, by=0.01), function(X) data.frame(F3_X=F3_x(x=X,data=combo[[Y]][Dataset=='WHI_afr'],  data2=combo[[Y]]), Quantile=X))))-> AA
 names(AA)<-names(B_JHS)
 
-lapply(1:length(names(B_JHS)), function(Y) do.call(rbind,lapply(seq(from=0.5,to=0.99, by=0.01), function(X) data.frame(F2_X=F2_x(x=X,data=combo[[Y]][Dataset=='WHI']), Quantile=X))))-> AAA
+lapply(1:length(names(B_JHS)), function(Y) do.call(rbind,lapply(seq(from=0.5,to=0.99, by=0.01), function(X) data.frame(F2_X=F2_x(x=X,data=combo[[Y]][Dataset=='WHI_afr']), Quantile=X))))-> AAA
 names(AAA)<-names(B_JHS)
 
-lapply(1:length(names(B_JHS)), function(Y) do.call(rbind,lapply(seq(from=0.5,to=0.99, by=0.01), function(X) data.frame(F3_X=F3_x(x=X,data=combo[[Y]][Dataset=='JHS'],  data2=combo[[Y]]), Quantile=X))))-> AJ
+lapply(1:length(names(B_JHS)), function(Y) do.call(rbind,lapply(seq(from=0.5,to=0.99, by=0.01), function(X) data.frame(F3_X=F3_x(x=X,data=combo[[Y]][Dataset=='JHS_afr'],  data2=combo[[Y]]), Quantile=X))))-> AJ
 names(AJ)<-names(B_JHS)
 
-lapply(1:length(names(B_JHS)), function(Y) do.call(rbind,lapply(seq(from=0.5,to=0.99, by=0.01), function(X) data.frame(F2_X=F2_x(x=X,data=combo[[Y]][Dataset=='JHS']), Quantile=X))))-> AAJ
+lapply(1:length(names(B_JHS)), function(Y) do.call(rbind,lapply(seq(from=0.5,to=0.99, by=0.01), function(X) data.frame(F2_X=F2_x(x=X,data=combo[[Y]][Dataset=='JHS_afr']), Quantile=X))))-> AAJ
 names(AAJ)<-names(B_JHS)
 
-lapply(1:length(names(B_JHS)), function(Y) do.call(rbind,lapply(seq(from=0.5,to=0.99, by=0.01), function(X) data.frame(F3_X=F3_x(x=X,data=combo[[Y]][Dataset=='UKB_AFR'],  data2=combo[[Y]]), Quantile=X))))-> AU
+lapply(1:length(names(B_JHS)), function(Y) do.call(rbind,lapply(seq(from=0.5,to=0.99, by=0.01), function(X) data.frame(F3_X=F3_x(x=X,data=combo[[Y]][Dataset=='UKB_afr'],  data2=combo[[Y]]), Quantile=X))))-> AU
 names(AU)<-names(B_JHS)
 
-lapply(1:length(names(B_JHS)), function(Y) do.call(rbind,lapply(seq(from=0.5,to=0.99, by=0.01), function(X) data.frame(F2_X=F2_x(x=X,data=combo[[Y]][Dataset=='UKB_AFR']), Quantile=X))))-> AAU
+lapply(1:length(names(B_JHS)), function(Y) do.call(rbind,lapply(seq(from=0.5,to=0.99, by=0.01), function(X) data.frame(F2_X=F2_x(x=X,data=combo[[Y]][Dataset=='UKB_afr']), Quantile=X))))-> AAU
 names(AAU)<-names(B_JHS)
 
-lapply(1:length(names(B_JHS)), function(Y) do.call(rbind,lapply(seq(from=0.5,to=0.99, by=0.01), function(X) data.frame(F3_X=F3_x(x=X,data=combo[[Y]][Dataset=='pennBB_AA'],  data2=combo[[Y]]), Quantile=X))))-> AP
+lapply(1:length(names(B_JHS)), function(Y) do.call(rbind,lapply(seq(from=0.5,to=0.99, by=0.01), function(X) data.frame(F3_X=F3_x(x=X,data=combo[[Y]][Dataset=='HRS_eur'],  data2=combo[[Y]]), Quantile=X))))-> AP
 names(AP)<-names(B_JHS)
 
-lapply(1:length(names(B_JHS)), function(Y) do.call(rbind,lapply(seq(from=0.5,to=0.99, by=0.01), function(X) data.frame(F2_X=F2_x(x=X,data=combo[[Y]][Dataset=='pennBB_AA']), Quantile=X))))-> AAP
+lapply(1:length(names(B_JHS)), function(Y) do.call(rbind,lapply(seq(from=0.5,to=0.99, by=0.01), function(X) data.frame(F2_X=F2_x(x=X,data=combo[[Y]][Dataset=='HRS_eur']), Quantile=X))))-> AAP
 names(AAP)<-names(B_JHS)
 
-lapply(1:length(names(B_JHS)), function(Y) do.call(rbind,lapply(seq(from=0.5,to=0.99, by=0.01), function(X) data.frame(F3_X=F3_x(x=X,data=combo[[Y]][Dataset=='pennBB_EA'],  data2=combo[[Y]]), Quantile=X))))-> APE
+lapply(1:length(names(B_JHS)), function(Y) do.call(rbind,lapply(seq(from=0.5,to=0.99, by=0.01), function(X) data.frame(F3_X=F3_x(x=X,data=combo[[Y]][Dataset=='HRS_afr'],  data2=combo[[Y]]), Quantile=X))))-> APE
 names(APE)<-names(B_JHS)
 
-lapply(1:length(names(B_JHS)), function(Y) do.call(rbind,lapply(seq(from=0.5,to=0.99, by=0.01), function(X) data.frame(F2_X=F2_x(x=X,data=combo[[Y]][Dataset=='pennBB_EA']), Quantile=X))))-> AAPE
+lapply(1:length(names(B_JHS)), function(Y) do.call(rbind,lapply(seq(from=0.5,to=0.99, by=0.01), function(X) data.frame(F2_X=F2_x(x=X,data=combo[[Y]][Dataset=='HRS_afr']), Quantile=X))))-> AAPE
 names(AAPE)<-names(B_JHS)
-
-lapply(1:length(names(B_JHS)), function(Y) do.call(rbind,lapply(seq(from=0.5,to=0.99, by=0.01), function(X) data.frame(F2_X=F2_x(x=X,data=combo[[Y]][Dataset=='UKB_EUR']), Quantile=X))))-> AUE
-names(AUE)<-names(B_JHS)
 
 
 I<-names(AA)[63]
 
-png(paste0('figs/OR_WHI_', I,  ".png"))
+png(paste0('~/height_prediction/igs/OR_WHI_', I,  ".png"))
 ggplot(AA[[I]], aes(x=Quantile, y=F3_X.F)) +
 geom_point(size=2) + labs(title="Odds ratio of P(>=Xth HEIGHT quantile|>=Xth PRS quantile)", y="OR") + geom_hline(yintercept=1, linetype="dashed", color = "orange") +
 theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15), axis.text.x=element_text(size=12), axis.text.y=element_text(size=12))
@@ -403,7 +397,6 @@ tmp7<-AP[[I]]
 tmp8<-AAP[[I]]
 tmp9<-APE[[I]]
 tmp10<-AAPE[[I]]
-tmp11<-AUE[[I]]
 #
 setDT(tmp1)
 tmp1[,OR:=F3_X.F]
@@ -415,39 +408,37 @@ setDT(tmp7)
 tmp7[,OR:=F3_X.F]
 setDT(tmp9)
 tmp9[,OR:=F3_X.F]
-tmp1[, F3_X.F:=NULL][, F3_X.G:=NULL][,F3_X.f:=NULL][,F3_X.g:=NULL][, Group:="WHI_Eur"]
-tmp3[, F3_X.F:=NULL][, F3_X.G:=NULL][,F3_X.f:=NULL][,F3_X.g:=NULL][, Group:="JHS_Eur"]
+tmp1[, F3_X.F:=NULL][, F3_X.G:=NULL][,F3_X.f:=NULL][,F3_X.g:=NULL][, Group:="WHI_afr_Eur"]
+tmp3[, F3_X.F:=NULL][, F3_X.G:=NULL][,F3_X.f:=NULL][,F3_X.g:=NULL][, Group:="JHS_afr_Eur"]
 tmp5[, F3_X.F:=NULL][, F3_X.G:=NULL][,F3_X.f:=NULL][,F3_X.g:=NULL][, Group:="UKB_AFR_Eur"]
-tmp7[,F3_X.F:=NULL][, F3_X.G:=NULL][,F3_X.f:=NULL][,F3_X.g:=NULL][, Group:="pennBB_AA_Eur"]
-tmp9[,F3_X.F:=NULL][, F3_X.G:=NULL][,F3_X.f:=NULL][,F3_X.g:=NULL][, Group:="pennBB_EA_Eur"]
+tmp7[,F3_X.F:=NULL][, F3_X.G:=NULL][,F3_X.f:=NULL][,F3_X.g:=NULL][, Group:="HRS_afr_Eur"]
+tmp9[,F3_X.F:=NULL][, F3_X.G:=NULL][,F3_X.f:=NULL][,F3_X.g:=NULL][, Group:="HRS_eur_Eur"]
 #
 setDT(tmp2)
-tmp2[,OR:=F2_X][, F2_X:=NULL][, Group:='WHI_matched']
+tmp2[,OR:=F2_X][, F2_X:=NULL][, Group:='WHI_afr_matched']
 setDT(tmp4)
-tmp4[,OR:=F2_X][, F2_X:=NULL][, Group:="JHS_matched"]
+tmp4[,OR:=F2_X][, F2_X:=NULL][, Group:="JHS_afr_matched"]
 setDT(tmp6)
-tmp6[,OR:=F2_X][, F2_X:=NULL][, Group:="UKB_AFR_matched"]
+tmp6[,OR:=F2_X][, F2_X:=NULL][, Group:="UKB_afr_matched"]
 setDT(tmp8)
-tmp8[,OR:=F2_X][, F2_X:=NULL][, Group:="pennBB_AA_matched"]
+tmp8[,OR:=F2_X][, F2_X:=NULL][, Group:="HRS_afr_matched"]
 setDT(tmp10)
-tmp10[,OR:=F2_X][, F2_X:=NULL][,Group:="pennBB_EA_matched"]
-setDT(tmp11)
-tmp11[,OR:=F2_X][, F2_X:=NULL][,Group:="UKB_EUR_matched"]
+tmp10[,OR:=F2_X][, F2_X:=NULL][,Group:="HRS_eur_matched"]
 
 
-all<-rbind(tmp1,tmp2,tmp3,tmp4,tmp5, tmp6,tmp7, tmp8, tmp9, tmp10, tmp11)
-all[, Group2:=c(rep("WHI", 100), rep("JHS", 100), rep("UKB_AFR", 100), rep("pennBB_AA",100), rep("pennBB_EA",100), rep("UKB_EUR",50))]
+all<-rbind(tmp1,tmp2,tmp3,tmp4,tmp5, tmp6,tmp7, tmp8, tmp9, tmp10)
+all[, Group2:=c(rep("WHI_afr", 100), rep("JHS_afr", 100), rep("UKB_afr", 100), rep("HRS_afr",100), rep("HRS_eur",100))]
 all[, Group3:=c(rep("Eur", 50), rep("Matched",50), rep("Eur",50), rep("Matched",50), rep("Eur",50), rep("Matched", 50), rep("Eur",50), rep("Matched", 50), rep("Eur", 50), rep("Matched", 50), rep("Matched", 50))]
 all[, Prs.Quantile:=Quantile]
 
-pdf(paste0('figs/OR_WHI_JHS_', I,  ".pdf"))
+pdf(paste0('~/height_prediction/figs/OR_WHI_JHS_', I,  ".pdf"))
 ggplot(all[Prs.Quantile<=0.975], aes(x=Prs.Quantile, y=OR, group=Group, color=Group2, linetype=Group3)) + geom_line() +
 geom_point(size=0.7) + labs(y="OR", x="Quantile") +
 theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15), axis.text.x=element_text(size=12), axis.text.y=element_text(size=12))
 dev.off()
 
 
-pdf(paste0('figs/OR_WHI_JHS_', I,  "_v2.pdf"))
+pdf(paste0('~/height_prediction/figs/OR_WHI_JHS_', I,  "_v2.pdf"))
 ggplot(all[Prs.Quantile<=0.975], aes(x=Prs.Quantile, y=OR, group=Group, color=Group2, linetype=Group3)) + geom_smooth() +
 geom_point(size=0.7) + labs(y="OR", x="Quantile") + 
 theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15), axis.text.x=element_text(size=12), axis.text.y=element_text(size=12))
@@ -458,55 +449,49 @@ dev.off()
 WOW<-vector('list', length(combo));test<-vector('list', length(combo))
 names(WOW)<-names(B_WHI);names(test)<-names(B_WHI)
 for(I in names(AA)){
-	a<-combo[[I]][Dataset=='WHI'][,Quantile:= cut(EUR_ANC,breaks=quantile(EUR_ANC, probs=seq(0,1, by=0.2), na.rm=TRUE),include.lowest=TRUE)]
-	b<-combo[[I]][Dataset=='pennBB_AA'][,Quantile:= cut(EUR_ANC,breaks=quantile(EUR_ANC, probs=seq(0,1, by=1/3), na.rm=TRUE),include.lowest=TRUE)]
-	d<-combo[[I]][Dataset=='UKB_AFR'][,Quantile:= cut(EUR_ANC,breaks=quantile(EUR_ANC, probs=seq(0,1, by=0.25), na.rm=TRUE),include.lowest=TRUE)]
-	e<-combo[[I]][Dataset=='UKB_EUR'][, EUR_ANC:=1][,Quantile:= as.factor(as.character(1))];
-	f<-combo[[I]][Dataset=='pennBB_EA'][,EUR_ANC:=1][,Quantile:=as.factor(as.character(1))]
-	g<-combo[[I]][Dataset=='JHS'][,Quantile:= cut(EUR_ANC,breaks=quantile(EUR_ANC, probs=seq(0,1, by=0.5), na.rm=TRUE),include.lowest=TRUE)]
-	test[[I]]<-rbind(a,b,d,e,f,g);test[[I]]$Quantile<-as.character(test[[I]]$Quantile)
-	WOW[[I]]<-vector('list', 6);names(WOW[[I]])<- c('WHI', 'pennBB_AA','UKB_AFR', 'UKB_EUR', 'pennBB_EA', 'JHS')
-	lapply(levels(a$Quantile), function(X) F2_x(data=a[Quantile==X], x=0.975))-> WOW[[I]][['WHI']][[1]];list.append(WOW[[I]][['WHI']][[1]], F2_x(data=a, x=0.975))-> WOW[[I]][['WHI']][[1]]	
-	lapply(levels(a$Quantile), function(X) F2_x(data=a[Quantile==X], x=0.95))-> WOW[[I]][['WHI']][[2]];list.append(WOW[[I]][['WHI']][[2]], F2_x(data=a, x=0.95))-> WOW[[I]][['WHI']][[2]]
-	lapply(levels(a$Quantile), function(X) F2_x(data=a[Quantile==X], x=0.9))-> WOW[[I]][['WHI']][[3]];list.append(WOW[[I]][['WHI']][[3]], F2_x(data=a, x=0.9))-> WOW[[I]][['WHI']][[3]]
-	lapply(levels(a$Quantile), function(X) F2_x(data=a[Quantile==X], x=0.85))-> WOW[[I]][['WHI']][[4]];list.append(WOW[[I]][['WHI']][[4]], F2_x(data=a, x=0.85))-> WOW[[I]][['WHI']][[4]]
-	lapply(levels(a$Quantile), function(X) F2_x(data=a[Quantile==X], x=0.8))-> WOW[[I]][['WHI']][[5]];list.append(WOW[[I]][['WHI']][[5]], F2_x(data=a, x=0.8))-> WOW[[I]][['WHI']][[5]]
-	names(WOW[[I]][['WHI']])<-c('0.975perc', '0.95perc', '0.9perc', '0.85perc', '0.8perc');names(WOW[[I]][['WHI']][['0.9perc']])<-c(levels(a$Quantile), 'all')
-	names(WOW[[I]][['WHI']][['0.975perc']])<-c(levels(a$Quantile), 'all');names(WOW[[I]][['WHI']][['0.95perc']])<-c(levels(a$Quantile), 'all')
-	names(WOW[[I]][['WHI']][['0.85perc']])<-c(levels(a$Quantile), 'all');names(WOW[[I]][['WHI']][['0.8perc']])<-c(levels(a$Quantile),'all') 
-	lapply(levels(b$Quantile), function(X) F2_x(data=b[Quantile==X], x=0.975))-> WOW[[I]][['pennBB_AA']][[1]];list.append(WOW[[I]][['pennBB_AA']][[1]], F2_x(data=b, x=0.975))-> WOW[[I]][['pennBB_AA']][[1]]
-	lapply(levels(b$Quantile), function(X) F2_x(data=b[Quantile==X], x=0.95))-> WOW[[I]][['pennBB_AA']][[2]];list.append(WOW[[I]][['pennBB_AA']][[2]], F2_x(data=b, x=0.95))-> WOW[[I]][['pennBB_AA']][[2]]
-	lapply(levels(b$Quantile), function(X) F2_x(data=b[Quantile==X], x=0.9))-> WOW[[I]][['pennBB_AA']][[3]];list.append(WOW[[I]][['pennBB_AA']][[3]], F2_x(data=b, x=0.9))-> WOW[[I]][['pennBB_AA']][[3]]
-	lapply(levels(b$Quantile), function(X) F2_x(data=b[Quantile==X], x=0.85))-> WOW[[I]][['pennBB_AA']][[4]];list.append(WOW[[I]][['pennBB_AA']][[4]], F2_x(data=b, x=0.85))-> WOW[[I]][['pennBB_AA']][[4]]
-        lapply(levels(b$Quantile), function(X) F2_x(data=b[Quantile==X], x=0.8))-> WOW[[I]][['pennBB_AA']][[5]];list.append(WOW[[I]][['pennBB_AA']][[5]], F2_x(data=b, x=0.8))-> WOW[[I]][['pennBB_AA']][[5]]
-	names(WOW[[I]][['pennBB_AA']])<-c('0.975perc', '0.95perc', '0.9perc', '0.85perc', '0.8perc');names(WOW[[I]][['pennBB_AA']][['0.9perc']])<-c(levels(b$Quantile), 'all')
-	names(WOW[[I]][['pennBB_AA']][['0.95perc']])<-c(levels(b$Quantile), 'all');names(WOW[[I]][['pennBB_AA']][['0.975perc']])<-c(levels(b$Quantile), 'all')
-	names(WOW[[I]][['pennBB_AA']][['0.85perc']])<-c(levels(b$Quantile), 'all');names(WOW[[I]][['pennBB_AA']][['0.8perc']])<-c(levels(b$Quantile), 'all')
-	lapply(levels(d$Quantile), function(X) F2_x(data=d[Quantile==X], x=0.975))-> WOW[[I]][['UKB_AFR']][[1]];list.append(WOW[[I]][['UKB_AFR']][[1]], F2_x(data=d, x=0.975))-> WOW[[I]][['UKB_AFR']][[1]]
-	lapply(levels(d$Quantile), function(X) F2_x(data=d[Quantile==X], x=0.95))-> WOW[[I]][['UKB_AFR']][[2]];list.append(WOW[[I]][['UKB_AFR']][[2]], F2_x(data=d, x=0.95))-> WOW[[I]][['UKB_AFR']][[2]]
-	lapply(levels(d$Quantile), function(X) F2_x(data=d[Quantile==X], x=0.9))-> WOW[[I]][['UKB_AFR']][[3]];list.append(WOW[[I]][['UKB_AFR']][[3]], F2_x(data=d, x=0.9))-> WOW[[I]][['UKB_AFR']][[3]]
-	lapply(levels(d$Quantile), function(X) F2_x(data=d[Quantile==X], x=0.85))-> WOW[[I]][['UKB_AFR']][[4]];list.append(WOW[[I]][['UKB_AFR']][[4]], F2_x(data=d, x=0.85))-> WOW[[I]][['UKB_AFR']][[4]]	
-	lapply(levels(d$Quantile), function(X) F2_x(data=d[Quantile==X], x=0.8))-> WOW[[I]][['UKB_AFR']][[5]];list.append(WOW[[I]][['UKB_AFR']][[5]], F2_x(data=d, x=0.8))-> WOW[[I]][['UKB_AFR']][[5]]
-	names(WOW[[I]][['UKB_AFR']])<-c('0.975perc', '0.95perc', '0.9perc','0.85perc', '0.8perc');names(WOW[[I]][['UKB_AFR']][['0.9perc']])<-c(levels(d$Quantile), 'all')
-	names(WOW[[I]][['UKB_AFR']][['0.95perc']])<-c(levels(d$Quantile), 'all');names(WOW[[I]][['UKB_AFR']][['0.975perc']])<-c(levels(d$Quantile), 'all');names(WOW[[I]][['UKB_AFR']][['0.85perc']])<-c(levels(d$Quantile), 'all'); names(WOW[[I]][['UKB_AFR']][['0.8perc']])<-c(levels(d$Quantile), 'all')
-	lapply(unique(e$Quantile), function(X) F2_x(data=e[Quantile==X], x=0.975))-> WOW[[I]][['UKB_EUR']][[1]]
-	lapply(unique(e$Quantile), function(X) F2_x(data=e[Quantile==X], x=0.95))-> WOW[[I]][['UKB_EUR']][[2]];lapply(unique(e$Quantile), function(X) F2_x(data=e[Quantile==X], x=0.9))-> WOW[[I]][['UKB_EUR']][[3]]
-	lapply(unique(e$Quantile), function(X) F2_x(data=e[Quantile==X], x=0.85))-> WOW[[I]][['UKB_EUR']][[4]];lapply(unique(e$Quantile), function(X) F2_x(data=e[Quantile==X], x=0.8))-> WOW[[I]][['UKB_EUR']][[5]]
-	names(WOW[[I]][['UKB_EUR']])<-c('0.975perc', '0.95perc', '0.9perc', '0.85perc', '0.8perc');names(WOW[[I]][['UKB_EUR']][['0.9perc']])<-unique(e$Quantile)
-	names(WOW[[I]][['UKB_EUR']][['0.95perc']])<-unique(e$Quantile);names(WOW[[I]][['UKB_EUR']][['0.975perc']])<-unique(e$Quantile);names(WOW[[I]][['UKB_EUR']][['0.85perc']])<-unique(e$Quantile);names(WOW[[I]][['UKB_EUR']][['0.8perc']])<-unique(e$Quantile)
-	lapply(unique(f$Quantile), function(X) F2_x(data=f[Quantile==X], x=0.975))-> WOW[[I]][['pennBB_EA']][[1]]
-	lapply(unique(f$Quantile), function(X) F2_x(data=f[Quantile==X], x=0.95))-> WOW[[I]][['pennBB_EA']][[2]];lapply(unique(f$Quantile), function(X) F2_x(data=f[Quantile==X], x=0.9))-> WOW[[I]][['pennBB_EA']][[3]]
-	lapply(unique(f$Quantile), function(X) F2_x(data=f[Quantile==X], x=0.85))-> WOW[[I]][['pennBB_EA']][[4]];lapply(unique(f$Quantile), function(X) F2_x(data=f[Quantile==X], x=0.8))-> WOW[[I]][['pennBB_EA']][[5]]
-	names(WOW[[I]][['pennBB_EA']])<-c('0.975perc', '0.95perc', '0.9perc','0.85perc', '0.8perc');names(WOW[[I]][['pennBB_EA']][['0.9perc']])<-unique(f$Quantile)
-	names(WOW[[I]][['pennBB_EA']][['0.95perc']])<-unique(f$Quantile);names(WOW[[I]][['pennBB_EA']][['0.975perc']])<-unique(f$Quantile)
-	names(WOW[[I]][['pennBB_EA']][['0.85perc']])<-unique(f$Quantile);names(WOW[[I]][['pennBB_EA']][['0.8perc']])<-unique(f$Quantile)
-	lapply(levels(g$Quantile), function(X) F2_x(data=g[Quantile==X], x=0.975))-> WOW[[I]][['JHS']][[1]];list.append(WOW[[I]][['JHS']][[1]], F2_x(data=d, x=0.975))-> WOW[[I]][['JHS']][[1]]
-        lapply(levels(g$Quantile), function(X) F2_x(data=g[Quantile==X], x=0.95))-> WOW[[I]][['JHS']][[2]];list.append(WOW[[I]][['JHS']][[2]], F2_x(data=d, x=0.95))-> WOW[[I]][['JHS']][[2]]
-        lapply(levels(g$Quantile), function(X) F2_x(data=g[Quantile==X], x=0.9))-> WOW[[I]][['JHS']][[3]];list.append(WOW[[I]][['JHS']][[3]], F2_x(data=d, x=0.9))-> WOW[[I]][['JHS']][[3]]
-        lapply(levels(g$Quantile), function(X) F2_x(data=g[Quantile==X], x=0.85))-> WOW[[I]][['JHS']][[4]];list.append(WOW[[I]][['JHS']][[4]], F2_x(data=d, x=0.85))-> WOW[[I]][['JHS']][[4]]
-        lapply(levels(g$Quantile), function(X) F2_x(data=g[Quantile==X], x=0.8))-> WOW[[I]][['JHS']][[5]];list.append(WOW[[I]][['JHS']][[5]], F2_x(data=d, x=0.8))-> WOW[[I]][['JHS']][[5]]
-        names(WOW[[I]][['JHS']])<-c('0.975perc', '0.95perc', '0.9perc','0.85perc', '0.8perc');names(WOW[[I]][['JHS']][['0.9perc']])<-c(levels(g$Quantile), 'all')
-        names(WOW[[I]][['JHS']][['0.95perc']])<-c(levels(g$Quantile), 'all');names(WOW[[I]][['JHS']][['0.975perc']])<-c(levels(g$Quantile), 'all');names(WOW[[I]][['JHS']][['0.85perc']])<-c(levels(g$Quantile), 'all'); names(WOW[[I]][['JHS']][['0.8perc']])<-c(levels(g$Quantile), 'all')
+	a<-combo[[I]][Dataset=='WHI_afr'][,Quantile:= cut(EUR_ANC,breaks=quantile(EUR_ANC, probs=seq(0,1, by=0.25), na.rm=TRUE),include.lowest=TRUE)]
+	b<-combo[[I]][Dataset=='HRS_afr'][,Quantile:= cut(EUR_ANC,breaks=quantile(EUR_ANC, probs=seq(0,1, by=0.5), na.rm=TRUE),include.lowest=TRUE)]
+	d<-combo[[I]][Dataset=='UKB_afr'][,Quantile:= cut(EUR_ANC,breaks=quantile(EUR_ANC, probs=seq(0,1, by=0.25), na.rm=TRUE),include.lowest=TRUE)]
+	f<-combo[[I]][Dataset=='HRS_eur'][,EUR_ANC:=1][,Quantile:=as.factor(as.character(1))]
+	g<-combo[[I]][Dataset=='JHS_afr'][,Quantile:= cut(EUR_ANC,breaks=quantile(EUR_ANC, probs=seq(0,1, by=0.5), na.rm=TRUE),include.lowest=TRUE)]
+	test[[I]]<-rbind(a,b,d,f,g);test[[I]]$Quantile<-as.character(test[[I]]$Quantile)
+	WOW[[I]]<-vector('list', 5);names(WOW[[I]])<- c('WHI_afr', 'HRS_afr','UKB_afr', 'HRS_eur', 'JHS_afr')
+	lapply(levels(a$Quantile), function(X) F2_x(data=a[Quantile==X], x=0.975))-> WOW[[I]][['WHI_afr']][[1]];list.append(WOW[[I]][['WHI_afr']][[1]], F2_x(data=a, x=0.975))-> WOW[[I]][['WHI_afr']][[1]]	
+	lapply(levels(a$Quantile), function(X) F2_x(data=a[Quantile==X], x=0.95))-> WOW[[I]][['WHI_afr']][[2]];list.append(WOW[[I]][['WHI_afr']][[2]], F2_x(data=a, x=0.95))-> WOW[[I]][['WHI_afr']][[2]]
+	lapply(levels(a$Quantile), function(X) F2_x(data=a[Quantile==X], x=0.9))-> WOW[[I]][['WHI_afr']][[3]];list.append(WOW[[I]][['WHI_afr']][[3]], F2_x(data=a, x=0.9))-> WOW[[I]][['WHI_afr']][[3]]
+	lapply(levels(a$Quantile), function(X) F2_x(data=a[Quantile==X], x=0.85))-> WOW[[I]][['WHI_afr']][[4]];list.append(WOW[[I]][['WHI_afr']][[4]], F2_x(data=a, x=0.85))-> WOW[[I]][['WHI_afr']][[4]]
+	lapply(levels(a$Quantile), function(X) F2_x(data=a[Quantile==X], x=0.8))-> WOW[[I]][['WHI_afr']][[5]];list.append(WOW[[I]][['WHI_afr']][[5]], F2_x(data=a, x=0.8))-> WOW[[I]][['WHI_afr']][[5]]
+	names(WOW[[I]][['WHI_afr']])<-c('0.975perc', '0.95perc', '0.9perc', '0.85perc', '0.8perc');names(WOW[[I]][['WHI_afr']][['0.9perc']])<-c(levels(a$Quantile), 'all')
+	names(WOW[[I]][['WHI_afr']][['0.975perc']])<-c(levels(a$Quantile), 'all');names(WOW[[I]][['WHI_afr']][['0.95perc']])<-c(levels(a$Quantile), 'all')
+	names(WOW[[I]][['WHI_afr']][['0.85perc']])<-c(levels(a$Quantile), 'all');names(WOW[[I]][['WHI_afr']][['0.8perc']])<-c(levels(a$Quantile),'all') 
+	lapply(levels(b$Quantile), function(X) F2_x(data=b[Quantile==X], x=0.975))-> WOW[[I]][['HRS_afr']][[1]];list.append(WOW[[I]][['HRS_afr']][[1]], F2_x(data=b, x=0.975))-> WOW[[I]][['HRS_afr']][[1]]
+	lapply(levels(b$Quantile), function(X) F2_x(data=b[Quantile==X], x=0.95))-> WOW[[I]][['HRS_afr']][[2]];list.append(WOW[[I]][['HRS_afr']][[2]], F2_x(data=b, x=0.95))-> WOW[[I]][['HRS_afr']][[2]]
+	lapply(levels(b$Quantile), function(X) F2_x(data=b[Quantile==X], x=0.9))-> WOW[[I]][['HRS_afr']][[3]];list.append(WOW[[I]][['HRS_afr']][[3]], F2_x(data=b, x=0.9))-> WOW[[I]][['HRS_afr']][[3]]
+	lapply(levels(b$Quantile), function(X) F2_x(data=b[Quantile==X], x=0.85))-> WOW[[I]][['HRS_afr']][[4]];list.append(WOW[[I]][['HRS_afr']][[4]], F2_x(data=b, x=0.85))-> WOW[[I]][['HRS_afr']][[4]]
+        lapply(levels(b$Quantile), function(X) F2_x(data=b[Quantile==X], x=0.8))-> WOW[[I]][['HRS_afr']][[5]];list.append(WOW[[I]][['HRS_afr']][[5]], F2_x(data=b, x=0.8))-> WOW[[I]][['HRS_afr']][[5]]
+	names(WOW[[I]][['HRS_afr']])<-c('0.975perc', '0.95perc', '0.9perc', '0.85perc', '0.8perc');names(WOW[[I]][['HRS_afr']][['0.9perc']])<-c(levels(b$Quantile), 'all')
+	names(WOW[[I]][['HRS_afr']][['0.95perc']])<-c(levels(b$Quantile), 'all');names(WOW[[I]][['HRS_afr']][['0.975perc']])<-c(levels(b$Quantile), 'all')
+	names(WOW[[I]][['HRS_afr']][['0.85perc']])<-c(levels(b$Quantile), 'all');names(WOW[[I]][['HRS_afr']][['0.8perc']])<-c(levels(b$Quantile), 'all')
+	lapply(levels(d$Quantile), function(X) F2_x(data=d[Quantile==X], x=0.975))-> WOW[[I]][['UKB_afr']][[1]];list.append(WOW[[I]][['UKB_afr']][[1]], F2_x(data=d, x=0.975))-> WOW[[I]][['UKB_afr']][[1]]
+	lapply(levels(d$Quantile), function(X) F2_x(data=d[Quantile==X], x=0.95))-> WOW[[I]][['UKB_afr']][[2]];list.append(WOW[[I]][['UKB_afr']][[2]], F2_x(data=d, x=0.95))-> WOW[[I]][['UKB_afr']][[2]]
+	lapply(levels(d$Quantile), function(X) F2_x(data=d[Quantile==X], x=0.9))-> WOW[[I]][['UKB_afr']][[3]];list.append(WOW[[I]][['UKB_afr']][[3]], F2_x(data=d, x=0.9))-> WOW[[I]][['UKB_afr']][[3]]
+	lapply(levels(d$Quantile), function(X) F2_x(data=d[Quantile==X], x=0.85))-> WOW[[I]][['UKB_afr']][[4]];list.append(WOW[[I]][['UKB_afr']][[4]], F2_x(data=d, x=0.85))-> WOW[[I]][['UKB_afr']][[4]]	
+	lapply(levels(d$Quantile), function(X) F2_x(data=d[Quantile==X], x=0.8))-> WOW[[I]][['UKB_afr']][[5]];list.append(WOW[[I]][['UKB_afr']][[5]], F2_x(data=d, x=0.8))-> WOW[[I]][['UKB_afr']][[5]]
+	names(WOW[[I]][['UKB_afr']])<-c('0.975perc', '0.95perc', '0.9perc','0.85perc', '0.8perc');names(WOW[[I]][['UKB_afr']][['0.9perc']])<-c(levels(d$Quantile), 'all')
+	names(WOW[[I]][['UKB_afr']][['0.95perc']])<-c(levels(d$Quantile), 'all');names(WOW[[I]][['UKB_afr']][['0.975perc']])<-c(levels(d$Quantile), 'all');names(WOW[[I]][['UKB_afr']][['0.85perc']])<-c(levels(d$Quantile), 'all'); names(WOW[[I]][['UKB_afr']][['0.8perc']])<-c(levels(d$Quantile), 'all')
+	lapply(unique(f$Quantile), function(X) F2_x(data=f[Quantile==X], x=0.975))-> WOW[[I]][['HRS_eur']][[1]]
+	lapply(unique(f$Quantile), function(X) F2_x(data=f[Quantile==X], x=0.95))-> WOW[[I]][['HRS_eur']][[2]];lapply(unique(f$Quantile), function(X) F2_x(data=f[Quantile==X], x=0.9))-> WOW[[I]][['HRS_eur']][[3]]
+	lapply(unique(f$Quantile), function(X) F2_x(data=f[Quantile==X], x=0.85))-> WOW[[I]][['HRS_eur']][[4]];lapply(unique(f$Quantile), function(X) F2_x(data=f[Quantile==X], x=0.8))-> WOW[[I]][['HRS_eur']][[5]]
+	names(WOW[[I]][['HRS_eur']])<-c('0.975perc', '0.95perc', '0.9perc','0.85perc', '0.8perc');names(WOW[[I]][['HRS_eur']][['0.9perc']])<-unique(f$Quantile)
+	names(WOW[[I]][['HRS_eur']][['0.95perc']])<-unique(f$Quantile);names(WOW[[I]][['HRS_eur']][['0.975perc']])<-unique(f$Quantile)
+	names(WOW[[I]][['HRS_eur']][['0.85perc']])<-unique(f$Quantile);names(WOW[[I]][['HRS_eur']][['0.8perc']])<-unique(f$Quantile)
+	lapply(levels(g$Quantile), function(X) F2_x(data=g[Quantile==X], x=0.975))-> WOW[[I]][['JHS_afr']][[1]];list.append(WOW[[I]][['JHS_afr']][[1]], F2_x(data=d, x=0.975))-> WOW[[I]][['JHS_afr']][[1]]
+        lapply(levels(g$Quantile), function(X) F2_x(data=g[Quantile==X], x=0.95))-> WOW[[I]][['JHS_afr']][[2]];list.append(WOW[[I]][['JHS_afr']][[2]], F2_x(data=d, x=0.95))-> WOW[[I]][['JHS_afr']][[2]]
+        lapply(levels(g$Quantile), function(X) F2_x(data=g[Quantile==X], x=0.9))-> WOW[[I]][['JHS_afr']][[3]];list.append(WOW[[I]][['JHS_afr']][[3]], F2_x(data=d, x=0.9))-> WOW[[I]][['JHS_afr']][[3]]
+        lapply(levels(g$Quantile), function(X) F2_x(data=g[Quantile==X], x=0.85))-> WOW[[I]][['JHS_afr']][[4]];list.append(WOW[[I]][['JHS_afr']][[4]], F2_x(data=d, x=0.85))-> WOW[[I]][['JHS_afr']][[4]]
+        lapply(levels(g$Quantile), function(X) F2_x(data=g[Quantile==X], x=0.8))-> WOW[[I]][['JHS_afr']][[5]];list.append(WOW[[I]][['JHS_afr']][[5]], F2_x(data=d, x=0.8))-> WOW[[I]][['JHS_afr']][[5]]
+        names(WOW[[I]][['JHS_afr']])<-c('0.975perc', '0.95perc', '0.9perc','0.85perc', '0.8perc');names(WOW[[I]][['JHS_afr']][['0.9perc']])<-c(levels(g$Quantile), 'all')
+        names(WOW[[I]][['JHS_afr']][['0.95perc']])<-c(levels(g$Quantile), 'all');names(WOW[[I]][['JHS_afr']][['0.975perc']])<-c(levels(g$Quantile), 'all');names(WOW[[I]][['JHS_afr']][['0.85perc']])<-c(levels(g$Quantile), 'all'); names(WOW[[I]][['JHS_afr']][['0.8perc']])<-c(levels(g$Quantile), 'all')
 	cat(I);cat('\n')
 }
 	
@@ -515,68 +500,58 @@ WOW2<-vector('list', length(B_WHI));test2<-vector('list', length(B_WHI))
 names(WOW2)<-names(B_WHI);names(test2)<-names(B_WHI)
 
 for(I in names(AA)){
-        a<-combo[[I]][Dataset=='WHI'][,Quantile:= cut(EUR_ANC,breaks=quantile(EUR_ANC, probs=seq(0,1, by=0.2), na.rm=TRUE),include.lowest=TRUE)]
-        b<-combo[[I]][Dataset=='pennBB_AA'][,Quantile:= cut(EUR_ANC,breaks=quantile(EUR_ANC, probs=seq(0,1, by=1/3), na.rm=TRUE),include.lowest=TRUE)]
-        d<-combo[[I]][Dataset=='UKB_AFR'][,Quantile:= cut(EUR_ANC,breaks=quantile(EUR_ANC, probs=seq(0,1, by=0.25), na.rm=TRUE),include.lowest=TRUE)]
-        e<-combo[[I]][Dataset=='UKB_EUR'][, EUR_ANC:=1][,Quantile:= as.factor(as.character(1))];
-	f<-combo[[I]][Dataset=='pennBB_EA'][,EUR_ANC:=1][,Quantile:=as.factor(as.character(1))]
-	g<-combo[[I]][Dataset=='JHS'][,Quantile:= cut(EUR_ANC,breaks=quantile(EUR_ANC, probs=seq(0,1, by=0.5), na.rm=TRUE),include.lowest=TRUE)]
-        test2[[I]]<-rbind(a,b,d,e,f,g);test2[[I]]$Quantile<-as.character(test2[[I]]$Quantile)
-        WOW2[[I]]<-vector('list', 6);names(WOW2[[I]])<- c('WHI', 'pennBB_AA','UKB_AFR', 'UKB_EUR', 'pennBB_EA', 'JHS')
-        lapply(levels(a$Quantile), function(X) F3_x(data=a[Quantile==X], x=0.975,  data2=combo[[I]]))-> WOW2[[I]][['WHI']][[1]];list.append(WOW2[[I]][['WHI']][[1]], F3_x(data=a, x=0.975,data2=combo[[I]]))-> WOW2[[I]][['WHI']][[1]]
-        lapply(levels(a$Quantile), function(X) F3_x(data=a[Quantile==X], x=0.95, data2=combo[[I]]))-> WOW2[[I]][['WHI']][[2]];list.append(WOW2[[I]][['WHI']][[2]], F3_x(data=a, x=0.95,data2=combo[[I]]))-> WOW2[[I]][['WHI']][[2]]
-        lapply(levels(a$Quantile), function(X) F3_x(data=a[Quantile==X], x=0.9, data2=combo[[I]]))-> WOW2[[I]][['WHI']][[3]];list.append(WOW2[[I]][['WHI']][[3]], F3_x(data=a, x=0.9,data2=combo[[I]]))-> WOW2[[I]][['WHI']][[3]]
-        lapply(levels(a$Quantile), function(X) F3_x(data=a[Quantile==X], x=0.85, data2=combo[[I]]))-> WOW2[[I]][['WHI']][[4]];list.append(WOW2[[I]][['WHI']][[4]], F3_x(data=a, x=0.85,data2=combo[[I]]))-> WOW2[[I]][['WHI']][[4]]
-	lapply(levels(a$Quantile), function(X) F3_x(data=a[Quantile==X], x=0.8, data2=combo[[I]]))-> WOW2[[I]][['WHI']][[5]];list.append(WOW2[[I]][['WHI']][[5]], F3_x(data=a, x=0.8,data2=combo[[I]]))-> WOW2[[I]][['WHI']][[5]]
-        names(WOW2[[I]][['WHI']])<-c('0.975perc', '0.95perc', '0.9perc', '0.85perc', '0.8perc');names(WOW2[[I]][['WHI']][['0.9perc']])<-c(levels(a$Quantile), 'all')
-        names(WOW2[[I]][['WHI']][['0.95perc']])<-c(levels(a$Quantile), 'all');names(WOW2[[I]][['WHI']][['0.975perc']])<-c(levels(a$Quantile), 'all')
- 	names(WOW2[[I]][['WHI']][['0.85perc']])<-c(levels(a$Quantile), 'all');names(WOW2[[I]][['WHI']][['0.8perc']])<-c(levels(a$Quantile), 'all')
-        lapply(levels(b$Quantile), function(X) F3_x(data=b[Quantile==X], x=0.975,  data2=combo[[I]]))-> WOW2[[I]][['pennBB_AA']][[1]];list.append(WOW2[[I]][['pennBB_AA']][[1]], F3_x(data=b, x=0.975,data2=combo[[I]]))-> WOW2[[I]][['pennBB_AA']][[1]]
-        lapply(levels(b$Quantile), function(X) F3_x(data=b[Quantile==X], x=0.95, data2=combo[[I]]))-> WOW2[[I]][['pennBB_AA']][[2]];list.append(WOW2[[I]][['pennBB_AA']][[2]], F3_x(data=b, x=0.95,data2=combo[[I]]))-> WOW2[[I]][['pennBB_AA']][[2]]
-        lapply(levels(b$Quantile), function(X) F3_x(data=b[Quantile==X], x=0.9, data2=combo[[I]]))-> WOW2[[I]][['pennBB_AA']][[3]];list.append(WOW2[[I]][['pennBB_AA']][[3]], F3_x(data=b, x=0.9,data2=combo[[I]]))-> WOW2[[I]][['pennBB_AA']][[3]]
-        lapply(levels(b$Quantile), function(X) F3_x(data=b[Quantile==X], x=0.85, data2=combo[[I]]))-> WOW2[[I]][['pennBB_AA']][[4]];list.append(WOW2[[I]][['pennBB_AA']][[4]], F3_x(data=b, x=0.85,data2=combo[[I]]))-> WOW2[[I]][['pennBB_AA']][[4]]
-	lapply(levels(b$Quantile), function(X) F3_x(data=b[Quantile==X], x=0.8, data2=combo[[I]]))-> WOW2[[I]][['pennBB_AA']][[5]];list.append(WOW2[[I]][['pennBB_AA']][[5]], F3_x(data=b, x=0.8,data2=combo[[I]]))-> WOW2[[I]][['pennBB_AA']][[5]]
-        names(WOW2[[I]][['pennBB_AA']])<-c('0.975perc', '0.95perc', '0.9perc', '0.85perc', '0.8perc')
-        names(WOW2[[I]][['pennBB_AA']][['0.9perc']])<-c(levels(b$Quantile), 'all')
-        names(WOW2[[I]][['pennBB_AA']][['0.95perc']])<-c(levels(b$Quantile), 'all')
-        names(WOW2[[I]][['pennBB_AA']][['0.975perc']])<-c(levels(b$Quantile), 'all')
-        names(WOW2[[I]][['pennBB_AA']][['0.85perc']])<-c(levels(b$Quantile), 'all')
-	names(WOW2[[I]][['pennBB_AA']][['0.8perc']])<-c(levels(b$Quantile), 'all')
-        lapply(levels(d$Quantile), function(X) F3_x(data=d[Quantile==X], x=0.975,  data2=combo[[I]]))-> WOW2[[I]][['UKB_AFR']][[1]];list.append(WOW2[[I]][['UKB_AFR']][[1]], F3_x(data=d, x=0.975,data2=combo[[I]]))-> WOW2[[I]][['UKB_AFR']][[1]]
-        lapply(levels(d$Quantile), function(X) F3_x(data=d[Quantile==X], x=0.95, data2=combo[[I]]))-> WOW2[[I]][['UKB_AFR']][[2]];list.append(WOW2[[I]][['UKB_AFR']][[2]], F3_x(data=d, x=0.95,data2=combo[[I]]))-> WOW2[[I]][['UKB_AFR']][[2]]
-        lapply(levels(d$Quantile), function(X) F3_x(data=d[Quantile==X], x=0.9, data2=combo[[I]]))-> WOW2[[I]][['UKB_AFR']][[3]];list.append(WOW2[[I]][['UKB_AFR']][[3]], F3_x(data=d, x=0.9,data2=combo[[I]]))-> WOW2[[I]][['UKB_AFR']][[3]]
-        lapply(levels(d$Quantile), function(X) F3_x(data=d[Quantile==X], x=0.85, data2=combo[[I]]))-> WOW2[[I]][['UKB_AFR']][[4]];list.append(WOW2[[I]][['UKB_AFR']][[4]], F3_x(data=d, x=0.85,data2=combo[[I]]))-> WOW2[[I]][['UKB_AFR']][[4]]
-	lapply(levels(d$Quantile), function(X) F3_x(data=d[Quantile==X], x=0.8, data2=combo[[I]]))-> WOW2[[I]][['UKB_AFR']][[5]];list.append(WOW2[[I]][['UKB_AFR']][[5]], F3_x(data=d, x=0.8,data2=combo[[I]]))-> WOW2[[I]][['UKB_AFR']][[5]]
-        names(WOW2[[I]][['UKB_AFR']])<-c('0.975perc', '0.95perc', '0.9perc','0.85perc',  '0.8perc')
-        names(WOW2[[I]][['UKB_AFR']][['0.9perc']])<-c(levels(d$Quantile), 'all')
-        names(WOW2[[I]][['UKB_AFR']][['0.95perc']])<-c(levels(d$Quantile), 'all')
-        names(WOW2[[I]][['UKB_AFR']][['0.975perc']])<-c(levels(d$Quantile), 'all')
-        names(WOW2[[I]][['UKB_AFR']][['0.85perc']])<-c(levels(d$Quantile), 'all')
-	names(WOW2[[I]][['UKB_AFR']][['0.8perc']])<-c(levels(d$Quantile), 'all')
-        lapply(unique(e$Quantile), function(X) F3_x(data=e[Quantile==X], x=0.975,  data2=combo[[I]]))-> WOW2[[I]][['UKB_EUR']][[1]];
-        lapply(unique(e$Quantile), function(X) F3_x(data=e[Quantile==X], x=0.95, data2=combo[[I]]))-> WOW2[[I]][['UKB_EUR']][[2]];
-        lapply(unique(e$Quantile), function(X) F3_x(data=e[Quantile==X], x=0.9, data2=combo[[I]]))-> WOW2[[I]][['UKB_EUR']][[3]];
-        lapply(unique(e$Quantile), function(X) F3_x(data=e[Quantile==X], x=0.85, data2=combo[[I]]))-> WOW2[[I]][['UKB_EUR']][[4]];
-	lapply(unique(e$Quantile), function(X) F3_x(data=e[Quantile==X], x=0.8, data2=combo[[I]]))-> WOW2[[I]][['UKB_EUR']][[5]];
-        names(WOW2[[I]][['UKB_EUR']])<-c('0.975perc', '0.95perc', '0.9perc', '0.85perc', '0.8perc')
-        names(WOW2[[I]][['UKB_EUR']][['0.9perc']])<-unique(e$Quantile)
-        names(WOW2[[I]][['UKB_EUR']][['0.95perc']])<-unique(e$Quantile);names(WOW2[[I]][['UKB_EUR']][['0.975perc']])<-unique(e$Quantile)
-        names(WOW2[[I]][['UKB_EUR']][['0.85perc']])<-unique(e$Quantile);names(WOW2[[I]][['UKB_EUR']][['0.8perc']])<-unique(e$Quantile)
-        lapply(unique(f$Quantile), function(X) F3_x(data=f[Quantile==X], x=0.975,  data2=combo[[I]]))-> WOW2[[I]][['pennBB_EA']][[1]];
-        lapply(unique(f$Quantile), function(X) F3_x(data=f[Quantile==X], x=0.95, data2=combo[[I]]))-> WOW2[[I]][['pennBB_EA']][[2]];
-        lapply(unique(f$Quantile), function(X) F3_x(data=f[Quantile==X], x=0.9, data2=combo[[I]]))-> WOW2[[I]][['pennBB_EA']][[3]];
-        lapply(unique(f$Quantile), function(X) F3_x(data=f[Quantile==X], x=0.85, data2=combo[[I]]))-> WOW2[[I]][['pennBB_EA']][[4]];
-	lapply(unique(f$Quantile), function(X) F3_x(data=f[Quantile==X], x=0.8, data2=combo[[I]]))-> WOW2[[I]][['pennBB_EA']][[5]];
-        names(WOW2[[I]][['pennBB_EA']])<-c('0.975perc', '0.95perc', '0.9perc','0.85perc', '0.8perc');names(WOW2[[I]][['pennBB_EA']][['0.9perc']])<-unique(f$Quantile)
-        names(WOW2[[I]][['pennBB_EA']][['0.95perc']])<-unique(f$Quantile);names(WOW2[[I]][['pennBB_EA']][['0.975perc']])<-unique(f$Quantile)
-        names(WOW2[[I]][['pennBB_EA']][['0.85perc']])<-unique(f$Quantile);names(WOW2[[I]][['pennBB_EA']][['0.8perc']])<-unique(f$Quantile)
-	lapply(levels(g$Quantile), function(X) F3_x(data=g[Quantile==X], x=0.975,data2=combo[[I]]))-> WOW2[[I]][['JHS']][[1]];list.append(WOW2[[I]][['JHS']][[1]], F3_x(data=d, x=0.975,data2=combo[[I]]))-> WOW2[[I]][['JHS']][[1]]
-        lapply(levels(g$Quantile), function(X) F3_x(data=g[Quantile==X], x=0.95,data2=combo[[I]]))-> WOW2[[I]][['JHS']][[2]];list.append(WOW2[[I]][['JHS']][[2]], F3_x(data=d, x=0.95,data2=combo[[I]]))-> WOW2[[I]][['JHS']][[2]]
-        lapply(levels(g$Quantile), function(X) F3_x(data=g[Quantile==X], x=0.9,data2=combo[[I]]))-> WOW2[[I]][['JHS']][[3]];list.append(WOW2[[I]][['JHS']][[3]], F3_x(data=d, x=0.9,data2=combo[[I]]))-> WOW2[[I]][['JHS']][[3]]
-        lapply(levels(g$Quantile), function(X) F3_x(data=g[Quantile==X], x=0.85,data2=combo[[I]]))-> WOW2[[I]][['JHS']][[4]];list.append(WOW2[[I]][['JHS']][[4]], F3_x(data=d, x=0.85,data2=combo[[I]]))-> WOW2[[I]][['JHS']][[4]]
-        lapply(levels(g$Quantile), function(X) F3_x(data=g[Quantile==X], x=0.8,data2=combo[[I]]))-> WOW2[[I]][['JHS']][[5]];list.append(WOW2[[I]][['JHS']][[5]], F3_x(data=d, x=0.8,data2=combo[[I]]))-> WOW2[[I]][['JHS']][[5]]
-        names(WOW2[[I]][['JHS']])<-c('0.975perc', '0.95perc', '0.9perc','0.85perc', '0.8perc');names(WOW2[[I]][['JHS']][['0.9perc']])<-c(levels(g$Quantile), 'all')
-        names(WOW2[[I]][['JHS']][['0.95perc']])<-c(levels(g$Quantile), 'all');names(WOW2[[I]][['JHS']][['0.975perc']])<-c(levels(g$Quantile), 'all');names(WOW2[[I]][['JHS']][['0.85perc']])<-c(levels(g$Quantile), 'all'); names(WOW2[[I]][['JHS']][['0.8perc']])<-c(levels(g$Quantile), 'all')
+        a<-combo[[I]][Dataset=='WHI_afr'][,Quantile:= cut(EUR_ANC,breaks=quantile(EUR_ANC, probs=seq(0,1, by=0.25), na.rm=TRUE),include.lowest=TRUE)]
+        b<-combo[[I]][Dataset=='HRS_afr'][,Quantile:= cut(EUR_ANC,breaks=quantile(EUR_ANC, probs=seq(0,1, by=0.5), na.rm=TRUE),include.lowest=TRUE)]
+        d<-combo[[I]][Dataset=='UKB_afr'][,Quantile:= cut(EUR_ANC,breaks=quantile(EUR_ANC, probs=seq(0,1, by=0.25), na.rm=TRUE),include.lowest=TRUE)]
+	f<-combo[[I]][Dataset=='HRS_eur'][,EUR_ANC:=1][,Quantile:=as.factor(as.character(1))]
+	g<-combo[[I]][Dataset=='JHS_afr'][,Quantile:= cut(EUR_ANC,breaks=quantile(EUR_ANC, probs=seq(0,1, by=0.5), na.rm=TRUE),include.lowest=TRUE)]
+        test2[[I]]<-rbind(a,b,d,f,g);test2[[I]]$Quantile<-as.character(test2[[I]]$Quantile)
+        WOW2[[I]]<-vector('list', 5);names(WOW2[[I]])<- c('WHI_afr', 'HRS_afr','UKB_afr', 'HRS_eur', 'JHS_afr')
+        lapply(levels(a$Quantile), function(X) F3_x(data=a[Quantile==X], x=0.975,  data2=combo[[I]]))-> WOW2[[I]][['WHI_afr']][[1]];list.append(WOW2[[I]][['WHI_afr']][[1]], F3_x(data=a, x=0.975,data2=combo[[I]]))-> WOW2[[I]][['WHI_afr']][[1]]
+        lapply(levels(a$Quantile), function(X) F3_x(data=a[Quantile==X], x=0.95, data2=combo[[I]]))-> WOW2[[I]][['WHI_afr']][[2]];list.append(WOW2[[I]][['WHI_afr']][[2]], F3_x(data=a, x=0.95,data2=combo[[I]]))-> WOW2[[I]][['WHI_afr']][[2]]
+        lapply(levels(a$Quantile), function(X) F3_x(data=a[Quantile==X], x=0.9, data2=combo[[I]]))-> WOW2[[I]][['WHI_afr']][[3]];list.append(WOW2[[I]][['WHI_afr']][[3]], F3_x(data=a, x=0.9,data2=combo[[I]]))-> WOW2[[I]][['WHI_afr']][[3]]
+        lapply(levels(a$Quantile), function(X) F3_x(data=a[Quantile==X], x=0.85, data2=combo[[I]]))-> WOW2[[I]][['WHI_afr']][[4]];list.append(WOW2[[I]][['WHI_afr']][[4]], F3_x(data=a, x=0.85,data2=combo[[I]]))-> WOW2[[I]][['WHI_afr']][[4]]
+	lapply(levels(a$Quantile), function(X) F3_x(data=a[Quantile==X], x=0.8, data2=combo[[I]]))-> WOW2[[I]][['WHI_afr']][[5]];list.append(WOW2[[I]][['WHI_afr']][[5]], F3_x(data=a, x=0.8,data2=combo[[I]]))-> WOW2[[I]][['WHI_afr']][[5]]
+        names(WOW2[[I]][['WHI_afr']])<-c('0.975perc', '0.95perc', '0.9perc', '0.85perc', '0.8perc');names(WOW2[[I]][['WHI_afr']][['0.9perc']])<-c(levels(a$Quantile), 'all')
+        names(WOW2[[I]][['WHI_afr']][['0.95perc']])<-c(levels(a$Quantile), 'all');names(WOW2[[I]][['WHI_afr']][['0.975perc']])<-c(levels(a$Quantile), 'all')
+ 	names(WOW2[[I]][['WHI_afr']][['0.85perc']])<-c(levels(a$Quantile), 'all');names(WOW2[[I]][['WHI_afr']][['0.8perc']])<-c(levels(a$Quantile), 'all')
+        lapply(levels(b$Quantile), function(X) F3_x(data=b[Quantile==X], x=0.975,  data2=combo[[I]]))-> WOW2[[I]][['HRS_afr']][[1]];list.append(WOW2[[I]][['HRS_afr']][[1]], F3_x(data=b, x=0.975,data2=combo[[I]]))-> WOW2[[I]][['HRS_afr']][[1]]
+        lapply(levels(b$Quantile), function(X) F3_x(data=b[Quantile==X], x=0.95, data2=combo[[I]]))-> WOW2[[I]][['HRS_afr']][[2]];list.append(WOW2[[I]][['HRS_afr']][[2]], F3_x(data=b, x=0.95,data2=combo[[I]]))-> WOW2[[I]][['HRS_afr']][[2]]
+        lapply(levels(b$Quantile), function(X) F3_x(data=b[Quantile==X], x=0.9, data2=combo[[I]]))-> WOW2[[I]][['HRS_afr']][[3]];list.append(WOW2[[I]][['HRS_afr']][[3]], F3_x(data=b, x=0.9,data2=combo[[I]]))-> WOW2[[I]][['HRS_afr']][[3]]
+        lapply(levels(b$Quantile), function(X) F3_x(data=b[Quantile==X], x=0.85, data2=combo[[I]]))-> WOW2[[I]][['HRS_afr']][[4]];list.append(WOW2[[I]][['HRS_afr']][[4]], F3_x(data=b, x=0.85,data2=combo[[I]]))-> WOW2[[I]][['HRS_afr']][[4]]
+	lapply(levels(b$Quantile), function(X) F3_x(data=b[Quantile==X], x=0.8, data2=combo[[I]]))-> WOW2[[I]][['HRS_afr']][[5]];list.append(WOW2[[I]][['HRS_afr']][[5]], F3_x(data=b, x=0.8,data2=combo[[I]]))-> WOW2[[I]][['HRS_afr']][[5]]
+        names(WOW2[[I]][['HRS_afr']])<-c('0.975perc', '0.95perc', '0.9perc', '0.85perc', '0.8perc')
+        names(WOW2[[I]][['HRS_afr']][['0.9perc']])<-c(levels(b$Quantile), 'all')
+        names(WOW2[[I]][['HRS_afr']][['0.95perc']])<-c(levels(b$Quantile), 'all')
+        names(WOW2[[I]][['HRS_afr']][['0.975perc']])<-c(levels(b$Quantile), 'all')
+        names(WOW2[[I]][['HRS_afr']][['0.85perc']])<-c(levels(b$Quantile), 'all')
+	names(WOW2[[I]][['HRS_afr']][['0.8perc']])<-c(levels(b$Quantile), 'all')
+        lapply(levels(d$Quantile), function(X) F3_x(data=d[Quantile==X], x=0.975,  data2=combo[[I]]))-> WOW2[[I]][['UKB_afr']][[1]];list.append(WOW2[[I]][['UKB_afr']][[1]], F3_x(data=d, x=0.975,data2=combo[[I]]))-> WOW2[[I]][['UKB_afr']][[1]]
+        lapply(levels(d$Quantile), function(X) F3_x(data=d[Quantile==X], x=0.95, data2=combo[[I]]))-> WOW2[[I]][['UKB_afr']][[2]];list.append(WOW2[[I]][['UKB_afr']][[2]], F3_x(data=d, x=0.95,data2=combo[[I]]))-> WOW2[[I]][['UKB_afr']][[2]]
+        lapply(levels(d$Quantile), function(X) F3_x(data=d[Quantile==X], x=0.9, data2=combo[[I]]))-> WOW2[[I]][['UKB_afr']][[3]];list.append(WOW2[[I]][['UKB_afr']][[3]], F3_x(data=d, x=0.9,data2=combo[[I]]))-> WOW2[[I]][['UKB_afr']][[3]]
+        lapply(levels(d$Quantile), function(X) F3_x(data=d[Quantile==X], x=0.85, data2=combo[[I]]))-> WOW2[[I]][['UKB_afr']][[4]];list.append(WOW2[[I]][['UKB_afr']][[4]], F3_x(data=d, x=0.85,data2=combo[[I]]))-> WOW2[[I]][['UKB_afr']][[4]]
+	lapply(levels(d$Quantile), function(X) F3_x(data=d[Quantile==X], x=0.8, data2=combo[[I]]))-> WOW2[[I]][['UKB_afr']][[5]];list.append(WOW2[[I]][['UKB_afr']][[5]], F3_x(data=d, x=0.8,data2=combo[[I]]))-> WOW2[[I]][['UKB_afr']][[5]]
+        names(WOW2[[I]][['UKB_afr']])<-c('0.975perc', '0.95perc', '0.9perc','0.85perc',  '0.8perc')
+        names(WOW2[[I]][['UKB_afr']][['0.9perc']])<-c(levels(d$Quantile), 'all')
+        names(WOW2[[I]][['UKB_afr']][['0.95perc']])<-c(levels(d$Quantile), 'all')
+        names(WOW2[[I]][['UKB_afr']][['0.975perc']])<-c(levels(d$Quantile), 'all')
+        names(WOW2[[I]][['UKB_afr']][['0.85perc']])<-c(levels(d$Quantile), 'all')
+	names(WOW2[[I]][['UKB_afr']][['0.8perc']])<-c(levels(d$Quantile), 'all')
+        lapply(unique(f$Quantile), function(X) F3_x(data=f[Quantile==X], x=0.975,  data2=combo[[I]]))-> WOW2[[I]][['HRS_eur']][[1]];
+        lapply(unique(f$Quantile), function(X) F3_x(data=f[Quantile==X], x=0.95, data2=combo[[I]]))-> WOW2[[I]][['HRS_eur']][[2]];
+        lapply(unique(f$Quantile), function(X) F3_x(data=f[Quantile==X], x=0.9, data2=combo[[I]]))-> WOW2[[I]][['HRS_eur']][[3]];
+        lapply(unique(f$Quantile), function(X) F3_x(data=f[Quantile==X], x=0.85, data2=combo[[I]]))-> WOW2[[I]][['HRS_eur']][[4]];
+	lapply(unique(f$Quantile), function(X) F3_x(data=f[Quantile==X], x=0.8, data2=combo[[I]]))-> WOW2[[I]][['HRS_eur']][[5]];
+        names(WOW2[[I]][['HRS_eur']])<-c('0.975perc', '0.95perc', '0.9perc','0.85perc', '0.8perc');names(WOW2[[I]][['HRS_eur']][['0.9perc']])<-unique(f$Quantile)
+        names(WOW2[[I]][['HRS_eur']][['0.95perc']])<-unique(f$Quantile);names(WOW2[[I]][['HRS_eur']][['0.975perc']])<-unique(f$Quantile)
+        names(WOW2[[I]][['HRS_eur']][['0.85perc']])<-unique(f$Quantile);names(WOW2[[I]][['HRS_eur']][['0.8perc']])<-unique(f$Quantile)
+	lapply(levels(g$Quantile), function(X) F3_x(data=g[Quantile==X], x=0.975,data2=combo[[I]]))-> WOW2[[I]][['JHS_afr']][[1]];list.append(WOW2[[I]][['JHS_afr']][[1]], F3_x(data=d, x=0.975,data2=combo[[I]]))-> WOW2[[I]][['JHS_afr']][[1]]
+        lapply(levels(g$Quantile), function(X) F3_x(data=g[Quantile==X], x=0.95,data2=combo[[I]]))-> WOW2[[I]][['JHS_afr']][[2]];list.append(WOW2[[I]][['JHS_afr']][[2]], F3_x(data=d, x=0.95,data2=combo[[I]]))-> WOW2[[I]][['JHS_afr']][[2]]
+        lapply(levels(g$Quantile), function(X) F3_x(data=g[Quantile==X], x=0.9,data2=combo[[I]]))-> WOW2[[I]][['JHS_afr']][[3]];list.append(WOW2[[I]][['JHS_afr']][[3]], F3_x(data=d, x=0.9,data2=combo[[I]]))-> WOW2[[I]][['JHS_afr']][[3]]
+        lapply(levels(g$Quantile), function(X) F3_x(data=g[Quantile==X], x=0.85,data2=combo[[I]]))-> WOW2[[I]][['JHS_afr']][[4]];list.append(WOW2[[I]][['JHS_afr']][[4]], F3_x(data=d, x=0.85,data2=combo[[I]]))-> WOW2[[I]][['JHS_afr']][[4]]
+        lapply(levels(g$Quantile), function(X) F3_x(data=g[Quantile==X], x=0.8,data2=combo[[I]]))-> WOW2[[I]][['JHS_afr']][[5]];list.append(WOW2[[I]][['JHS_afr']][[5]], F3_x(data=d, x=0.8,data2=combo[[I]]))-> WOW2[[I]][['JHS_afr']][[5]]
+        names(WOW2[[I]][['JHS_afr']])<-c('0.975perc', '0.95perc', '0.9perc','0.85perc', '0.8perc');names(WOW2[[I]][['JHS_afr']][['0.9perc']])<-c(levels(g$Quantile), 'all')
+        names(WOW2[[I]][['JHS_afr']][['0.95perc']])<-c(levels(g$Quantile), 'all');names(WOW2[[I]][['JHS_afr']][['0.975perc']])<-c(levels(g$Quantile), 'all');names(WOW2[[I]][['JHS_afr']][['0.85perc']])<-c(levels(g$Quantile), 'all'); names(WOW2[[I]][['JHS_afr']][['0.8perc']])<-c(levels(g$Quantile), 'all')
         cat(I)
         cat('\n')
 }
@@ -585,55 +560,55 @@ OR_table<-vector('list', length(combo))
 names(OR_table)<-names(B_WHI)
 for(I in names(AA)){
 	OR_table[[I]]<-rbind(
-	data.table(Dataset=c(rep("WHI",6),rep("pennBB_AA",4), rep('UKB_AFR', 5), rep('UKB_EUR', 1), rep('pennBB_EA',1), rep("JHS",3)),
-	EUR_ANC=c(na.omit(c(unlist(lapply(names(WOW[[I]][['WHI']][['0.975perc']]), function(X) median(test[[I]][Dataset=='WHI'][Quantile==X][, EUR_ANC]))), median(combo[[I]][Dataset=='WHI'][, EUR_ANC]))),
-	na.omit(c(unlist(lapply(names(WOW[[I]][['pennBB_AA']][['0.975perc']]), function(X) median(test[[I]][Dataset=='pennBB_AA'][Quantile==X][, EUR_ANC]))), median(combo[[I]][Dataset=='pennBB_AA'][, EUR_ANC]))),
-	na.omit(c(unlist(lapply(names(WOW[[I]][['UKB_AFR']][['0.975perc']]), function(X) median(test[[I]][Dataset=='UKB_AFR'][Quantile==X][, EUR_ANC]))), median(combo[[I]][Dataset=='UKB_AFR'][, EUR_ANC]))), 
-	median(test[[I]][Dataset=='UKB_EUR'][Quantile==1][, EUR_ANC]), median(test[[I]][Dataset=='pennBB_EA'][Quantile==1][, EUR_ANC]), 
-	na.omit(c(unlist(lapply(names(WOW[[I]][['JHS']][['0.975perc']]), function(X) median(test[[I]][Dataset=='JHS'][Quantile==X][, EUR_ANC]))), median(combo[[I]][Dataset=='JHS'][, EUR_ANC])))), 
+	data.table(Dataset=c(rep("WHI_afr",5),rep("HRS_afr",3), rep('UKB_afr', 5), rep('HRS_eur',1), rep("JHS_afr",3)),
+	EUR_ANC=c(na.omit(c(unlist(lapply(names(WOW[[I]][['WHI_afr']][['0.975perc']]), function(X) median(test[[I]][Dataset=='WHI_afr'][Quantile==X][, EUR_ANC]))), median(combo[[I]][Dataset=='WHI_afr'][, EUR_ANC]))),
+	na.omit(c(unlist(lapply(names(WOW[[I]][['HRS_afr']][['0.975perc']]), function(X) median(test[[I]][Dataset=='HRS_afr'][Quantile==X][, EUR_ANC]))), median(combo[[I]][Dataset=='HRS_afr'][, EUR_ANC]))),
+	na.omit(c(unlist(lapply(names(WOW[[I]][['UKB_afr']][['0.975perc']]), function(X) median(test[[I]][Dataset=='UKB_afr'][Quantile==X][, EUR_ANC]))), median(combo[[I]][Dataset=='UKB_afr'][, EUR_ANC]))), 
+	median(test[[I]][Dataset=='HRS_eur'][Quantile==1][, EUR_ANC]), 
+	na.omit(c(unlist(lapply(names(WOW[[I]][['JHS_afr']][['0.975perc']]), function(X) median(test[[I]][Dataset=='JHS_afr'][Quantile==X][, EUR_ANC]))), median(combo[[I]][Dataset=='JHS_afr'][, EUR_ANC])))), 
 	Alpha=0.975, 
-	OR=c(unlist(WOW[[I]][['WHI']][['0.975perc']]), unlist(WOW[[I]][['pennBB_AA']][['0.975perc']]), unlist(WOW[[I]][['UKB_AFR']][['0.975perc']]), unlist(WOW[[I]][['UKB_EUR']][['0.975perc']]), unlist(WOW[[I]][['pennBB_EA']][['0.975perc']]), unlist(WOW[[I]][['JHS']][['0.975perc']])),
-	Quantile=c(names(WOW[[I]][['WHI']][['0.975perc']]), names(WOW[[I]][['pennBB_AA']][['0.975perc']]),names(WOW[[I]][['UKB_AFR']][['0.975perc']]), as.character(1),as.character(1), names(WOW[[I]][['JHS']][['0.975perc']])), Prun=I),
+	OR=c(unlist(WOW[[I]][['WHI_afr']][['0.975perc']]), unlist(WOW[[I]][['HRS_afr']][['0.975perc']]), unlist(WOW[[I]][['UKB_afr']][['0.975perc']]),  unlist(WOW[[I]][['HRS_eur']][['0.975perc']]), unlist(WOW[[I]][['JHS_afr']][['0.975perc']])),
+	Quantile=c(names(WOW[[I]][['WHI_afr']][['0.975perc']]), names(WOW[[I]][['HRS_afr']][['0.975perc']]),names(WOW[[I]][['UKB_afr']][['0.975perc']]),as.character(1), names(WOW[[I]][['JHS_afr']][['0.975perc']])), Prun=I),
 	data.table(
-	Dataset=c(rep("WHI",6,rep("pennBB_AA",4), rep('UKB_AFR', 5), rep('UKB_EUR', 1), rep('pennBB_EA',1)),rep("JHS",3)),
-	EUR_ANC=c(na.omit(c(unlist(lapply(names(WOW[[I]][['WHI']][['0.95perc']]), function(X) median(test[[I]][Dataset=='WHI'][Quantile==X][, EUR_ANC]))),median(combo[[I]][Dataset=='WHI'][, EUR_ANC]))),
-	na.omit(c(unlist(lapply(names(WOW[[I]][['pennBB_AA']][['0.95perc']]), function(X) median(test[[I]][Dataset=='pennBB_AA'][Quantile==X][, EUR_ANC]))), median(combo[[I]][Dataset=='pennBB_AA'][, EUR_ANC]))),
-	na.omit(c(unlist(lapply(names(WOW[[I]][['UKB_AFR']][['0.95perc']]), function(X) median(test[[I]][Dataset=='UKB_AFR'][Quantile==X][, EUR_ANC]))), median(combo[[I]][Dataset=='UKB_AFR'][, EUR_ANC]))),
-	median(test[[I]][Dataset=='UKB_EUR'][Quantile==1][, EUR_ANC]), median(test[[I]][Dataset=='pennBB_EA'][Quantile==1][, EUR_ANC]), 
-	na.omit(c(unlist(lapply(names(WOW[[I]][['JHS']][['0.95perc']]), function(X) median(test[[I]][Dataset=='JHS'][Quantile==X][, EUR_ANC]))),median(combo[[I]][Dataset=='JHS'][, EUR_ANC])))),
+	Dataset=c(rep("WHI_afr",5),rep("HRS_afr",3), rep('UKB_afr', 5), rep('HRS_eur',1),rep("JHS_afr",3)),
+	EUR_ANC=c(na.omit(c(unlist(lapply(names(WOW[[I]][['WHI_afr']][['0.95perc']]), function(X) median(test[[I]][Dataset=='WHI_afr'][Quantile==X][, EUR_ANC]))),median(combo[[I]][Dataset=='WHI_afr'][, EUR_ANC]))),
+	na.omit(c(unlist(lapply(names(WOW[[I]][['HRS_afr']][['0.95perc']]), function(X) median(test[[I]][Dataset=='HRS_afr'][Quantile==X][, EUR_ANC]))), median(combo[[I]][Dataset=='HRS_afr'][, EUR_ANC]))),
+	na.omit(c(unlist(lapply(names(WOW[[I]][['UKB_afr']][['0.95perc']]), function(X) median(test[[I]][Dataset=='UKB_afr'][Quantile==X][, EUR_ANC]))), median(combo[[I]][Dataset=='UKB_afr'][, EUR_ANC]))),
+	median(test[[I]][Dataset=='HRS_eur'][Quantile==1][, EUR_ANC]),
+	na.omit(c(unlist(lapply(names(WOW[[I]][['JHS_afr']][['0.95perc']]), function(X) median(test[[I]][Dataset=='JHS_afr'][Quantile==X][, EUR_ANC]))),median(combo[[I]][Dataset=='JHS_afr'][, EUR_ANC])))),
 	Alpha=0.95,
-	OR=c(unlist(WOW[[I]][['WHI']][['0.95perc']]), unlist(WOW[[I]][['pennBB_AA']][['0.95perc']]), unlist(WOW[[I]][['UKB_AFR']][['0.95perc']]), unlist(WOW[[I]][['UKB_EUR']][['0.95perc']]), unlist(WOW[[I]][['pennBB_EA']][['0.95perc']]), unlist(WOW[[I]][['JHS']][['0.95perc']])),
-	Quantile=c(names(WOW[[I]][['WHI']][['0.95perc']]), names(WOW[[I]][['pennBB_AA']][['0.95perc']]),names(WOW[[I]][['UKB_AFR']][['0.95perc']]), as.character(1),as.character(1), names(WOW[[I]][['JHS']][['0.97perc']])),Prun=I),
+	OR=c(unlist(WOW[[I]][['WHI_afr']][['0.95perc']]), unlist(WOW[[I]][['HRS_afr']][['0.95perc']]), unlist(WOW[[I]][['UKB_afr']][['0.95perc']]), unlist(WOW[[I]][['HRS_eur']][['0.95perc']]), unlist(WOW[[I]][['JHS_afr']][['0.95perc']])),
+	Quantile=c(names(WOW[[I]][['WHI_afr']][['0.95perc']]), names(WOW[[I]][['HRS_afr']][['0.95perc']]),names(WOW[[I]][['UKB_afr']][['0.95perc']]), as.character(1), names(WOW[[I]][['JHS_afr']][['0.95perc']])),Prun=I),
 	data.table(
-	Dataset=c(rep("WHI",6),rep("pennBB_AA",4), rep('UKB_AFR', 5), rep('UKB_EUR', 1), rep('pennBB_EA',1), rep("JHS",3)),
-	EUR_ANC=c(na.omit(c(unlist(lapply(names(WOW[[I]][['WHI']][['0.9perc']]), function(X) median(test[[I]][Dataset=='WHI'][Quantile==X][, EUR_ANC]))), median(combo[[I]][Dataset=='WHI'][, EUR_ANC]))),
-	na.omit(c(unlist(lapply(names(WOW[[I]][['pennBB_AA']][['0.9perc']]), function(X) median(test[[I]][Dataset=='pennBB_AA'][Quantile==X][, EUR_ANC]))),median(combo[[I]][Dataset=='pennBB_AA'][, EUR_ANC]))),
-	na.omit(c(unlist(lapply(names(WOW[[I]][['UKB_AFR']][['0.9perc']]), function(X) median(test[[I]][Dataset=='UKB_AFR'][Quantile==X][, EUR_ANC]))), median(combo[[I]][Dataset=='UKB_AFR'][, EUR_ANC]))),
-	median(test[[I]][Dataset=='UKB_EUR'][Quantile==1][, EUR_ANC]), median(test[[I]][Dataset=='pennBB_EA'][Quantile==1][, EUR_ANC]),
-	na.omit(c(unlist(lapply(names(WOW[[I]][['JHS']][['0.9perc']]), function(X) median(test[[I]][Dataset=='JHS'][Quantile==X][, EUR_ANC]))), median(combo[[I]][Dataset=='JHS'][, EUR_ANC])))),
+	Dataset=c(rep("WHI",5),rep("HRS_afr",3), rep('UKB_AFR', 5), rep('HRS_eur',1), rep("JHS_afr",3)),
+	EUR_ANC=c(na.omit(c(unlist(lapply(names(WOW[[I]][['WHI_afr']][['0.9perc']]), function(X) median(test[[I]][Dataset=='WHI_afr'][Quantile==X][, EUR_ANC]))), median(combo[[I]][Dataset=='WHI_afr'][, EUR_ANC]))),
+	na.omit(c(unlist(lapply(names(WOW[[I]][['HRS_afr']][['0.9perc']]), function(X) median(test[[I]][Dataset=='HRS_afr'][Quantile==X][, EUR_ANC]))),median(combo[[I]][Dataset=='HRS_afr'][, EUR_ANC]))),
+	na.omit(c(unlist(lapply(names(WOW[[I]][['UKB_afr']][['0.9perc']]), function(X) median(test[[I]][Dataset=='UKB_afr'][Quantile==X][, EUR_ANC]))), median(combo[[I]][Dataset=='UKB_afr'][, EUR_ANC]))),
+	median(test[[I]][Dataset=='HRS_eur'][Quantile==1][, EUR_ANC]),
+	na.omit(c(unlist(lapply(names(WOW[[I]][['JHS_afr']][['0.9perc']]), function(X) median(test[[I]][Dataset=='JHS_afr'][Quantile==X][, EUR_ANC]))), median(combo[[I]][Dataset=='JHS_afr'][, EUR_ANC])))),
 	Alpha=0.9,
-	OR=c(unlist(WOW[[I]][['WHI']][['0.9perc']]), unlist(WOW[[I]][['pennBB_AA']][['0.9perc']]), unlist(WOW[[I]][['UKB_AFR']][['0.9perc']]), unlist(WOW[[I]][['UKB_EUR']][['0.9perc']]), unlist(WOW[[I]][['pennBB_EA']][['0.9perc']]),unlist(WOW[[I]][['JHS']][['0.9perc']])),
-	Quantile=c(names(WOW[[I]][['WHI']][['0.9perc']]), names(WOW[[I]][['pennBB_AA']][['0.9perc']]),names(WOW[[I]][['UKB_AFR']][['0.9perc']]), as.character(1),as.character(1),names(WOW[[I]][['JHS']][['0.9perc']])), Prun=I),
+	OR=c(unlist(WOW[[I]][['WHI_afr']][['0.9perc']]), unlist(WOW[[I]][['HRS_afr']][['0.9perc']]), unlist(WOW[[I]][['UKB_afr']][['0.9perc']]), unlist(WOW[[I]][['HRS_eur']][['0.9perc']]),unlist(WOW[[I]][['JHS_afr']][['0.9perc']])),
+	Quantile=c(names(WOW[[I]][['WHI_afr']][['0.9perc']]), names(WOW[[I]][['HRS_afr']][['0.9perc']]),names(WOW[[I]][['UKB_afr']][['0.9perc']]), as.character(1),names(WOW[[I]][['JHS_afr']][['0.9perc']])), Prun=I),
 	data.table(
-        Dataset=c(rep("WHI",6),rep("pennBB_AA",4), rep('UKB_AFR', 5), rep('UKB_EUR', 1), rep('pennBB_EA',1), rep("JHS",3)),
-        EUR_ANC=c(na.omit(c(unlist(lapply(names(WOW[[I]][['WHI']][['0.85perc']]), function(X) median(test[[I]][Dataset=='WHI'][Quantile==X][, EUR_ANC]))),  median(combo[[I]][Dataset=='WHI'][, EUR_ANC]))),
-        na.omit(c(unlist(lapply(names(WOW[[I]][['pennBB_AA']][['0.85perc']]), function(X) median(test[[I]][Dataset=='pennBB_AA'][Quantile==X][, EUR_ANC]))),median(combo[[I]][Dataset=='pennBB_AA'][, EUR_ANC]))),
-	na.omit(c(unlist(lapply(names(WOW[[I]][['UKB_AFR']][['0.85perc']]), function(X) median(test[[I]][Dataset=='UKB_AFR'][Quantile==X][, EUR_ANC]))), median(combo[[I]][Dataset=='UKB_AFR'][, EUR_ANC]))),
-        median(test[[I]][Dataset=='UKB_EUR'][Quantile==1][, EUR_ANC]), median(test[[I]][Dataset=='pennBB_EA'][Quantile==1][, EUR_ANC]),
-	na.omit(c(unlist(lapply(names(WOW[[I]][['JHS']][['0.85perc']]), function(X) median(test[[I]][Dataset=='JHS'][Quantile==X][, EUR_ANC]))),  median(combo[[I]][Dataset=='JHS'][, EUR_ANC])))),
+        Dataset=c(rep("WHI_afr",5),rep("HRS_afr",3), rep('UKB_afr', 5), rep('HRS_eur',1), rep("JHS_afr",3)),
+        EUR_ANC=c(na.omit(c(unlist(lapply(names(WOW[[I]][['WHI_afr']][['0.85perc']]), function(X) median(test[[I]][Dataset=='WHI_afr'][Quantile==X][, EUR_ANC]))),  median(combo[[I]][Dataset=='WHI_afr'][, EUR_ANC]))),
+        na.omit(c(unlist(lapply(names(WOW[[I]][['HRS_afr']][['0.85perc']]), function(X) median(test[[I]][Dataset=='HRS_afr'][Quantile==X][, EUR_ANC]))),median(combo[[I]][Dataset=='HRS_afr'][, EUR_ANC]))),
+	na.omit(c(unlist(lapply(names(WOW[[I]][['UKB_afr']][['0.85perc']]), function(X) median(test[[I]][Dataset=='UKB_afr'][Quantile==X][, EUR_ANC]))), median(combo[[I]][Dataset=='UKB_afr'][, EUR_ANC]))),
+        median(test[[I]][Dataset=='HRS_eur'][Quantile==1][, EUR_ANC]),
+	na.omit(c(unlist(lapply(names(WOW[[I]][['JHS_afr']][['0.85perc']]), function(X) median(test[[I]][Dataset=='JHS_afr'][Quantile==X][, EUR_ANC]))),  median(combo[[I]][Dataset=='JHS_afr'][, EUR_ANC])))),
         Alpha=0.85,
-        OR=c(unlist(WOW[[I]][['WHI']][['0.85perc']]), unlist(WOW[[I]][['pennBB_AA']][['0.85perc']]), unlist(WOW[[I]][['UKB_AFR']][['0.85perc']]), unlist(WOW[[I]][['UKB_EUR']][['0.85perc']]), unlist(WOW[[I]][['pennBB_EA']][['0.85perc']]), unlist(WOW[[I]][['JHS']][['0.85perc']])),
-        Quantile=c(names(WOW[[I]][['WHI']][['0.85perc']]), names(WOW[[I]][['pennBB_AA']][['0.85perc']]),names(WOW[[I]][['UKB_AFR']][['0.85perc']]), as.character(1),as.character(1), names(WOW[[I]][['JHS']][['0.85perc']])),Prun=I),
+        OR=c(unlist(WOW[[I]][['WHI_afr']][['0.85perc']]), unlist(WOW[[I]][['HRS_afr']][['0.85perc']]), unlist(WOW[[I]][['UKB_afr']][['0.85perc']]), unlist(WOW[[I]][['HRS_eur']][['0.85perc']]), unlist(WOW[[I]][['JHS_afr']][['0.85perc']])),
+        Quantile=c(names(WOW[[I]][['WHI_afr']][['0.85perc']]), names(WOW[[I]][['HRS_afr']][['0.85perc']]),names(WOW[[I]][['UKB_afr']][['0.85perc']]), as.character(1), names(WOW[[I]][['JHS_afr']][['0.85perc']])),Prun=I),
         data.table(
-        Dataset=c(rep("WHI",6),rep("pennBB_AA",4), rep('UKB_AFR', 5), rep('UKB_EUR', 1), rep('pennBB_EA',1), rep("JHS",3)),
-        EUR_ANC=c(na.omit(c(unlist(lapply(names(WOW[[I]][['WHI']][['0.8perc']]), function(X) median(test[[I]][Dataset=='WHI'][Quantile==X][, EUR_ANC]))),median(combo[[I]][Dataset=='WHI'][, EUR_ANC]))),
-        na.omit(c(unlist(lapply(names(WOW[[I]][['pennBB_AA']][['0.8perc']]), function(X) median(test[[I]][Dataset=='pennBB_AA'][Quantile==X][, EUR_ANC]))),median(combo[[I]][Dataset=='pennBB_AA'][, EUR_ANC]))),
-	na.omit(c(unlist(lapply(names(WOW[[I]][['UKB_AFR']][['0.8perc']]), function(X) median(test[[I]][Dataset=='UKB_AFR'][Quantile==X][, EUR_ANC]))), median(combo[[I]][Dataset=='UKB_AFR'][, EUR_ANC]))),
-        median(test[[I]][Dataset=='UKB_EUR'][Quantile==1][, EUR_ANC]), median(test[[I]][Dataset=='pennBB_EA'][Quantile==1][, EUR_ANC]),
-	na.omit(c(unlist(lapply(names(WOW[[I]][['JHS']][['0.8perc']]), function(X) median(test[[I]][Dataset=='JHS'][Quantile==X][, EUR_ANC]))),median(combo[[I]][Dataset=='JHS'][, EUR_ANC])))),
+        Dataset=c(rep("WHI",5),rep("HRS_afr",3), rep('UKB_afr', 5),  rep('HRS_eur',1), rep("JHS_afr",3)),
+        EUR_ANC=c(na.omit(c(unlist(lapply(names(WOW[[I]][['WHI_afr']][['0.8perc']]), function(X) median(test[[I]][Dataset=='WHI_afr'][Quantile==X][, EUR_ANC]))),median(combo[[I]][Dataset=='WHI_afr'][, EUR_ANC]))),
+        na.omit(c(unlist(lapply(names(WOW[[I]][['HRS_afr']][['0.8perc']]), function(X) median(test[[I]][Dataset=='HRS_afr'][Quantile==X][, EUR_ANC]))),median(combo[[I]][Dataset=='HRS_afr'][, EUR_ANC]))),
+	na.omit(c(unlist(lapply(names(WOW[[I]][['UKB_afr']][['0.8perc']]), function(X) median(test[[I]][Dataset=='UKB_afr'][Quantile==X][, EUR_ANC]))), median(combo[[I]][Dataset=='UKB_afr'][, EUR_ANC]))),
+        median(test[[I]][Dataset=='HRS_eur'][Quantile==1][, EUR_ANC]),
+	na.omit(c(unlist(lapply(names(WOW[[I]][['JHS_afr']][['0.8perc']]), function(X) median(test[[I]][Dataset=='JHS_afr'][Quantile==X][, EUR_ANC]))),median(combo[[I]][Dataset=='JHS_afr'][, EUR_ANC])))),
         Alpha=0.8,
-        OR=c(unlist(WOW[[I]][['WHI']][['0.8perc']]), unlist(WOW[[I]][['pennBB_AA']][['0.8perc']]), unlist(WOW[[I]][['UKB_AFR']][['0.8perc']]), unlist(WOW[[I]][['UKB_EUR']][['0.8perc']]), unlist(WOW[[I]][['pennBB_EA']][['0.8perc']]), unlist(WOW[[I]][['JHS']][['0.8perc']])),
-        Quantile=c(names(WOW[[I]][['WHI']][['0.8perc']]), names(WOW[[I]][['pennBB_AA']][['0.8perc']]),names(WOW[[I]][['UKB_AFR']][['0.8perc']]), as.character(1),as.character(1),names(WOW[[I]][['JHS']][['0.8perc']])), Prun=I)
+        OR=c(unlist(WOW[[I]][['WHI_afr']][['0.8perc']]), unlist(WOW[[I]][['HRS_afr']][['0.8perc']]), unlist(WOW[[I]][['UKB_afr']][['0.8perc']]), unlist(WOW[[I]][['HRS_eur']][['0.8perc']]), unlist(WOW[[I]][['JHS_afr']][['0.8perc']])),
+        Quantile=c(names(WOW[[I]][['WHI_afr']][['0.8perc']]), names(WOW[[I]][['HRS_afr']][['0.8perc']]),names(WOW[[I]][['UKB_afr']][['0.8perc']]), as.character(1),names(WOW[[I]][['JHS_afr']][['0.8perc']])), Prun=I)
 	)
 	cat(I)
 	cat('\n')
@@ -643,6 +618,7 @@ for(I in names(AA)){
 OR_table[[I]]<-rbind(OR_table[[I]][Quantile!='all'],OR_table[[I]][Quantile=='all'][, Quantile:=EUR_ANC])
 }
 
+#stopped here on Aug 13
 OR2_table<-vector('list', length(combo))
 names(OR2_table)<-names(AA)
 for(I in names(AA)){
