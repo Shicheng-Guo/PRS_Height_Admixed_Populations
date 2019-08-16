@@ -123,19 +123,45 @@ if(dtset=='gwas'){
 } else {
 	beta<-do.call(rbind, readRDS(paste0('~/height_prediction/', dtset, '/ukb_afr/output/betas_phys_100000_0.0005_10000.Rds')))
 }
-plot3<-ggplot(beta[AA.rate<=0.05], aes(x=AA.rate, y=Beta_Diff_Chisq)) + geom_point(cex=0.5, col='light gray') + geom_smooth(method='lm') + labs(y=expression(beta[eur]~-beta[afr]), x="cM (AA_Map)") + labels=c("0.1", "10","1000"))
 
+beta[,Quantile:=cut(AA.rate, breaks=quantile(AA.rate, probs=seq(0,1, by=0.05), na.rm=T), include.lowest=T)]
+beta[, MeanBetaDiffChisq:=mean(Beta_Diff_Chisq, na.rm=T), by=Quantile]
+beta[, MedianRecRate:=median(AA.rate, na.rm=T), by=Quantile]
+
+plot3<-ggplot(beta, aes(x=MedianRecRate, y=MeanBetaDiffChisq)) + geom_point(cex=0.5, col='light gray') + geom_smooth(method='lm', se=F) + labs(y=expression(Mean~chi^2), x="cM (AA_Map)")
+
+#beta[,Quantile:=cut(CEU.rate, breaks=quantile(CEU.rate, probs=seq(0,1, by=0.2), na.rm=T), include.lowest=T)]
+#beta[, MeanBetaDiffChisq:=mean(Beta_Diff_Chisq, na.rm=T), by=Quantile]
+#beta[, MedianRecRate:=median(CEU.rate, na.rm=T), by=Quantile]
 #plot2b<-plot2 + theme(legend.text=element_text(size=8)) + theme(legend.title=element_blank())
-plot4<-ggplot(beta[CEU.rate<=0.05], aes(x=CEU.rate, y=Beta_Diff_Chisq)) + geom_point(cex=0.5, col='light gray') + geom_smooth(method='lm') + labs(y=expression(beta[eur]~-beta[afr]), x="cM (CEU_Map)") +  scale_y_log10(breaks=c(0.1,10,1000), labels=c("0.1", "10","1000"))
+
+#plot4<-ggplot(beta[CEU.rate<=0.05], aes(x=MedianRecRate, y=MeanBetaDiffChisq)) + geom_point(cex=0.5, col='light gray') + geom_smooth(method='lm') + labs(y=expression(Mean~chi^2), x="cM (CEU_Map)")
 
 
-
-#plot3<-ggplot(beta[AA.rate<=0.05], aes(x=AA.rate, y=y2)) + geom_point(cex=0.5, col='light gray') + geom_smooth(method='lm') + labs(y='Beta Difference', x="Recomb. Rate  (AA Map)") + scale_y_log10()
-
+#beta[,Quantile:=cut(CEU_YRI_diff.rate, breaks=quantile(CEU_YRI_diff.rate, probs=seq(0,1, by=0.2), na.rm=T), include.lowest=T)]
+#beta[, MeanBetaDiffChisq:=mean(Beta_Diff_Chisq, na.rm=T), by=Quantile]
+#beta[, MedianRecRate:=median(CEU_YRI_diff.rate, na.rm=T), by=Quantile]
 #plot2b<-plot2 + theme(legend.text=element_text(size=8)) + theme(legend.title=element_blank())
-#plot4<-ggplot(beta[CEU.rate<=0.05], aes(x=CEU.rate, y=y2)) + geom_point(cex=0.5, col='light gray') + geom_smooth(method='lm') + labs(y='Beta Difference', x="Recomb. Rate (CEU Map)") + scale_y_log10()
+#plot4<-ggplot(beta[CEU_YRI_diff.rate<=0.05], aes(x=MedianRecRate, y=MeanBetaDiffChisq)) + geom_point(cex=0.5, col='light gray') + geom_smooth(method='lm') + labs(y=expression(Mean~chi^2), x="cM (AA and CEU difference)")
+
 
 plot1a<-plot1 + guides(fill=FALSE)
+
+
+ld<-do.call(rbind, lapply(1:22, function(X) fread(paste0('zcat ~/height_prediction/figs_for_paper/eur_w_ld_chr/', X,'.l2.ldscore.gz'))))
+beta<-readRDS('~/height_prediction/gwas/ukb_afr/output/betas_phys_100000_0.0005_10000.Rds')
+colnames(ld)[3]<-'POS'
+setkey(ld, CHR, POS)
+beta$CHR<-as.integer(beta$CHR)
+setkey(beta, CHR, POS)
+beta[ld,nomatch=0]-> test
+
+test[,Quantile:=cut(L2, breaks=quantile(L2, probs=seq(0,1, by=0.05), na.rm=T), include.lowest=T)]
+test[, MeanBetaDiffChisq:=mean(Beta_Diff_Chisq, na.rm=T), by=Quantile]
+test[, MedianL2:=median(L2, na.rm=T), by=Quantile]
+
+plot4<-ggplot(test, aes(x=MedianL2, y=MeanBetaDiffChisq)) + geom_point(cex=0.5, col='light gray') + geom_smooth(method='lm', se=F) + labs(y=expression(Mean~chi^2), x="LD Score" )
+
 plot_grid(plot1a, plot3,plot2,plot4,labels = c("A", "C", "B","D"), nrow=2, align="v")
 ggsave(paste0('~/height_prediction/strat_prs/figs/panel_', args[1], '.pdf'))
 
