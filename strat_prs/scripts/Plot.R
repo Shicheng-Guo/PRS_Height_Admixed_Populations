@@ -128,7 +128,8 @@ beta[,Quantile:=cut(AA.rate, breaks=quantile(AA.rate, probs=seq(0,1, by=0.05), n
 beta[, MeanBetaDiffChisq:=mean(Beta_Diff_Chisq, na.rm=T), by=Quantile]
 beta[, MedianRecRate:=median(AA.rate, na.rm=T), by=Quantile]
 
-plot3<-ggplot(beta, aes(x=MedianRecRate, y=MeanBetaDiffChisq)) + geom_point(cex=0.5, col='light gray') + geom_smooth(method='lm', se=F) + labs(y=expression(Mean~chi^2), x="cM (AA_Map)")
+plot3<-ggplot(beta, aes(x=AA.rate, y=Beta_Diff_Chisq)) + geom_point(cex=0.5, col='light gray') + geom_smooth(method='lm', se=F, lwd=1, col="black") + labs(y=expression(Mean~chi^2), x="cM (AA_Map)") + geom_point(aes(x=MedianRecRate, y=MeanBetaDiffChisq, col="red"), cex=0.3) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), legend.position = "none", legend.title=element_blank())
+
 
 #beta[,Quantile:=cut(CEU.rate, breaks=quantile(CEU.rate, probs=seq(0,1, by=0.2), na.rm=T), include.lowest=T)]
 #beta[, MeanBetaDiffChisq:=mean(Beta_Diff_Chisq, na.rm=T), by=Quantile]
@@ -160,7 +161,8 @@ test[,Quantile:=cut(L2, breaks=quantile(L2, probs=seq(0,1, by=0.05), na.rm=T), i
 test[, MeanBetaDiffChisq:=mean(Beta_Diff_Chisq, na.rm=T), by=Quantile]
 test[, MedianL2:=median(L2, na.rm=T), by=Quantile]
 
-plot4<-ggplot(test, aes(x=MedianL2, y=MeanBetaDiffChisq)) + geom_point(cex=0.5, col='light gray') + geom_smooth(method='lm', se=F) + labs(y=expression(Mean~chi^2), x="LD Score" )
+#plot4<-ggplot(test, aes(x=MedianL2, y=MeanBetaDiffChisq)) + geom_point(cex=0.5, col='light gray') + geom_smooth(method='lm', se=F) + labs(y=expression(Mean~chi^2), x="LD Score" )
+plot4<-ggplot(test, aes(x=L2, y=Beta_Diff_Chisq)) + geom_point(cex=0.5, col='light gray') + geom_smooth(method='lm', se=F, col='black') + labs(y=expression(chi^2), x="LD Score" ) + geom_point(aes(x=MedianL2, y=MeanBetaDiffChisq, col="red"), cex=0.3) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), legend.position = "none", legend.title=element_blank())
 
 plot_grid(plot1a, plot3,plot2,plot4,labels = c("A", "C", "B","D"), nrow=2, align="v")
 ggsave(paste0('~/height_prediction/strat_prs/figs/panel_', args[1], '.pdf'))
