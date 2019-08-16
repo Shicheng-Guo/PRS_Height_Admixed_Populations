@@ -22,7 +22,9 @@ source(paste0(home, "/", dir,'/Rsq_R2.R'))
 rate.dist<-as.numeric(args[1])
 w_map<-args[2]
 PRS<-vector('list', 22)
-eur<-do.call(rbind, readRDS(paste0('~/height_prediction/', args[3],'/UKB_eur/output/hei_phys_100000_0.0005_v2.Rds')))[,.(CHR,POS,MarkerName,i.MarkerName,REF,ALT,Allele1,Allele2,b,SE,p,N)]
+#afr<-fread('/project/mathilab/bbita/gwas_admix/new_height/ukb_afr_betas_100000_0.0005.txt') #need to fix this path
+#CHR,POS,MarkerName,i.MarkerName,REF,ALT,Allele1,Allele2,b,SE,p,N
+afr<-do.call(rbind, readRDS(paste0('~/height_prediction/', args[3],'/HRS_afr/output/hei_phys_100000_0.0005_v2.Rds')))[,.(CHR,POS,MarkerName,i.MarkerName,REF,ALT,Allele1,Allele2,b,p)]
 lapply(1:22, function(chr) fread(paste0('zcat /project/mathilab/data/maps/hm2/hm2/genetic_map_GRCh37_chr', chr,'.txt.gz'))[,CHR:=gsub("chr","",Chromosome)][, Chromosome:=NULL])-> rec #need to fix this path
 for(chr in 1:22){colnames(rec[[chr]])<-c('POS', 'RATE_cM_Mb', 'MAP_cM', 'CHR')}
 lapply(1:22, function(chr) fread(paste0('zcat /project/mathilab/data/maps_b37/maps_chr.', chr, '.gz')))-> maps #need to fix this path
@@ -58,44 +60,45 @@ for (chr in 1:22){
 }
 do.call(rbind, chrs)-> f  #combine into one data.table with all chromosomes
 f[,Quantile:=cut(diff, breaks=quantile(diff), na.rm=T, include.lowest=T)]
-eur[, POS1:=POS-(rate.dist/2)][,POS2:=POS+(rate.dist/2)]
+afr[, POS1:=POS-(rate.dist/2)][,POS2:=POS+(rate.dist/2)]
 
 #Stratify genome into 4 quantiles of recombination rate
 if(w_map=="CEU"){
-        eur[, diff:=CEU.rate(POS2)-CEU.rate(POS1), by=CHR]
+        afr[, diff:=CEU.rate(POS2)-CEU.rate(POS1), by=CHR]
         } else if (w_map=="AA"){
-         eur[, diff:=AA.rate(POS2)-AA.rate(POS1), by=CHR]
+         afr[, diff:=AA.rate(POS2)-AA.rate(POS1), by=CHR]
 }
 
 #Split PRS SNPs according to these quantiles
 lev<-quantile(f$diff)
-q1<-eur[diff>=lev[1] & diff<lev[2]]
-q2<-eur[diff>=lev[2] & diff<lev[3]]
-q3<-eur[diff>=lev[3] & diff<lev[4]]
-q4<-eur[diff>=lev[4]]
+q1<-afr[diff>=lev[1] & diff<lev[2]]
+q2<-afr[diff>=lev[2] & diff<lev[3]]
+q3<-afr[diff>=lev[3] & diff<lev[4]]
+q4<-afr[diff>=lev[4]]
 cat('checkpoint\n')
 #calculate PRS for each of these quantiles
-hei<-lapply(1:22, function(chr) readRDS(paste0('~/height_prediction/', args[3],'/ukb_eur/output/hei_phys_100000_0.0005_v2.Rds'))[[chr]]) #need to fix this path
+hei<-lapply(1:22, function(chr) readRDS(paste0('~/height_prediction/', args[3], '/HRS_afr/output/hei_phys_100000_0.0005_v2.Rds'))[[chr]]) 
 hei<-do.call(rbind, hei)
 hei[MarkerName %in% q1$MarkerName]-> hei_q1
 hei[MarkerName %in% q2$MarkerName]-> hei_q2
 hei[MarkerName %in% q3$MarkerName]-> hei_q3
 hei[MarkerName %in% q4$MarkerName]-> hei_q4
 prs<-vector('list', 4)
+
 names(prs)<-c("q1","q2","q3", "q4")
-prs[['q1']]<-PolScore(hei2=hei_q1)
+prs[['q1']]<-PolScore2(hei2=hei_q1)
 cat('q1 done\n')
-prs[['q2']]<-PolScore(hei2=hei_q2)
+prs[['q2']]<-PolScore2(hei2=hei_q2)
 cat('q2 done\n')
-prs[['q3']]<-PolScore(hei2=hei_q3)
+prs[['q3']]<-PolScore2(hei2=hei_q3)
 cat('q3 done\n')
-prs[['q4']]<-PolScore(hei2=hei_q4)
+prs[['q4']]<-PolScore2(hei2=hei_q4)
 cat('q4 done\n')
 PRS<-prs
 remove(prs)
-saveRDS(PRS,file=paste0("~/height_prediction/strat_prs/output/prs_ukb_eur_", args[3], '_',rate.dist, "_", w_map, ".Rds")) #store results
+saveRDS(PRS,file=paste0("~/height_prediction/strat_prs/output/prs_HRS_afr_", args[3], '_', rate.dist, "_", w_map, ".Rds")) #store results
 obj<-c(nrow(hei_q1), nrow(hei_q2), nrow(hei_q3), nrow(hei_q4))
-saveRDS(obj, file=paste0("~/height_prediction/strat_prs/output/Nr_SNPs_ukb_eur_", args[3], '_', rate.dist, "_", w_map, ".Rds")) #store results
+saveRDS(obj, file=paste0("~/height_prediction/strat_prs/output/Nr_SNPs_HRS_afr_",args[3], '_', rate.dist, "_", w_map, ".Rds")) #store results
 
 #Make a list
 PRS2<-vector('list', length(PRS[['q1']]))
@@ -106,7 +109,7 @@ for(J in names(PRS2)){
 }
 do.call(rbind,PRS2)-> PRS2 #combine into one data.table
 rownames(PRS2)<-names(PRS[[1]])
-saveRDS(PRS2, file=paste0('~/height_prediction/strat_prs/output/PRS2_ukb_eur_', args[3], '_',rate.dist,"_", w_map, '.Rds')) #store results
+saveRDS(PRS2, file=paste0('~/height_prediction/strat_prs/output/PRS2_HRS_afr_',args[3], '_',rate.dist,"_", w_map, '.Rds')) #store results
 
 
 #########################################################
@@ -114,47 +117,56 @@ saveRDS(PRS2, file=paste0('~/height_prediction/strat_prs/output/PRS2_ukb_eur_', 
 #########################################################
 
 #read in phenotype data
-fread('/height_prediction/input/ukb_eur/UKB_EUR_pheno.txt')-> Pheno_UKB_eur #need to fix this path
+fread('~/height_prediction/input/HRS_afr/HRS_AFR_phenotypes.txt', fill=T)[,V5:=NULL]-> Pheno_HRS_afr
+#a partial R2 function
+source('~/height_prediction/strat_prs/scripts/Rsq_R2.R')
 
-#fix some columns and set keys for merging data tables
-Pheno_UKB_eur[,ID:=paste0(ID, "_", ID)]
-setkey(Pheno_UKB_eur, ID)
+##############
+
+#add PGS to Pheno table in order to be able to make multiple analyses
+#Pheno_HRS_afr[,ID:=paste0(ID, "_", ID)]
+as.character(Pheno_HRS_afr$ID)-> Pheno_HRS_afr$ID
+Pheno_HRS_afr$ID<-paste0(Pheno_HRS_afr[,ID],"_",Pheno_HRS_afr[,ID])
+setkey(Pheno_HRS_afr, ID)
 
 #add ancestry
-anc_UKB_eur<-cbind(fread('/project/mathilab/bbita/gwas_admix/height/ukbiobank/ukb_data_run/PRUNED2.2.Q'), fread('/project/mathilab/bbita/gwas_admix/height/ukbiobank/ukb_data_run/PRUNED2.fam')[,V2]) #need to fix this path
-colnames(anc_UKB_eur)<-c("OTHER_ANC","EUR_ANC","ID") #CHECK
-anc_UKB_eur[,ID:=paste0(ID, "_", ID)]
-setkey(anc_UKB_eur, ID)
+ancestry<-do.call(rbind, lapply(1:22, function(X) fread(paste0('~/height_prediction/input/HRS_afr/rfmix_anc_chr', X, '.txt'))))
 
-#amke a list to store results
-PGS2_UKB_eur<-vector('list', 4)
-names(PGS2_UKB_eur)<-c("q1","q2","q3","q4")
+anc_HRS_afr<-ancestry %>% group_by(SUBJID) %>% summarise(AFR_ANC=mean(AFR_ANC), EUR_ANC=1-mean(AFR_ANC)) %>% as.data.table #mean across chromosomes for each individual
 
-for (I in names(PGS2_UKB_eur)){
-        data.table(ID=rownames(PRS2), PGS=PRS2[,get(I)])-> PGS2_UKB_eur[[I]]
-        setkey(PGS2_UKB_eur[[I]], ID)
-        PGS2_UKB_eur[[I]][Pheno_UKB_eur, nomatch=0]-> PGS2_UKB_eur[[I]]
-        PGS2_UKB_eur[[I]][anc_UKB_eur, nomatch=0]-> PGS2_UKB_eur[[I]]
-        PGS2_UKB_eur[[I]][,age2:=Age^2]
-        PGS2_UKB_eur[[I]][EUR_ANC>=0.05]-> PGS2_UKB_eur[[I]]
-        PGS2_UKB_eur[[I]][-which(is.na(PGS2_UKB_eur[[I]][,Height])),]-> PGS2_UKB_eur[[I]]
+anc_HRS_afr[,ID:=paste0(SUBJID,"_",SUBJID)][,SUBJID:=NULL]
+as.character(anc_HRS_afr$ID)-> anc_HRS_afr$ID
+setkey(anc_HRS_afr, ID)
+
+
+PGS2_HRS_afr<-vector('list', 4)
+names(PGS2_HRS_afr)<-c("q1","q2","q3","q4")
+
+for (I in names(PGS2_HRS_afr)){
+        data.table(ID=rownames(PRS2), PGS=PRS2[,get(I)])-> PGS2_HRS_afr[[I]]
+        setkey(PGS2_HRS_afr[[I]], ID)
+        PGS2_HRS_afr[[I]][Pheno_HRS_afr, nomatch=0]-> PGS2_HRS_afr[[I]]
+        PGS2_HRS_afr[[I]][anc_HRS_afr, nomatch=0]-> PGS2_HRS_afr[[I]]
+        PGS2_HRS_afr[[I]][,AGE2:=AGE^2]
+	PGS2_HRS_afr[[I]][,HEIGHT:=HEIGHT*100]
+	PGS2_HRS_afr[[I]][which(!is.na(PGS2_HRS_afr[[I]][,HEIGHT])),]-> PGS2_HRS_afr[[I]]
 }
 
 #run linear models
-lapply(PGS2_UKB_eur, function(X) lm(Height~Sex, X))-> lm0_UKB_eur
-lapply(PGS2_UKB_eur, function(X) lm(Height~PGS, X))-> lm1_UKB_eur
-lapply(PGS2_UKB_eur, function(X) lm(Height~Age, X))-> lm2_UKB_eur
-lapply(PGS2_UKB_eur, function(X) lm(Height~age2, X))-> lm3_UKB_eur
-lapply(PGS2_UKB_eur, function(X) lm(Height~EUR_ANC, X))-> lm4_UKB_eur
-lapply(PGS2_UKB_eur, function(X) lm(Height~PGS+Age, X))-> lm5_UKB_eur
-lapply(PGS2_UKB_eur, function(X) lm(Height~PGS+age2, X))-> lm6_UKB_eur
-lapply(PGS2_UKB_eur, function(X) lm(Height~Sex+Age+age2+EUR_ANC, X))-> lm7_UKB_eur
-lapply(PGS2_UKB_eur, function(X) lm(Height~Sex+Age+age2+EUR_ANC+PGS, X))-> lm8_UKB_eur
+lapply(PGS2_HRS_afr, function(X) lm(HEIGHT~SEX, X))-> lm0_HRS_afr
+lapply(PGS2_HRS_afr, function(X) lm(HEIGHT~PGS, X))-> lm1_HRS_afr
+lapply(PGS2_HRS_afr, function(X) lm(HEIGHT~AGE, X))-> lm2_HRS_afr
+lapply(PGS2_HRS_afr, function(X) lm(HEIGHT~AGE2, X))-> lm3_HRS_afr
+lapply(PGS2_HRS_afr, function(X) lm(HEIGHT~EUR_ANC, X))-> lm4_HRS_afr
+lapply(PGS2_HRS_afr, function(X) lm(HEIGHT~PGS+AGE, X))-> lm5_HRS_afr
+lapply(PGS2_HRS_afr, function(X) lm(HEIGHT~PGS+AGE2, X))-> lm6_HRS_afr
+lapply(PGS2_HRS_afr, function(X) lm(HEIGHT~SEX+AGE+AGE2, X))-> lm7_HRS_afr
+lapply(PGS2_HRS_afr, function(X) lm(HEIGHT~SEX+AGE+AGE2+PGS, X))-> lm8_HRS_afr
 
 #Get partial R2, i.e, the proportion of variation in height explained by the PRS
-partial_r2_UKB_eur<-lapply(1:length(PGS2_UKB_eur), function(X) partial.R2(lm7_UKB_eur[[X]], lm8_UKB_eur[[X]])) 
-names(partial_r2_UKB_eur)<- names(PGS2_UKB_eur)
+partial_r2_HRS_afr<-lapply(1:length(PGS2_HRS_afr), function(X) partial.R2(lm7_HRS_afr[[X]], lm8_HRS_afr[[X]])) 
+names(partial_r2_HRS_afr)<- names(PGS2_HRS_afr)
 
 
-saveRDS(partial_r2_UKB_eur,file=paste0('~/height_prediction/strat_prs/output/part_R2_UKB_eur_', rate.dist,  "_", w_map, '.Rds')) #store results
+saveRDS(partial_r2_HRS_afr,file=paste0('~/height_prediction/strat_prs/output/part_R2_HRS_afr_',args[3], "_", rate.dist,  "_", w_map, '.Rds')) #store results
 

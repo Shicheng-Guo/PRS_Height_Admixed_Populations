@@ -22,7 +22,7 @@ source(paste0(home, "/", dir,'/Rsq_R2.R'))
 rate.dist<-as.numeric(args[1])
 w_map<-args[2]
 PRS<-vector('list', 22)
-jhs<-do.call(rbind, readRDS('~/height_prediction/gwas/JHS/output/hei_phys_100000_0.0005_v2.Rds'))[,.(CHR,POS,MarkerName,i.MarkerName,REF,ALT,Allele1,Allele2,b,SE,p,N)]
+jhs<-do.call(rbind, readRDS(paste0('~/height_prediction/', args[3],'/JHS/output/hei_phys_100000_0.0005_v2.Rds')))[,.(CHR,POS,MarkerName,i.MarkerName,REF,ALT,Allele1,Allele2,b,p)]
 lapply(1:22, function(chr) fread(paste0('zcat /project/mathilab/data/maps/hm2/hm2/genetic_map_GRCh37_chr', chr,'.txt.gz'))[,CHR:=gsub("chr","",Chromosome)][, Chromosome:=NULL])-> rec #need to fix this path
 for(chr in 1:22){colnames(rec[[chr]])<-c('POS', 'RATE_cM_Mb', 'MAP_cM', 'CHR')}
 lapply(1:22, function(chr) fread(paste0('zcat /project/mathilab/data/maps_b37/maps_chr.', chr, '.gz')))-> maps #need to fix this path
@@ -76,7 +76,7 @@ q3<-jhs[diff>=lev[3] & diff<lev[4]]
 q4<-jhs[diff>=lev[4]]
 cat('checkpoint\n')
 #calculate PRS for each of these quantiles
-hei<-lapply(1:22, function(chr) readRDS('~/height_prediction/gwas/JHS/output/hei_phys_100000_0.0005_v2.Rds')[[chr]]) #need to fix this path
+hei<-lapply(1:22, function(chr) readRDS(paste0('~/height_prediction/',args[3],'/JHS/output/hei_phys_100000_0.0005_v2.Rds'))[[chr]]) #need to fix this path
 hei<-do.call(rbind, hei)
 hei[MarkerName %in% q1$MarkerName]-> hei_q1
 hei[MarkerName %in% q2$MarkerName]-> hei_q2
@@ -95,9 +95,9 @@ prs[['q4']]<-PolScore(hei2=hei_q4)
 cat('q4 done\n')
 PRS<-prs
 remove(prs)
-saveRDS(PRS,file=paste0("~/height_prediction/strat_prs/output/prs_JHS_", rate.dist, "_", w_map, ".Rds")) #store results.
+saveRDS(PRS,file=paste0("~/height_prediction/strat_prs/output/prs_JHS_",args[3], '_', rate.dist, "_", w_map, ".Rds")) #store results.
 obj<-c(nrow(hei_q1), nrow(hei_q2), nrow(hei_q3), nrow(hei_q4))
-saveRDS(obj, file=paste0("~/height_prediction/strat_prs/output/Nr_SNPs_JHS_", rate.dist, "_", w_map, ".Rds")) #store results.
+saveRDS(obj, file=paste0("~/height_prediction/strat_prs/output/Nr_SNPs_JHS_", args[3], '_', rate.dist, "_", w_map, ".Rds")) #store results.
 
 #Make a list
 PRS2<-vector('list', length(PRS[['q1']]))
@@ -108,7 +108,7 @@ for(J in names(PRS2)){
 }
 do.call(rbind,PRS2)-> PRS2 #combine into one data.table
 rownames(PRS2)<-names(PRS[[1]])
-saveRDS(PRS2, file=paste0('~/height_prediction/strat_prs/output/PRS2_JHS_',rate.dist,"_", w_map, '.Rds')) #store results.
+saveRDS(PRS2, file=paste0('~/height_prediction/strat_prs/output/PRS2_JHS_', args[3], '_', rate.dist,"_", w_map, '.Rds')) #store results.
 
 #########################################################
 #### Second part: calculate partial R2 for PRS. #########
@@ -169,4 +169,4 @@ lapply(PGS2_JHS, function(X) lm(HEIGHTX~sex+age+age2+EUR_ANC+PGS,X))-> lm8_JHS
 partial_r2_JHS<-lapply(1:length(PGS2_JHS), function(X) partial.R2(lm7_JHS[[X]], lm8_JHS[[X]])) 
 names(partial_r2_JHS)<- names(PGS2_JHS)
 
-saveRDS(partial_r2_JHS,file=paste0('~/height_prediction/strat_prs/output/part_R2_JHS_', rate.dist, "_", w_map, '.Rds')) #store results
+saveRDS(partial_r2_JHS,file=paste0('~/height_prediction/strat_prs/output/part_R2_JHS_', args[3], '_', rate.dist, "_", w_map, '.Rds')) #store results
