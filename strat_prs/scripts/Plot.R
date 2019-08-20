@@ -128,7 +128,7 @@ beta[,Quantile:=cut(AA.rate, breaks=quantile(AA.rate, probs=seq(0,1, by=0.05), n
 beta[, MeanBetaDiffChisq:=mean(Beta_Diff_Chisq, na.rm=T), by=Quantile]
 beta[, MedianRecRate:=median(AA.rate, na.rm=T), by=Quantile]
 
-plot3<-ggplot(beta, aes(x=AA.rate, y=Beta_Diff_Chisq)) + geom_point(cex=0.5, col='light gray') + geom_smooth(method='lm', se=F, lwd=1, col="black") + labs(y=expression(Mean~chi^2), x="cM (AA_Map)") + geom_point(aes(x=MedianRecRate, y=MeanBetaDiffChisq, col="red"), cex=0.3) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), legend.position = "none", legend.title=element_blank())
+plot3<-ggplot(beta, aes(x=AA.rate, y=Beta_Diff_Chisq)) + geom_point(cex=0.5, col='light gray') + geom_smooth(method='lm', se=F, lwd=1, col="black") + labs(y=expression(chi^2), x="cM (AA_Map)") + geom_point(aes(x=MedianRecRate, y=MeanBetaDiffChisq, col="red"), cex=0.3) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), legend.position = "none", legend.title=element_blank())
 
 
 #beta[,Quantile:=cut(CEU.rate, breaks=quantile(CEU.rate, probs=seq(0,1, by=0.2), na.rm=T), include.lowest=T)]
