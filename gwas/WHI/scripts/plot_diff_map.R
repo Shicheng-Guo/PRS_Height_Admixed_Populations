@@ -61,14 +61,17 @@ for(i in 1:NROW(betas)){
     betas$CEU_YRI_diff.rate[i] <- abs(CEU.x-YRI.x)
 }
 betas$y <- abs(betas$POP1-betas$POP2)
-#At this point you will restrict the betas to the SNPS that you are using in the PRS
-betas<-betas[which(betas$POS %in% ID_posgrch37$POS),] #
+#At this point you will restrict the betas to the SNPS that you are using in the PRS.
+betas<-betas[which(betas$POS %in% snp_list$POS),]
 setkey(betas, CHR, POS)
 setkey(snp_list, CHR, POS)
 betas[snp_list[,.(CHR, POS, b,SE)]]-> betas
 betas[,Tstat_ukb:=b/SE]
 betas[,y2:=abs(betas$b-betas$POP1)]
-betas[,Beta_Diff_Chisq:=((Tstat_pop1-Tstat_ukb)^2)/2]
+betas[, SE_pop1:=POP1/Tstat_pop1]
+betas[, SE_pop1:=POP2/Tstat_pop2]
+betas[, SE_pop1:=ALL/Tstat_all]
+betas[,Beta_Diff_Chisq:=((POP1-b)/(sqrt(((SE_pop1)^2+(SE)^2))))^2]
 beta[[chr]]<-betas
 cat('chr ')
 cat(chr)

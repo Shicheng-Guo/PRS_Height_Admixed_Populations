@@ -29,15 +29,17 @@ setkey(final_plink, MarkerName, CHR, POS)
 
 cat('checkpoint number 2\n')
 
-res_all<-vector('list', 22)
-for(I in 1:22){
-	short_fun(args=I)-> res
-	saveRDS(res, file=paste0("~/height_prediction/gwas/WHI/output/chr", I, "_prs.Rds"))
-	res_all[[I]]<-res
-	cat('Chr ', I, ' done\n')
-}
+#res_all<-vector('list', 22)
+#for(I in 22:1){
+#	short_fun(args=I)-> res
+#	saveRDS(res, file=paste0("~/height_prediction/gwas/WHI/output/chr", I, "_prs.Rds"))
+#	res_all[[I]]<-res
+#	cat('Chr ', I, ' done\n')
+#}
 
-saveRDS(res_all, file="~/height_prediction/gwas/WHI/output/all_prs.Rds")
+#saveRDS(res_all, file="~/height_prediction/gwas/WHI/output/all_prs.Rds")
+readRDS("~/height_prediction/gwas/WHI/output/all_prs.Rds")-> res_all
+names(res_all)<-c("POP1","POP2","ALL","ALL_Tstat1", "PLINK", "PLINK_Tstat1")
 
 cat('checkpoint number 3\n')
 data.table(SUBJID=names(res_all[[1]][[1]]), 
@@ -92,11 +94,19 @@ partial.R2(lm(HEIGHTX~AGE+AGE2+EUR_ANC, data=final2), lm(HEIGHTX~AGE+AGE2+EUR_AN
 partial.R2(lm(HEIGHTX~AGE+AGE2+EUR_ANC, data=final2), lm(HEIGHTX~AGE+AGE2+EUR_ANC+PRS_all_tstat_1, data=final2))*100 #0.31%
 partial.R2(lm(HEIGHTX~AGE+AGE2+EUR_ANC, data=final2), lm(HEIGHTX~AGE+AGE2+EUR_ANC+PRS_eur_afr_local, data=final2))*100 #1.197%
 partial.R2(lm(HEIGHTX~AGE+AGE2+EUR_ANC, data=final2), lm(HEIGHTX~AGE+AGE2+EUR_ANC+PRS_eur_afr_plink, data=final2))*100 # #1.289
-partial.R2(lm(HEIGHTX~AGE+AGE2+EUR_ANC+PRS_EUR, data=final2),lm(HEIGHTX~AGE+AGE2+EUR_ANC+PRS_EUR+PRS_eur_afr_plink, data=final2))*100 #0.07
-partial.R2(lm(HEIGHTX~AGE+AGE2+EUR_ANC+PRS_EUR, data=final2),lm(HEIGHTX~AGE+AGE2+EUR_ANC+PRS_EUR+PRS_eur_afr_local, data=final2))*100 #0.05
+partial.R2(lm(HEIGHTX~AGE+AGE2+EUR_ANC+PRS_EUR, data=final2),lm(HEIGHTX~AGE+AGE2+EUR_ANC+PRS_EUR+PRS_eur_afr_plink, data=final2))*100 #0.071
+partial.R2(lm(HEIGHTX~AGE+AGE2+EUR_ANC+PRS_EUR, data=final2),lm(HEIGHTX~AGE+AGE2+EUR_ANC+PRS_EUR+PRS_plink, data=final2))*100 #0.071
+partial.R2(lm(HEIGHTX~AGE+AGE2+EUR_ANC+PRS_EUR, data=final2),lm(HEIGHTX~AGE+AGE2+EUR_ANC+PRS_EUR+PRS_eur_afr_local, data=final2))*100 #0.052
+partial.R2(lm(HEIGHTX~AGE+AGE2+EUR_ANC+PRS_EUR, data=final2),lm(HEIGHTX~AGE+AGE2+EUR_ANC+PRS_EUR+PRS_all, data=final2))*100 #0.052
 
 ###################
-##################
+##################a
+my_alpha<-function(alpha=0.9, dt=final2){
+	PRS_comb<-((1-alpha)*dt$PRS_EUR)+(alpha*dt$PRS_all)
+	res2<-partial.R2(lm(HEIGHTX~AGE+AGE2+EUR_ANC, data=dt), lm(final2$HEIGHTX~final2$AGE+final2$AGE2+final2$EUR_ANC+PRS_comb))
+	return(res2)
+}
+	
 a_vec<-seq(0,1,0.001)
 wei_PRS<-vector('list', length(a_vec))
 names(wei_PRS)<-a_vec
@@ -109,10 +119,16 @@ for(i in 1:length(a_vec)){
 
 data.table(part_R2=part_r2, alfa=a_vec)-> wanna_plot
 
-ggplot(wanna_plot, aes(x=alfa, y=part_R2)) + geom_point(size=0.8)+ geom_line() + geom_vline(xintercept=wanna_plot[which.max(wanna_plot$part_R2),alfa], col='red') + geom_hline(yintercept=partial.R2(lm(HEIGHTX~AGE+AGE2+EUR_ANC, data=final2), lm(HEIGHTX~AGE+AGE2+EUR_ANC+PRS_EUR, data=final2)), col='red') + coord_cartesian(ylim = c(0, 0.048))
+ggplot(wanna_plot, aes(x=alfa, y=part_R2)) + geom_point(size=0.8)+ geom_line() + geom_vline(xintercept=wanna_plot[which.max(wanna_plot$part_R2),alfa], col='red') + geom_hline(yintercept=partial.R2(lm(HEIGHTX~AGE+AGE2+EUR_ANC, data=final2), lm(HEIGHTX~AGE+AGE2+EUR_ANC+PRS_EUR, data=final2)), col='red') + coord_cartesian(ylim = c(0, 0.048), xlim=c(0,0.6))
 ggsave('~/height_prediction/gwas/WHI/figs/alfa_part_R2_WHI_all.pdf')
+optimize(my_alpha, interval=c(0,1), maximum=T, tol = 0.0001) #one liner for max 10.42%
 ###################
 ##################
+my_alpha2<-function(alpha=0.9, dt=final2){
+        PRS_comb<-((1-alpha)*dt$PRS_EUR)+(alpha*dt$PRS_plink)
+        res2<-partial.R2(lm(HEIGHTX~AGE+AGE2+EUR_ANC, data=dt), lm(final2$HEIGHTX~final2$AGE+final2$AGE2+final2$EUR_ANC+PRS_comb))
+        return(res2)
+}
 a_vec<-seq(0,1,0.001)
 wei_PRS<-vector('list', length(a_vec))
 names(wei_PRS)<-a_vec
@@ -125,11 +141,22 @@ for(i in 1:length(a_vec)){
 
 data.table(part_R2=part_r2, alfa=a_vec)-> wanna_plot2
 
-ggplot(wanna_plot2, aes(x=alfa, y=part_R2)) + geom_point(size=0.8)+ geom_line() + geom_vline(xintercept=wanna_plot[which.max(wanna_plot$part_R2),alfa], col='red') + geom_hline(yintercept=partial.R2(lm(HEIGHTX~AGE+AGE2+EUR_ANC, data=final2), lm(HEIGHTX~AGE+AGE2+EUR_ANC+PRS_EUR, data=final2)), col='red')
+ggplot(wanna_plot2, aes(x=alfa, y=part_R2)) + geom_point(size=0.8)+ geom_line() + geom_vline(xintercept=wanna_plot[which.max(wanna_plot$part_R2),alfa], col='red') + geom_hline(yintercept=partial.R2(lm(HEIGHTX~AGE+AGE2+EUR_ANC, data=final2), lm(HEIGHTX~AGE+AGE2+EUR_ANC+PRS_EUR, data=final2)), col='red') + coord_cartesian(xlim=c(0,0.6))
 
 ggsave('~/height_prediction/gwas/WHI/figs/alfa_part_R2_WHI_plink.pdf')
+optimize(my_alpha2, interval=c(0,1), maximum=T, tol = 0.0001) #12.21%
 ###################
 ##################
+max_alpha<-function(alpha, dt=final2){
+	PRS_comb<-vector('list', nrow(dt))
+	names(PRS_comb)<-dt[,SUBJID]
+	for(S in dt[,SUBJID]){
+		PRS_comb[[S]]<-dt[SUBJID==S]$AFR_ANC*alpha*dt[SUBJID==S]$PRS_all[[1]]+(1-(alpha*dt[SUBJID==S]$AFR_ANC))*dt[SUBJID==S]$PRS_EUR[[1]]
+	}
+	res<-partial.R2(lm(HEIGHTX~AGE+AGE2+EUR_ANC, data=dt), lm(final2$HEIGHTX~dt$AGE+dt$AGE2+dt$EUR_ANC+unlist(PRS_comb)))
+	return(res)
+}
+
 a_vec2<-seq(from=0, to=1, by=0.001)
 
 all_indivs<-vector('list', nrow(final2))
@@ -138,7 +165,7 @@ counter<-0
 system.time(for(S in final2[,SUBJID]){
 	wei_PRS_2<-vector('list', length(a_vec2))
 	names(wei_PRS_2)<-a_vec2
-	wei_PRS_2<-lapply(1:length(a_vec2), function(i)( final2[SUBJID==S]$AFR_ANC*a_vec2[i]*final2[SUBJID==S]$PRS_all[[1]])+(final2[SUBJID==S]$AFR_ANC*(1-a_vec2[i])*final2[SUBJID==S]$PRS_EUR[[1]]))
+	wei_PRS_2<-lapply(1:length(a_vec2), function(i)( final2[SUBJID==S]$AFR_ANC*a_vec2[i]*final2[SUBJID==S]$PRS_all[[1]])+(1-(a_vec2[i]*final2[SUBJID==S]$AFR_ANC)*final2[SUBJID==S]$PRS_EUR[[1]]))
 	counter+1-> counter
         cat(counter, "\r")
 	all_indivs[[S]]<-wei_PRS_2
@@ -156,9 +183,19 @@ temp_dt[which.max(temp_dt$part_r2),]
 saveRDS(temp_dt, file='~/height_prediction/gwas/WHI/output/temp_dt_LA_all.Rds')
 ggplot(temp_dt, aes(x=alpha, y=part_r2)) + geom_point(size=0.8)+ geom_line()
 ggsave('~/height_prediction/gwas/WHI/figs/indiv_LA_alfa_part_R2_WHI.pdf')
-temp_dt<-readRDS('~/height_prediction/gwas/WHI/output/temp_dt_LA_all.Rds')
+#temp_dt<-readRDS('~/height_prediction/gwas/WHI/output/temp_dt_LA_all.Rds')
+optimize(max_alpha,interval=c(0,1), maximum=T, tol =0.0001) #$maximum[1] 0.1498716 #$objective[1] 0.04163228
 ###################
 ##################
+max_alphaB<-function(alpha, dt=final2){
+        PRS_comb<-vector('list', nrow(dt))
+        names(PRS_comb)<-dt[,SUBJID]
+        for(S in dt[,SUBJID]){
+                PRS_comb[[S]]<-dt[SUBJID==S]$AFR_ANC*alpha*dt[SUBJID==S]$PRS_plink[[1]]+(1-(alpha*dt[SUBJID==S]$AFR_ANC))*dt[SUBJID==S]$PRS_EUR[[1]]
+        }
+        res<-partial.R2(lm(HEIGHTX~AGE+AGE2+EUR_ANC, data=dt), lm(final2$HEIGHTX~dt$AGE+dt$AGE2+dt$EUR_ANC+unlist(PRS_comb)))
+        return(res)
+}
 a_vec2<-seq(from=0, to=1, by=0.001)
 
 all_indivs<-vector('list', nrow(final2))
@@ -167,7 +204,7 @@ counter<-0
 system.time(for(S in final2[,SUBJID]){
         wei_PRS_2<-vector('list', length(a_vec2))
         names(wei_PRS_2)<-a_vec2
-        wei_PRS_2<-lapply(1:length(a_vec2), function(i)( final2[SUBJID==S]$AFR_ANC*a_vec2[i]*final2[SUBJID==S]$PRS_plink[[1]])+(final2[SUBJID==S]$AFR_ANC*(1-a_vec2[i])*final2[SUBJID==S]$PRS_EUR[[1]]))
+        wei_PRS_2<-lapply(1:length(a_vec2), function(i)( final2[SUBJID==S]$AFR_ANC*a_vec2[i]*final2[SUBJID==S]$PRS_plink[[1]])+(1-(a_vec2[i]*final2[SUBJID==S]$AFR_ANC))*final2[SUBJID==S]$PRS_EUR[[1]])
         counter+1-> counter
         cat(counter, "\r")
         all_indivs[[S]]<-wei_PRS_2
@@ -185,8 +222,11 @@ temp_dt2[which.max(temp_dt2$part_r2),]
 saveRDS(temp_dt2, file='~/height_prediction/gwas/WHI/output/temp_dt_plink.Rds')
 ggplot(temp_dt2, aes(x=alpha, y=part_r2)) + geom_point(size=0.8)+ geom_line()
 ggsave('~/height_prediction/gwas/WHI/figs/indiv_plink_alfa_part_R2_WHI.pdf')
-temp_dt2<-readRDS('~/height_prediction/gwas/WHI/output/temp_dt_plink.Rds')
+#temp_dt2<-readRDS('~/height_prediction/gwas/WHI/output/temp_dt_plink.Rds')
+optimize(max_alphaB,interval=c(0,1), maximum=T, tol =0.0001) #$maximum #[1] 0.1706268 #$objective #[1] 0.04181667
 
+pdf('~/height_prediction/gwas/WHI/figs/test_plink.pdf')
+plot(optimize(max_alphaB,interval=c(0,1), maximum=T, tol =0.0001))
 #The End
 
 #playground
@@ -194,7 +234,7 @@ temp_dt2<-readRDS('~/height_prediction/gwas/WHI/output/temp_dt_plink.Rds')
 test<-cbind(wanna_plot,temp_dt)
 test4<-cbind(wanna_plot2, temp_dt2)
 test[,alfa:=NULL]
-test4[,alfa:-NULL]
+test4[,alfa:=NULL]
 
 colnames(test)[1]<-"Without Ancestry"
 colnames(test)[3]<-"With Ancestry"
@@ -207,10 +247,10 @@ melt(test4, id='alpha')-> test5
 colnames(test2)[3]<-'Part_R2'
 colnames(test5)[3]<-'Part_R2'
 
-ggplot(test2, aes(x=alpha, y=Part_R2, colour=variable)) + geom_point(size=0.8)+ geom_line()
+ggplot(test2, aes(x=alpha, y=Part_R2, colour=variable)) + geom_point(size=0.8)+ geom_line() + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15),axis.text.x=element_text(size=9), axis.text.y=element_text(size=9), legend.key=element_blank(), legend.background=element_blank(),legend.title=element_blank()) + labs(x="Alpha", y=expression(Partial~R^2))
 ggsave('~/height_prediction/gwas/WHI/figs/test_this_all.pdf')
 
-ggplot(test5, aes(x=alpha, y=Part_R2, colour=variable)) + geom_point(size=0.8)+ geom_line()
+ggplot(test5, aes(x=alpha, y=Part_R2, colour=variable)) + geom_point(size=0.8)+ geom_line() + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15),axis.text.x=element_text(size=9), axis.text.y=element_text(size=9), legend.key=element_blank(), legend.background=element_blank(),legend.title=element_blank()) + labs(x="Alpha", y=expression(Partial~R^2))
 ggsave('~/height_prediction/gwas/WHI/figs/test_this_plink.pdf')
 
 

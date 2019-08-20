@@ -31,39 +31,16 @@ source('~/height_prediction/strat_prs/scripts/Rsq_R2.R')
 Pheno_WHI[, SUBJID:=paste0("0_", as.character(Pheno_WHI[, SUBJID]))]
 setkey(Pheno_WHI, SUBJID)
 
-ancestry<-vector('list', 22)
 #add ancestry
-for(chr in 1:22){
-	what <- paste0("~/height_prediction/input/WHI/WHI_b37_strand_include_kgCY_chr", chr)  #pop1 is AFR
-	ancestry[[chr]] <- read_fwf(paste0(what, "_rfmix_out.0.Viterbi.txt"), fwf_empty(paste0(what, "_rfmix_out.0.Viterbi.txt")))
-	gc()
-}
+ancestry<-do.call(rbind, lapply(1:22, function(X) fread(paste0('~/height_prediction/input/WHI/rfmix_anc_chr', X, '.txt'))))
 
-ind<-read.table(paste0(what, ".phind"), as.is=TRUE)
-#Remove reference samples
-samples.to.include <- ind[,3]=="Case"
-ind <- ind[samples.to.include,]
-
-indiv<-vector('list', ncol(ancestry[[22]]))
-for(I in 1:ncol(ancestry[[22]])){	
-	cat(I,"\r")
-	indiv[[I]]<-(sum(ancestry[[1]][,I]==1)+ sum(ancestry[[2]][,I]==1)+ sum(ancestry[[3]][,I]==1)+sum(ancestry[[4]][,I]==1)+sum(ancestry[[5]][,I]==1)+sum(ancestry[[6]][,I]==1)+sum(ancestry[[7]][,I]==1)+sum(ancestry[[8]][,I]==1)+sum(ancestry[[9]][,I]==1)+sum(ancestry[[10]][,I]==1)+sum(ancestry[[11]][,I]==1)+sum(ancestry[[12]][,I]==1)+sum(ancestry[[13]][,I]==1)+sum(ancestry[[14]][,I]==1)+sum(ancestry[[15]][,I]==1)+sum(ancestry[[16]][,I]==1)+sum(ancestry[[17]][,I]==1)+sum(ancestry[[18]][,I]==1)+sum(ancestry[[19]][,I]==1)+sum(ancestry[[20]][,I]==1)+sum(ancestry[[21]][,I]==1)+ sum(ancestry[[22]][,I]==1))/sum(unlist(lapply(1:22, function(X) nrow(ancestry[[X]]))))
-}
-
-indiv2<-vector('list', ncol(ancestry[[22]])/2)
-
-i=0
-for(I in seq(from=1,to=length(indiv), by=2)){
-	i=i+1	
-	indiv2[[i]]<-sum(indiv[[I]],indiv[[I+1]])/2
-	cat(i,"\r")
-	}
+anc_WHI<-ancestry %>% group_by(SUBJID) %>% summarise(AFR_ANC=mean(AFR_ANC), EUR_ANC=1-mean(AFR_ANC)) %>% as.data.table #mean across chromosomes for each individual
 
 #admixture (obsolete)
 #anc_WHI<-cbind(fread('~/height_prediction/input/WHI/WHI_b37_strand_prune_include.2.Q'), fread('~/height_prediction/input/WHI/WHI_b37_strand_prune_include.fam')[,V2])
 #colnames(anc_WHI)<-c("AFR_ANC","EUR_ANC","SUBJID")
-anc_WHI<-data.table(AFR_ANC=unlist(indiv2), EUR_ANC=1-unlist(indiv2), SUBJID=as.integer(unique(gsub("_[A|B]", "",gsub("0:","",ind[,1])))))
-anc_WHI[,SUBJID:=paste0("0_", SUBJID)]
+#anc_WHI<-data.table(AFR_ANC=unlist(indiv2), EUR_ANC=1-unlist(indiv2), SUBJID=as.integer(unique(gsub("_[A|B]", "",gsub("0:","",ind[,1])))))
+#anc_WHI[,SUBJID:=paste0("0_", SUBJID)]
 setkey(anc_WHI, SUBJID)
 
 
@@ -90,14 +67,14 @@ lapply(PGS2_WHI, function(X) lm(HEIGHTX~AGE+age2+EUR_ANC, X))-> lm7_WHI
 lapply(PGS2_WHI, function(X) lm(HEIGHTX~AGE+age2+EUR_ANC+PGS, X))-> lm8_WHI
 
 
-partial.R2(lm7_WHI[[67]],lm8_WHI[[67]]) #2.1%
+partial.R2(lm7_WHI[[67]],lm8_WHI[[67]]) #4.7
 
-partial_r2_WHI<-lapply(1:length(PGS2_WHI), function(X) partial.R2(lm7_WHI[[X]], lm8_WHI[[X]])) #min 2.27, max 4.83%
+partial_r2_WHI<-lapply(1:length(PGS2_WHI), function(X) partial.R2(lm7_WHI[[X]], lm8_WHI[[X]])) 
 names(partial_r2_WHI)<- names(PGS2_WHI)
 
-summary(unlist(partial_r2_WHI)) #min 1 ma 2.4%
+summary(unlist(partial_r2_WHI)) ##min 2.27, max 5.6%
 
-which.max(unlist(partial_r2_WHI)) #
+which.max(unlist(partial_r2_WHI)) #77, or LD_100000_0.01_0.5. Excluding the LD ones, it's 68, phys_5000_0.0005
 
 Nr_SNPs<-rep(NA, length(PGS2_WHI))
 names(Nr_SNPs)<- names(PGS2_WHI)
@@ -108,10 +85,10 @@ for(I in names(Nr_SNPs)){
 	cat(I, ' \n')
 }
 data.table(Nr=unlist(Nr_SNPs), Name=names(Nr_SNPs), Part_R2=unlist(partial_r2_WHI))-> A_table
-saveRDS(A_table, file='~/height_prediction/gwas/WHI/utput/Nr_SNPs_WHI.Rds')
+saveRDS(A_table, file='~/height_prediction/gwas/WHI/output/Nr_SNPs_WHI.Rds')
 
-cor(A_table$Part_R2, A_table$Nr) #-0.589 #strong negative correlation
-summary(lm(Part_R2~Nr,data=A_table))$r.squared #0.3375
+cor(A_table$Part_R2, A_table$Nr) #0.89
+summary(lm(Part_R2~Nr,data=A_table))$r.squared #0.79
 #
 
 ###########################
@@ -136,7 +113,7 @@ lapply(1:length(PGS3_WHI), function(X) PGS3_WHI[[X]][,Med_Eur_Anc:=median(EUR_AN
 
 lapply(1:length(PGS3_WHI), function(X) as.character(unique((PGS3_WHI[[X]]$Quantile))))-> a
 
-lapply(a, function(X) c(X[3],X[4], X[1], X[2]))-> a1
+lapply(a, function(X) c(X[4],X[2], X[1], X[3]))-> a1
 
 names(a1)<-names(PGS3_WHI)
 
@@ -184,13 +161,11 @@ for (I in names(PGS3_WHI)){
         cat(I)
 	cat(' done\n')
 }
-results.WHI<-results.WHI[81:160]
 saveRDS(PGS3_WHI, file='~/height_prediction/gwas/WHI/output/PGS3_WHI.Rds')
 saveRDS(results.WHI, file='~/height_prediction/gwas/WHI/output/results.WHI.Rds')
 
 #confidence intervals
 
-boots.ci.WHI<-lapply(results.WHI, function(Y) lapply(Y, function(X) boot.ci(X, type = c("norm", 'basic', "perc"))))
 names(boots.ci.WHI)<-names(results.WHI)
 
 for (I in names(PGS3_WHI)){
