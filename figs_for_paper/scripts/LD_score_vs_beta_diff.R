@@ -25,5 +25,6 @@ ggsave('~/height_prediction/figs_for_paper/figs/test_LD.pdf')
 
 
 
-ggplot(test, aes(x=MedianL2, y=MeanBetaDiffChisq)) + geom_point() + geom_smooth(method='lm', se=F) + geom_line()
+ggplot(test, aes(x=MedianL2, y=MeanBetaDiffChisq)) + geom_point() + geom_smooth(method='lm', se=F) 
 ggsave('~/height_prediction/figs_for_paper/figs/test_LD_v2.pdf')
+

@@ -66,7 +66,7 @@ setkey(ceu, CHR, i.MarkerName)
 final[,pq:=ALT_FREQS* (1-ALT_FREQS)]
 final[, value2:=(b^2)*pq]
 
-
+lapply(1:6, function(X) sum(dtsets[[X]]$value, na.rm=T))
 unlist(lapply(1:2, function(X) sum(dtsets[[X]]$value, na.rm=T)))/sum(final$value2)
 
 ##
