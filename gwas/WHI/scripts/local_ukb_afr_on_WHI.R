@@ -153,7 +153,7 @@ max_alpha<-function(alpha, dt=final2){
 	for(S in dt[,SUBJID]){
 		PRS_comb[[S]]<-dt[SUBJID==S]$AFR_ANC*alpha*dt[SUBJID==S]$PRS_all[[1]]+(1-(alpha*dt[SUBJID==S]$AFR_ANC))*dt[SUBJID==S]$PRS_EUR[[1]]
 	}
-	res<-partial.R2(lm(HEIGHTX~AGE+AGE2+EUR_ANC, data=dt), lm(final2$HEIGHTX~dt$AGE+dt$AGE2+dt$EUR_ANC+unlist(PRS_comb)))
+	res<-partial.R2(lm(HEIGHTX~AGE+AGE2+EUR_ANC, data=dt), lm(dt$HEIGHTX~dt$AGE+dt$AGE2+dt$EUR_ANC+unlist(PRS_comb)))
 	return(res)
 }
 
@@ -165,7 +165,7 @@ counter<-0
 system.time(for(S in final2[,SUBJID]){
 	wei_PRS_2<-vector('list', length(a_vec2))
 	names(wei_PRS_2)<-a_vec2
-	wei_PRS_2<-lapply(1:length(a_vec2), function(i)( final2[SUBJID==S]$AFR_ANC*a_vec2[i]*final2[SUBJID==S]$PRS_all[[1]])+(1-(a_vec2[i]*final2[SUBJID==S]$AFR_ANC)*final2[SUBJID==S]$PRS_EUR[[1]]))
+	wei_PRS_2<-lapply(1:length(a_vec2), function(i) (final2[SUBJID==S]$AFR_ANC*a_vec2[i]*final2[SUBJID==S]$PRS_all[[1]])+((1-(a_vec2[i]*final2[SUBJID==S]$AFR_ANC))*final2[SUBJID==S]$PRS_EUR[[1]]))
 	counter+1-> counter
         cat(counter, "\r")
 	all_indivs[[S]]<-wei_PRS_2
@@ -181,9 +181,9 @@ for (j in 1:length(a_vec2)){
 as.data.frame(temp_dt)-> temp_dt
 temp_dt[which.max(temp_dt$part_r2),]
 saveRDS(temp_dt, file='~/height_prediction/gwas/WHI/output/temp_dt_LA_all.Rds')
-ggplot(temp_dt, aes(x=alpha, y=part_r2)) + geom_point(size=0.8)+ geom_line()
+ggplot(temp_dt, aes(x=alpha, y=part_r2)) + geom_point(size=0.8)+ geom_line() + coord_cartesian(xlim=c(0,0.6))
 ggsave('~/height_prediction/gwas/WHI/figs/indiv_LA_alfa_part_R2_WHI.pdf')
-#temp_dt<-readRDS('~/height_prediction/gwas/WHI/output/temp_dt_LA_all.Rds')
+temp_dt<-readRDS('~/height_prediction/gwas/WHI/output/temp_dt_LA_all.Rds')
 optimize(max_alpha,interval=c(0,1), maximum=T, tol =0.0001) #$maximum[1] 0.1498716 #$objective[1] 0.04163228
 ###################
 ##################
@@ -193,7 +193,7 @@ max_alphaB<-function(alpha, dt=final2){
         for(S in dt[,SUBJID]){
                 PRS_comb[[S]]<-dt[SUBJID==S]$AFR_ANC*alpha*dt[SUBJID==S]$PRS_plink[[1]]+(1-(alpha*dt[SUBJID==S]$AFR_ANC))*dt[SUBJID==S]$PRS_EUR[[1]]
         }
-        res<-partial.R2(lm(HEIGHTX~AGE+AGE2+EUR_ANC, data=dt), lm(final2$HEIGHTX~dt$AGE+dt$AGE2+dt$EUR_ANC+unlist(PRS_comb)))
+        res<-partial.R2(lm(HEIGHTX~AGE+AGE2+EUR_ANC, data=dt), lm(dt$HEIGHTX~dt$AGE+dt$AGE2+dt$EUR_ANC+unlist(PRS_comb)))
         return(res)
 }
 a_vec2<-seq(from=0, to=1, by=0.001)
@@ -204,7 +204,7 @@ counter<-0
 system.time(for(S in final2[,SUBJID]){
         wei_PRS_2<-vector('list', length(a_vec2))
         names(wei_PRS_2)<-a_vec2
-        wei_PRS_2<-lapply(1:length(a_vec2), function(i)( final2[SUBJID==S]$AFR_ANC*a_vec2[i]*final2[SUBJID==S]$PRS_plink[[1]])+(1-(a_vec2[i]*final2[SUBJID==S]$AFR_ANC))*final2[SUBJID==S]$PRS_EUR[[1]])
+        wei_PRS_2<-lapply(1:length(a_vec2), function(i) (final2[SUBJID==S]$AFR_ANC*a_vec2[i]*final2[SUBJID==S]$PRS_plink[[1]])+((1-(a_vec2[i]*final2[SUBJID==S]$AFR_ANC))*final2[SUBJID==S]$PRS_EUR[[1]]))
         counter+1-> counter
         cat(counter, "\r")
         all_indivs[[S]]<-wei_PRS_2
@@ -220,9 +220,9 @@ for (j in 1:length(a_vec2)){
 as.data.frame(temp_dt2)-> temp_dt2
 temp_dt2[which.max(temp_dt2$part_r2),]
 saveRDS(temp_dt2, file='~/height_prediction/gwas/WHI/output/temp_dt_plink.Rds')
-ggplot(temp_dt2, aes(x=alpha, y=part_r2)) + geom_point(size=0.8)+ geom_line()
+ggplot(temp_dt2, aes(x=alpha, y=part_r2)) + geom_point(size=0.8)+ geom_line() + coord_cartesian(xlim=c(0,0.6))
 ggsave('~/height_prediction/gwas/WHI/figs/indiv_plink_alfa_part_R2_WHI.pdf')
-#temp_dt2<-readRDS('~/height_prediction/gwas/WHI/output/temp_dt_plink.Rds')
+temp_dt2<-readRDS('~/height_prediction/gwas/WHI/output/temp_dt_plink.Rds')
 optimize(max_alphaB,interval=c(0,1), maximum=T, tol =0.0001) #$maximum #[1] 0.1706268 #$objective #[1] 0.04181667
 
 pdf('~/height_prediction/gwas/WHI/figs/test_plink.pdf')
@@ -247,10 +247,10 @@ melt(test4, id='alpha')-> test5
 colnames(test2)[3]<-'Part_R2'
 colnames(test5)[3]<-'Part_R2'
 
-ggplot(test2, aes(x=alpha, y=Part_R2, colour=variable)) + geom_point(size=0.8)+ geom_line() + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15),axis.text.x=element_text(size=9), axis.text.y=element_text(size=9), legend.key=element_blank(), legend.background=element_blank(),legend.title=element_blank()) + labs(x="Alpha", y=expression(Partial~R^2))
+ggplot(test2, aes(x=alpha, y=Part_R2, colour=variable)) +  geom_line(size=1.5) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15),axis.text.x=element_text(size=9), axis.text.y=element_text(size=9), legend.key=element_blank(), legend.background=element_blank(),legend.title=element_blank()) + labs(x="Alpha", y=expression(Partial~R^2)) + coord_cartesian(xlim=c(0,0.5), ylim=c(0.01, 0.042)) + geom_vline(xintercept=temp_dt[which.max(temp_dt$part_r2),]$alpha, col='orange', lty=2) + geom_hline(yintercept=temp_dt[which.max(temp_dt$part_r2),]$part_r2, col='orange', lty=2)
 ggsave('~/height_prediction/gwas/WHI/figs/test_this_all.pdf')
 
-ggplot(test5, aes(x=alpha, y=Part_R2, colour=variable)) + geom_point(size=0.8)+ geom_line() + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15),axis.text.x=element_text(size=9), axis.text.y=element_text(size=9), legend.key=element_blank(), legend.background=element_blank(),legend.title=element_blank()) + labs(x="Alpha", y=expression(Partial~R^2))
+ggplot(test5, aes(x=alpha, y=Part_R2, colour=variable)) + geom_line(size=1.5) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15),axis.text.x=element_text(size=9), axis.text.y=element_text(size=9), legend.key=element_blank(), legend.background=element_blank(),legend.title=element_blank()) + labs(x="Alpha", y=expression(Partial~R^2)) + coord_cartesian(xlim=c(0,0.5), ylim=c(0.03, 0.042)) + geom_vline(xintercept=temp_dt2[which.max(temp_dt2$part_r2),]$alpha, col='orange', lty=2) + geom_hline(yintercept=temp_dt2[which.max(temp_dt2$part_r2),]$part_r2, col='orange', lty=2) + geom_vline(xintercept=test5[variable=='Without Ancestry'][which.max(test5[variable=='Without Ancestry'][,Part_R2]),]$alpha, col='black', lty=2) + geom_hline(yintercept= test5[variable=='Without Ancestry'][which.max(test5[variable=='Without Ancestry'][,Part_R2]),]$Part_R2, col='black', lty=2)
 ggsave('~/height_prediction/gwas/WHI/figs/test_this_plink.pdf')
 
 

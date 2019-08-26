@@ -75,11 +75,10 @@ my_plotA<-ggplot(ALL2, aes(x=Med_Eur_Anc, y=R_sq,colour=Dataset)) +
 my_plotB<-ggplot(dt_final, aes(x=Name, y=value, fill=Method)) + facet_wrap(~Dataset, ncol = 1) + geom_bar(stat="identity",position=position_dodge(), alpha=0.7) + scale_fill_brewer(name="Dataset", type="div", palette='Dark2') + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), legend.position='bottom', legend.title=element_blank(), axis.title.x=element_blank()) + labs(y=expression(Partial~R^2), xlab="") + scale_alpha_manual(values=c(0.1, 0.5))
 
 
-png('~/height_prediction/figs_for_paper/Figure4.png',width = 900, height = 500, units = "px")
+png('~/height_prediction/figs_for_paper/figs/Figure4.png',width = 900, height = 500, units = "px")
 plot_grid(my_plotA, my_plotB, labels=c("A","B"), nrow=1)
 dev.off()
-
-ggsave('~/height_prediction/figs_for_paper/Figure4.pdf')
-
-
-
+pdf('~/height_prediction/figs_for_paper/figs/Figure4.pdf', width=9, height=5)
+plot_grid(my_plotA, my_plotB, labels=c("A","B"), nrow=1)
+dev.off()
+#ggsave('~/height_prediction/figs_for_paper/figs/Figure4.pdf')
