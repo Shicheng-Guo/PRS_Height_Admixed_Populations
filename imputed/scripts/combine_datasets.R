@@ -71,7 +71,7 @@ for(I in names(B_HRS_afr)){
 	}
 
 for(I in names(B_HRS_afr)){
-        my_plot<-ggplot(ALL2[[I]], aes(x=Med_Eur_Anc, y=R_sq,colour=Dataset)) +
+        my_plot<-ggplot(ALL2b[[I]], aes(x=Med_Eur_Anc, y=R_sq,colour=Dataset)) +
         geom_point(aes(shape=Dataset), size=1.5, fill="white") + stat_smooth(data=ALL2[[I]],method = "lm", mapping = aes(weight = W), col='black') +
         geom_errorbar(aes(x=Med_Eur_Anc, group=Dataset, colour=Dataset,ymin=boots_perc_L, ymax=boots_perc_U), width=0.05, size=0.8) +
         #geom_line(color='lightgray')+

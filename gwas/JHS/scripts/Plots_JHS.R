@@ -77,9 +77,9 @@ lapply(PGS2_JHS, function(X) lm(HEIGHTX~sex+age+age2+EUR_ANC, X))-> lm7_JHS
 lapply(PGS2_JHS, function(X) lm(HEIGHTX~sex+age+age2+EUR_ANC+PGS,X))-> lm8_JHS
 
 
-partial.R2(lm7_JHS[[67]],lm8_JHS[[67]]) #4.24%
-partial.R2(lm7_JHS[[63]],lm8_JHS[[63]]) #3.59%
-partial_r2_JHS<-lapply(1:length(PGS2_JHS), function(X) partial.R2(lm7_JHS[[X]], lm8_JHS[[X]])) #min 1.8, max 4.27
+partial.R2(lm7_JHS[[67]],lm8_JHS[[67]]) #3.84%
+partial.R2(lm7_JHS[[63]],lm8_JHS[[63]]) #3.91%
+partial_r2_JHS<-lapply(1:length(PGS2_JHS), function(X) partial.R2(lm7_JHS[[X]], lm8_JHS[[X]])) #min 1.760, max 4.198
 names(partial_r2_JHS)<- names(PGS2_JHS)
 
 
@@ -95,8 +95,8 @@ for(I in names(Nr_SNPs)){
 data.table(Nr=unlist(Nr_SNPs), Name=names(Nr_SNPs), Part_R2=unlist(partial_r2_JHS))-> A_table
 saveRDS(A_table, file='~/height_prediction/gwas/JHS/output/Nr_SNPs_JHS.Rds')
 
-cor.test(unlist(Nr_SNPs), unlist(partial_r2_JHS))# 0.53
-summary(lm(Part_R2~Nr,data=A_table))$r.squared #0.28
+cor.test(unlist(Nr_SNPs), unlist(partial_r2_JHS))# 0.36589
+summary(lm(Part_R2~Nr,data=A_table))$r.squared #0.13388
 #
 
 #interestingly, the LD pruned sets scrw things up. If we remvoe them
