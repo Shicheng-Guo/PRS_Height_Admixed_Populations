@@ -1,6 +1,12 @@
-##
+#!/usr/bin/env Rscript
+############################
+args = commandArgs(trailingOnly=TRUE)
+if (length(args)==0) {
+  stop("At least one argument must be supplied (a name for this run).n", call.=FALSE)
+}
 
 ## Load libraries
+library(optparse)
 library(data.table)
 library(dplyr)
 library(readr)
@@ -15,9 +21,8 @@ options(scipen=999)
 #5. Calculate PRS
 
 ###########################################
-args<-'phys_100000_0.0005'
+#args<-'phys_100000_0.0005'
 ###plink betas for AFR
-
 cat('checkpoint number 1\n')
 plink<-fread('~/height_prediction/runSmartpCA-master/UKB_AFR_imputed/association_v3.Res.Height.glm.linear.adjusted', header=T, fill=T)
 colnames(plink)[2]<-'MarkerName'
@@ -40,7 +45,8 @@ final_plink[order(CHR,POS)] -> final_plink
 select(final_plink, CHR, MarkerName, POS, REF, ALT, A1, PLINK)-> final_plink
 
 ###read in PRS SNPs for WHI
-chr<-22
+#chr<-22
+chr<-args[2]
 hei<-readRDS(paste0('~/height_prediction/gwas/WHI/output/hei_', args[1], '_v2.Rds'))[[chr]]
 ##for each chromosome chr
 #for(chr in 1:22){
@@ -78,6 +84,7 @@ plink_prun %>% select(contains("0_")) %>% as.data.table-> plink_prun2
 res_all<-vector('list', length(colnames(plink_prun2)))
 names(res_all)<-colnames(plink_prun2)
 #two haplotypes per individuals
+counter<-0
 for(i in colnames(plink_prun2)){
 #i=colnames(plink_prun2)[1]
 res_all[[i]]<-vector('list', 2)
@@ -112,5 +119,9 @@ data2<-data[eurB,]
 data2[,Set:=as.numeric(data2[,Set])]
 data2[, PRS_part:=ifelse(Allele1==ALT, Set*b, ifelse(Allele1==REF, abs(1-Set)*b, NA))]
 res_all[[i]][['B']]<-sum(rbind(data1,data2)$PRS_part)
-cat(i, "done\n")
+#cat(i, "done\n")
+counter<-counter+1
+cat(counter, '\n')
 }
+
+save(res_all, file=paste0('~/height_prediction/loc_anc_analysis/output/chr', chr, '.Rds')
