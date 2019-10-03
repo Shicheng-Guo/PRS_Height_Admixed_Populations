@@ -4,7 +4,7 @@ args = commandArgs(trailingOnly=TRUE)
 if (length(args)==0) {
   stop("At least one argument must be supplied (a name for this run).n", call.=FALSE)
 }
-
+old <- Sys.time()
 ## Load libraries
 library(optparse)
 library(data.table)
@@ -24,13 +24,15 @@ options(scipen=999)
 #args<-'phys_100000_0.0005'
 ###plink betas for AFR
 cat('checkpoint number 1\n')
+chr<-args[2]
 plink<-fread('~/height_prediction/runSmartpCA-master/UKB_AFR_imputed/association_v3.Res.Height.glm.linear.adjusted', header=T, fill=T)
 colnames(plink)[2]<-'MarkerName'
 colnames(plink)[1]<-'CHR'
-N<-8816*2
+plink<-plink[CHR==chr]
 #
 plink2<-fread('~/height_prediction/runSmartpCA-master/UKB_AFR_imputed/test3.txt', fill=T)
 colnames(plink2)<-c("CHR","POS", "MarkerName","REF","ALT","A1","TEST","OBS_CT","PLINK", "SE","T_STAT", "UNADJ") #plink is BETA
+plink2<-plink2[CHR==chr]
 gc()
 setkey(plink, MarkerName, CHR, UNADJ)
 setkey(plink2, MarkerName, CHR, UNADJ)
@@ -45,11 +47,8 @@ final_plink[order(CHR,POS)] -> final_plink
 select(final_plink, CHR, MarkerName, POS, REF, ALT, A1, PLINK)-> final_plink
 
 ###read in PRS SNPs for WHI
-#chr<-22
-chr<-args[2]
 hei<-readRDS(paste0('~/height_prediction/gwas/WHI/output/hei_', args[1], '_v2.Rds'))[[chr]]
 ##for each chromosome chr
-#for(chr in 1:22){
 what <- paste0("~/height_prediction/input/WHI/WHI_b37_strand_include_kgCY_chr", chr)
 ind<-read.table(paste0('/project/mathilab/data/WHI/data/phased/hapi-ur/WHI_b37_strand_include_kgCY_chr', chr, ".phind"), as.is=TRUE)
 geno <- read_fwf(paste0('/project/mathilab/data/WHI/data/phased/hapi-ur/WHI_b37_strand_include_kgCY_chr', chr, ".phgeno"), fwf_widths(rep(1,NROW(ind))))
@@ -59,8 +58,6 @@ colnames(snp)<-c('i.MarkerName', 'CHR', 'V3', 'POS',  'REF', 'ALT')
 #Remove reference samples
 samples.to.include <- ind[,3]=="Case"
 geno <- geno[,samples.to.include]
-#geno<-as.data.frame(geno)[,samples.to.include]
-#setDT(geno)
 ind <- ind[samples.to.include,]
 
 if(!all(dim(geno)==dim(ancestry))){
@@ -95,14 +92,14 @@ colnames(ancestry)<-paste0(rep(colnames(plink_prun2),each=2), c("_A", "_B"))
 temp<-plink_prun2 %>% separate(i,  paste0(i, c("_A", "_B"))) %>% select(contains(i)) %>% as.data.table
 data<-cbind(select(plink_prun, CHR, MarkerName, i.MarkerName, POS, REF, ALT,A1, Allele1, Allele2, b, p, N, PLINK),  Set=temp[,get(i2)]) #the real ALT (or ALLELE 1, always) is the effect allele. In plink, A1 is the one for which beta is estimated, which tends to be the reference allele. REF ALT here mean nothing, they came from WHI.
 #assing positions to AFR or EUR
-haps<-select(geno, contains(i)) #why does this not match temp? nO idea.
+#haps<-select(geno, contains(i)) #why does this not match temp? nO idea.
 anc<-select(ancestry, contains(i))
 afrA<-which(anc[,1]==1)
 eurA<-which(anc[,1]==2)
 afrB<-which(anc[,2]==1)
 eurB<-which(anc[,2]==2)
 #
-data1<-data[afrA,]
+oata1<-data[afrA,]
 data1[,Set:=as.numeric(data1[,Set])]
 data1[, PRS_part:=ifelse(Allele1==ALT, Set*PLINK, ifelse(Allele1==REF, abs(1-Set)*PLINK, NA))]
 data2<-data[eurA,]
@@ -125,3 +122,6 @@ cat(counter, '\n')
 }
 
 save(res_all, file=paste0('~/height_prediction/loc_anc_analysis/output/chr', chr, '.Rds')
+# print elapsed time
+new <- Sys.time() - old # calculate difference
+print(new) # print in nice format
