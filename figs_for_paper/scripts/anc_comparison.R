@@ -1,19 +1,15 @@
 #compare local ancestry and admixture estimates for all individuals
-
 library(data.table)
 library(reshape)
 library(ggplot2)
 library(dplyr)
-
+library(RColorBrewer)
 #read local ancestry
 
 #HRS_afr
-
-dtsets<-c('HRS_afr', 'WHI', 'JHS', 'ukb_afr')
-
+dtsets<-c('ukb_afr','WHI', 'JHS', 'HRS_afr')
 rfmix_anc<-vector('list', 4)
 names(rfmix_anc)<-dtsets
-
 for(I in dtsets){
 	ancestry<-do.call(rbind, lapply(1:22, function(X) fread(paste0('~/height_prediction/input/', I, '/rfmix_anc_chr', X, '.txt'))))
 	rfmix_anc[[I]]<-ancestry %>% group_by(SUBJID) %>% summarise(AFR_ANC=mean(AFR_ANC), EUR_ANC=1-mean(AFR_ANC)) %>% as.data.table #mean across chromosomes for each individual
@@ -21,7 +17,6 @@ for(I in dtsets){
 	rfmix_anc[[I]][,Dataset:=I]
 	cat(I , ' done\n')
 }
-
 rfmix_anc[['WHI']]<-rfmix_anc[['WHI']][, Dataset:='WHI_afr']
 rfmix_anc[['JHS']]<-rfmix_anc[['JHS']][, Dataset:='JHS_afr']
 rfmix_anc[['ukb_afr']]<-rfmix_anc[['ukb_afr']][, Dataset:='UKB_afr']
@@ -72,6 +67,9 @@ rfmix_anc[admix_anc][,AFR_ANC:=NULL][,i.AFR_ANC:=NULL][,i.Method:=NULL][,i.Datas
 colnames(dt)[5]<-'Admixture'
 colnames(dt)[2]<-'RFMix'
 na.omit(dt)-> dt
-ggplot(dt, aes(x=Admixture, y=RFMix, color=Dataset)) + geom_point(cex=0.2, alpha=0.5) + geom_smooth(method='lm')
-ggsave('~/height_prediction/figs_for_paper/anc_comp.pdf')
+factor(dt$Dataset, levels=c('UKB_afr', 'WHI_afr', 'JHS_afr', 'HRS_afr'))-> dt$Dataset
+ggplot(dt, aes(x=Admixture, y=RFMix, color=Dataset)) + geom_point(cex=0.2, alpha=0.5) + geom_smooth(method='lm') + scale_color_manual(values=c(brewer.pal(4, 'Set1'))) +         
+theme(panel.grid.major =element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15),axis.text.x=element_text(size=12), axis.text.y=element_text(size=12),legend.key=element_blank(),legend.background=element_blank(),legend.title=element_blank(), legend.text=element_text(size=12))
+
+ggsave('~/height_prediction/figs_for_paper/figs/anc_comp.pdf')
 
