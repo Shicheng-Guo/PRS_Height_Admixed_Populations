@@ -5,13 +5,16 @@ if (length(args)==0) {
   stop("At least one argument must be supplied (a name for this run).n", call.=FALSE)
 }
 old <- Sys.time()
+#args<-c('phys_100000_0.0005', 21)
 ## Load libraries
 library(optparse)
 library(data.table)
 library(dplyr)
 library(readr)
 library(tidyr)
+library(parallel)
 options(scipen=999)
+source('~/height_prediction/scripts/mclapply2.R')
 #
 #1. WHI data. Genotype and phenotype
 #2. Local ancestry info
@@ -77,51 +80,44 @@ cat('checkpoint number 2\n')
 plink1[hei1,]-> plink_prun
 plink_prun %>% select(contains("0_")) %>% as.data.table-> plink_prun2
 
-#for each individual
-res_all<-vector('list', length(colnames(plink_prun2)))
-names(res_all)<-colnames(plink_prun2)
-#two haplotypes per individuals
-counter<-0
-for(i in colnames(plink_prun2)){
-#i=colnames(plink_prun2)[1]
-res_all[[i]]<-vector('list', 2)
-names(res_all[[i]])<-c("A","B")
-i2=paste0(i, '_A')
+#prepare data
 colnames(geno)<-paste0(rep(colnames(plink_prun2),each=2), c("_A", "_B"))
 colnames(ancestry)<-paste0(rep(colnames(plink_prun2),each=2), c("_A", "_B"))
-temp<-plink_prun2 %>% separate(i,  paste0(i, c("_A", "_B"))) %>% select(contains(i)) %>% as.data.table
-data<-cbind(select(plink_prun, CHR, MarkerName, i.MarkerName, POS, REF, ALT,A1, Allele1, Allele2, b, p, N, PLINK),  Set=temp[,get(i2)]) #the real ALT (or ALLELE 1, always) is the effect allele. In plink, A1 is the one for which beta is estimated, which tends to be the reference allele. REF ALT here mean nothing, they came from WHI.
-#assing positions to AFR or EUR
-#haps<-select(geno, contains(i)) #why does this not match temp? nO idea.
-anc<-select(ancestry, contains(i))
-afrA<-which(anc[,1]==1)
-eurA<-which(anc[,1]==2)
-afrB<-which(anc[,2]==1)
-eurB<-which(anc[,2]==2)
-#
-oata1<-data[afrA,]
-data1[,Set:=as.numeric(data1[,Set])]
-data1[, PRS_part:=ifelse(Allele1==ALT, Set*PLINK, ifelse(Allele1==REF, abs(1-Set)*PLINK, NA))]
-data2<-data[eurA,]
-data2[,Set:=as.numeric(data2[,Set])]
-data2[, PRS_part:=ifelse(Allele1==ALT, Set*b, ifelse(Allele1==REF, abs(1-Set)*b, NA))]
-res_all[[i]][['A']]<-sum(rbind(data1,data2)$PRS_part)
-#hap B
-i2=paste0(i, '_B')
-data<-cbind(select(plink_prun, CHR, MarkerName, i.MarkerName, POS, REF, ALT,A1, Allele1, Allele2, b, p, N, PLINK),  Set=temp[,get(i2)])
-data1<-data[afrB,]
-data1[,Set:=as.numeric(data1[,Set])]
-data1[, PRS_part:=ifelse(Allele1==ALT, Set*PLINK, ifelse(Allele1==REF, abs(1-Set)*PLINK, NA))]
-data2<-data[eurB,]
-data2[,Set:=as.numeric(data2[,Set])]
-data2[, PRS_part:=ifelse(Allele1==ALT, Set*b, ifelse(Allele1==REF, abs(1-Set)*b, NA))]
-res_all[[i]][['B']]<-sum(rbind(data1,data2)$PRS_part)
-#cat(i, "done\n")
-counter<-counter+1
-cat(counter, '\n')
+
+#write a function to generate a properly formatted input matrix for the PRS function
+
+Separate<-function(X, X2, col){ #col is the colname
+	temp<-X2 %>% separate(col,  paste0(col, c("_A", "_B"))) %>% select(contains(col)) %>% as.data.table
+	return(temp)
 }
 
-save(res_all, file=paste0('~/height_prediction/loc_anc_analysis/output/chr', chr, '.Rds')
+cat('checkpoint number 3\n')
+#system.time(input_MATRIX<-mclapply2(names(plink_prun2), function(Y) Separate(X=plink_prun, X2=plink_prun2, col=Y))) #test for 100 samples takes 42 seconds
+#saveRDS(input_MATRIX, file=paste0('~/height_prediction/loc_anc_analysis/output/chr', chr, '_temp.Rds'))
+input_MATRIX<-readRDS(file=paste0('~/height_prediction/loc_anc_analysis/output/chr', chr, '_temp.Rds'))
+#write a function to calculate the ancestry-specific PRS
+input<-do.call(cbind, input_MATRIX)
+input2 <- sapply(input, as.numeric)
+input2<-as.data.table(as.data.frame(input2))
+LA_PRS<- function(X=plink_prun, X2="0_710880_A"){
+	dataA<-cbind(select(X, CHR, MarkerName, i.MarkerName, POS, REF, ALT,A1, Allele1, Allele2, b, p, N, PLINK),  Set=unlist(input2[,get(X2)]))
+	anc<-select(ancestry, contains(X2))
+	afrA<-which(anc[,1]==1)
+	eurA<-which(anc[,1]==2)
+	dataAF<-dataA[afrA,]
+	dataAF[,Set:=as.numeric(dataAF[,Set])]
+	dataAF[, PRS_part:=ifelse(Allele1==ALT, Set*PLINK, ifelse(Allele1==REF, abs(1-Set)*PLINK, NA))]
+	dataEU<-dataA[eurA,]
+	dataEU[,Set:=as.numeric(dataEU[,Set])]
+	dataEU[, PRS_part:=ifelse(Allele1==ALT, Set*b, ifelse(Allele1==REF, abs(1-Set)*b, NA))]
+	res<-sum(rbind(dataAF,dataEU)$PRS_part, na.rm=T)
+	return(res)
+}
+LA_PRS() #test
+colnames(input2)-> I
+system.time(mclapply2(1:length(I), function(Z) LA_PRS(X2=I[Z]))-> test) #
+saveRDS(test, file=paste0('~/height_prediction/loc_anc_analysis/output/chr', chr, '_prs.Rds'))
+cat('checkpoint number 4\n')
 # print elapsed time
 new <- Sys.time() - old # calculate difference
 print(new) # print in nice format
