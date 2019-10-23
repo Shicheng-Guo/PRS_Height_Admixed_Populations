@@ -21,10 +21,12 @@ for chr in {1..22};
 do
 awk '$1=='${chr}'{print $2}' sorted.txt > tmp${chr}
 grep -F -f tmp${chr} /project/mathilab/data/UKB/imputed/ukb_imp_chr${chr}_afr.bim > ~/height_prediction/runSmartpCA-master/UKB_AFR_imputed/out${chr}.txt
-awk '{print $2}' out${chr}.txt > tmp_${chr}.txt
-awk '{print $5}' out${chr}.txt > ref_chr{chr}
-plink2 --bgen /project/mathilab/data/UKB/imputed/ukb_imp_chr${chr}_afr.bgen --sample ~/height_prediction/runSmartpCA-master/UKB_AFR_imputed/my_samples.sample --extract tmp_${chr}.txt --ref-allele ref_chr${chr}.txt --recode vcf --out ~/height_prediction/runSmartpCA-master/UKB_AFR_imputed/chr${chr}
-bgzip ~/height_prediction/runSmartpCA-master/UKB_AFR_imputed/chr${chr}.vcf 
+awk '{print $2}' out${chr}.txt |sort|uniq > tmp_${chr}.txt
+awk 'OFS="\t"{print $2,$5}' out${chr}.txt > ref_chr${chr}.txt
+plink2 --bgen /project/mathilab/data/UKB/imputed/ukb_imp_chr${chr}_afr.bgen --sample ~/height_prediction/runSmartpCA-master/UKB_AFR_imputed/my_samples.sample --extract tmp_${chr}.txt  --ref-allele force ~/height_prediction/runSmartpCA-master/UKB_AFR_imputed/ref_chr${chr}.txt --recode vcf --out ~/height_prediction/runSmartpCA-master/UKB_AFR_imputed/chr${chr}
+bcftools view -m2 -M2 -v snps chr${chr}.vcf > bi_chr${chr}.vcf #remove SNPs with more than two alleles
+mv bi_chr${chr}.vcf chr${chr}.vcf
+bgzip ~/height_prediction/runSmartpCA-master/UKB_AFR_imputed/bi_chr${chr}.vcf
 echo ${chr}
 echo 'done'
 done
