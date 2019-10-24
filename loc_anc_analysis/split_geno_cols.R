@@ -6,7 +6,7 @@ if (length(args)==0) {
   stop("At least one argument must be supplied (a name for this run).n", call.=FALSE)
 }
 old <- Sys.time()
-#args<-c('phys_100000_0.0005', 21, 0.10)
+#args<-c('phys_100000_0.0005', 22, 0.10)
 ## Load libraries
 library(optparse)
 library(data.table)
@@ -26,7 +26,7 @@ source('~/height_prediction/scripts/mclapply2.R')
 
 ###########################################
 ###plink betas for AFR
-args<-c('phys_100000_0.0005', 22)
+#args<-c('phys_100000_0.0005', 22)
 chr<-args[2]
 final_plink<-as.data.table(readRDS('~/height_prediction/loc_anc_analysis/output/final_plink.Rds'))[CHR==chr]
 ###read in PRS SNPs for WHI
@@ -54,7 +54,7 @@ ancestry<-ancestry[which(snp$POS %in% hei$POS),]
 snp[POS %in% hei$POS]-> snp1
 final_plink$PLINK<-scale(final_plink$PLINK)
 setkey(final_plink, CHR, POS)
-hei1<-hei [MarkerName %in% snp1$i.MarkerName]
+hei1<-hei[MarkerName %in% snp1$i.MarkerName]
 setkey(hei1, CHR, POS)
 gc()
 cat('checkpoint number 2\n')
