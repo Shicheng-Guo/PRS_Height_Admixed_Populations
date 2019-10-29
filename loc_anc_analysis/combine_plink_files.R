@@ -22,15 +22,17 @@ plink2<-fread('~/height_prediction/runSmartpCA-master/UKB_AFR_imputed/test3.txt'
 colnames(plink2)<-c("CHR","POS", "MarkerName","REF","ALT","Effect_Allele_plink","TEST","OBS_CT","PLINK", "SE","T_STAT", "UNADJ") #plink is BETA
 plink2<-select(plink2, -c("REF", "ALT"))
 gc()
-select(merge(plink, plink2, by=c("CHR", "MarkerName")), CHR, MarkerName, POS, Effect_Allele_plink, PLINK)-> final_plink
+select(merge(plink, plink2, by=c("CHR", "MarkerName")), CHR, MarkerName, POS, Effect_Allele_plink, PLINK)-> final_plink #3388119
 remove(plink, plink2)
 gc()
 final_plink$POS<-as.numeric(final_plink$POS)
 gc()
 final_plink$CHR<-as.numeric(final_plink$CHR)
 gc()
-arrange(final_plink, POS) %>% as.data.table-> final_plink
+final_plink<-na.omit(final_plink) #3382050
+arrange(final_plink, CHR, POS) %>% as.data.table-> final_plink
 gc()
+
 
 saveRDS(final_plink, file='~/height_prediction/loc_anc_analysis/output/final_plink.Rds')
 
