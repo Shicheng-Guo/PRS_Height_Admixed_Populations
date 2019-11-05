@@ -17,7 +17,7 @@ library(readr)
 #############
 
 #read in PGS scores
-readRDS('~/height_prediction/unweighted_prs/output/PGS_WHI.Rds')-> PGS_WHI
+readRDS('~/height_prediction/random_effect_prs/output/PGS_WHI.Rds')-> PGS_WHI
 
 #read in phenotype data
 fread('~/height_prediction/input/WHI/WHI_phenotypes.txt')-> Pheno_WHI
@@ -67,7 +67,7 @@ lapply(PGS2_WHI, function(X) lm(HEIGHTX~AGE+age2+EUR_ANC, X))-> lm7_WHI
 lapply(PGS2_WHI, function(X) lm(HEIGHTX~AGE+age2+EUR_ANC+PGS, X))-> lm8_WHI
 
 
-partial.R2(lm7_WHI[[35]],lm8_WHI[[35]])  #3.3
+partial.R2(lm7_WHI[[35]],lm8_WHI[[35]]) 
 
 partial_r2_WHI<-lapply(1:length(PGS2_WHI), function(X) partial.R2(lm7_WHI[[X]], lm8_WHI[[X]])) 
 names(partial_r2_WHI)<- names(PGS2_WHI)
@@ -85,7 +85,7 @@ for(I in names(Nr_SNPs)){
 	cat(I, ' \n')
 }
 data.table(Nr=unlist(Nr_SNPs), Name=names(Nr_SNPs), Part_R2=unlist(partial_r2_WHI))-> A_table
-saveRDS(A_table, file='~/height_prediction/unweighted_prs/output/Nr_SNPs_WHI.Rds')
+saveRDS(A_table, file='~/height_prediction/random_effect_prs/output/Nr_SNPs_WHI.Rds')
 
 cor(A_table$Part_R2, A_table$Nr) #0.89
 summary(lm(Part_R2~Nr,data=A_table))$r.squared #0.79
@@ -97,7 +97,7 @@ summary(lm(Part_R2~Nr,data=A_table))$r.squared #0.79
 
 for(I in 1:length(PGS2_WHI)){
         A<-ggpairs(PGS2_WHI[[I]][,.(HEIGHTX, PGS, AGE, age2,EUR_ANC,WAISTX,WEIGHTX)])
-        png(filename=paste0('~/height_prediction/unweighted_prs/figs/WHI_ggpairs_', names(PGS2_WHI)[I], '.png'))
+        png(filename=paste0('~/height_prediction/random_effect_prs/figs/WHI_ggpairs_', names(PGS2_WHI)[I], '.png'))
         print(A)
         cat(names(PGS2_WHI)[I])
         cat(' done\n')
@@ -161,8 +161,8 @@ for (I in names(PGS3_WHI)){
         cat(I)
 	cat(' done\n')
 }
-saveRDS(PGS3_WHI, file='~/height_prediction/unweighted_prs/output/PGS3_WHI.Rds')
-saveRDS(results.WHI, file='~/height_prediction/unweighted_prs/output/results.WHI.Rds')
+saveRDS(PGS3_WHI, file='~/height_prediction/random_effect_prs/output/PGS3_WHI.Rds')
+saveRDS(results.WHI, file='~/height_prediction/random_effect_prs/output/results.WHI.Rds')
 
 #confidence intervals
 boots.ci.WHI<-lapply(results.WHI, function(Y) lapply(Y, function(X) boot.ci(X, type = c("norm", 'basic', "perc"))))
@@ -193,7 +193,7 @@ for (I in names(PGS3_WHI)){
         geom_errorbarh(aes(x=Med_Eur_Anc, xmin=HVB_L, xmax=HVB_U), width=0.05, size=0.5, color="cornflowerblue") +
         labs(title = "WHI_AA") + ylab("R-squared") + xlab("European Ancestry Proportion")
         print(myp)
-        ggsave(paste0('~/height_prediction/unweighted_prs/figs/error_bars_', I, '.png'))
+        ggsave(paste0('~/height_prediction/random_effect_prs/figs/error_bars_', I, '.png'))
 }
 
-saveRDS(B_WHI, file="~/height_prediction/unweighted_prs/output/B_WHI.Rds")
+saveRDS(B_WHI, file="~/height_prediction/random_effect_prs/output/B_WHI.Rds")
