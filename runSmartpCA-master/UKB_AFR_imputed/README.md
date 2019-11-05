@@ -1,14 +1,14 @@
 cat ~/height_prediction/input/JHS/JHS_b37_strand.bas.vcf |grep -v "^#"|awk 'OFS="\t"{print $1,$2}' > JHS.txt
 cat ~/height_prediction/input/WHI/WHI_b37_strand_include.bas.vcf |grep -v "^#"|awk 'OFS="\t"{print $1,$2}' > WHI.txt
 cat ~/height_prediction/input/HRS_afr/HRS_AFR_b37_strand_include.bas.vcf |grep -v "^#"|awk 'OFS="\t"{print $1,$2}' > HRS_afr.txt
-#cat ~/height_prediction/input/ukb_afr/UKB_AFR.bas.vcf |grep -v "^#"|awk 'OFS="\t"{print $1,$2}' > UKB_afr.txt
+cat ~/height_prediction/input/ukb_afr/UKB_AFR.bas.vcf |grep -v "^#"|awk 'OFS="\t"{print $1,$2}' > UKB_afr.txt
 
 cat WHI.txt >> all.txt
 cat JHS.txt >> all.txt
 cat HRS_afr.txt >> all.txt
-#cat UKB_afr.txt >> all.txt
+cat UKB_afr.txt >> all.txt
 
-awk -F"\t" '!seen[$1, $2]++' all.txt > sorted.txt #list of SNPs to run the gwas for # 2802996 SNPs
+awk -F"\t" '!seen[$1, $2]++' all.txt > sorted.txt #list of SNPs to run the gwas for #3290580  SNPs
 rm all.txt
 ##
 echo 'ID_1 ID_2 missing sex'> my_samples.txt
@@ -22,7 +22,7 @@ do
 awk '$1=='${chr}'{print $2}' sorted.txt > tmp${chr}
 grep -F -f tmp${chr} /project/mathilab/data/UKB/imputed/ukb_imp_chr${chr}_afr.bim > ~/height_prediction/runSmartpCA-master/UKB_AFR_imputed/out${chr}.txt
 awk '{print $2}' out${chr}.txt |sort|uniq -u > tmp_${chr}.txt #keep only bi-allelic SNPs
-grep -F -f tmp_22.txt out22.txt |awk 'OFS="\t"{print $2,$5}' > ref_chr${chr}.txt
+grep -F -f tmp_${chr}.txt out${chr}.txt |awk 'OFS="\t"{print $2,$5}' > ref_chr${chr}.txt
 plink2 --bgen /project/mathilab/data/UKB/imputed/ukb_imp_chr${chr}_afr.bgen --sample ~/height_prediction/runSmartpCA-master/UKB_AFR_imputed/my_samples.sample --extract tmp_${chr}.txt  --ref-allele force ~/height_prediction/runSmartpCA-master/UKB_AFR_imputed/ref_chr${chr}.txt --recode vcf --out ~/height_prediction/runSmartpCA-master/UKB_AFR_imputed/chr${chr}
 bgzip ~/height_prediction/runSmartpCA-master/UKB_AFR_imputed/chr${chr}.vcf
 echo ${chr}
