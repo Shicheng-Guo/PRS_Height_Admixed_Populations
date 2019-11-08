@@ -56,50 +56,43 @@ names(ancestry)<-gsub(':', '_', ind$V1)
 snp[POS %in% hei$POS][POS %in% final_plink$POS]-> snp1
 geno<-geno[which(snp1$POS %in% hei$POS),]
 ancestry<-ancestry[which(snp1$POS %in% hei$POS),]
-final_plink$PLINK<-scale(final_plink$PLINK)
+#final_plink$PLINK<-scale(final_plink$PLINK)
 setkey(final_plink, CHR, POS)
 hei1<-hei[MarkerName %in% snp1$i.MarkerName]
 setkey(hei1, CHR, POS)
 gc()
 cat('checkpoint number 2\n')
 final_plink[hei1,nomatch=0]-> plink_prun
+plink_prun$PLINK<-scale(plink_prun$PLINK)
+plink_prun$b<-scale(plink_prun$b) #mnot sure if this is needed
 plink_prun %>% select(-contains("0_")) %>% as.data.table-> plink_prun
 setDT(geno)
 setDT(ancestry)
 
-#write a function to generate a properly formatted input matrix for the PRS function
-
-#Separate<-function(X, X2, col){ #col is the colname
-#	temp<-X2 %>% separate(col,  paste0(col, c("_A", "_B"))) %>% select(contains(col)) %>% as.data.table
-#	return(temp)
-#}
-
 cat('checkpoint number 3\n')
-#system.time(input_MATRIX<-mclapply2(names(plink_prun2), function(Y) Separate(X=plink_prun, X2=plink_prun2, col=Y))) #test for 100 samples takes 42 seconds
-#saveRDS(input_MATRIX, file=paste0('~/height_prediction/loc_anc_analysis/output/chr', chr, '_temp.Rds'))
-#saveRDS(plink_prun, file=paste0('~/height_prediction/loc_anc_analysis/output/plink_prun_chr', chr, '.Rds'))
-#saveRDS(geno, file=paste0('~/height_prediction/loc_anc_analysis/output/geno_chr_', chr, '.Rds'))
-#saveRDS(ancestry, file=paste0('~/height_prediction/loc_anc_analysis/output/ancestry_chr_', chr, '.Rds'))
-#saveRDS(snp1, file=paste0('~/height_prediction/loc_anc_analysis/output/snp1_chr_', chr, '.Rds'))
-#write a function to calculate the ancestry-specific PRS
 	
-plink_prun[,AlleleMatch:=ifelse(Effect_Allele_plink==ALT, "TRUE", ifelse(Effect_Allele_plink==REF, "FALSE", NA))]
+#plink_prun[,AlleleMatch:=ifelse(Effect_Allele_plink==ALT, "TRUE", ifelse(Effect_Allele_plink==REF, "FALSE", NA))]
+plink_prun[,AlM_eur:=ifelse(Allele1==ALT, "TRUE", ifelse(Allele1==REF, "FALSE", NA))]
+plink_prun[,AlM_afr:=ifelse(Effect_Allele_plink==ALT, "TRUE", ifelse(Effect_Allele_plink==REF, "FALSE", NA))]
 LA_PRS<- function(X=geno, X2=10, Y=ancestry, alpha=as.numeric(args[3])){
-        dataA<-cbind(data.table(Geno=unlist(X[,1]), Anc=unlist(Y[,1]), plink_prun))
-	afrA<-dataA[Anc==1]
-	eurA<-dataA[Anc==2]
-	if(nrow(afrA)>=1){
-	afrA[,PRS_part:=ifelse(AlleleMatch=='TRUE',  (alpha*PLINK)*Geno+((1-alpha)*b*Geno), ifelse(AlleleMatch=='FALSE', (alpha*PLINK*abs(Geno-1))+((1-alpha)*b*abs(Geno-1)),NA))]
-	}
-	if(nrow(eurA)>=1){
-	eurA[, PRS_part:=ifelse(AlleleMatch=='TRUE', b*Geno, ifelse(AlleleMatch=='FALSE', b*abs(Geno-1),NA))]
-	}
-	res<-sum(bind_rows(afrA,eurA)$PRS_part, na.rm=T)
-        return(res)
+dataA<-cbind(data.table(Geno=unlist(X[,.SD,.SDcols=X2]), Anc=unlist(Y[,.SD,.SDcols=X2]), plink_prun))
+afrA<-dataA[Anc==1]
+eurA<-dataA[Anc==2]
+if(nrow(afrA)>=1){
+afrA[,PRS_part:=ifelse(AlM_afr=='TRUE' & AlM_eur=='TRUE',((alpha*PLINK*Geno)+((1-alpha)*b*Geno)), ifelse(AlM_afr=='TRUE' & AlM_eur=='FALSE',((alpha*PLINK*Geno)+((1-alpha)*b*abs(Geno-1))),ifelse(AlM_afr=='FALSE' & AlM_eur=='TRUE',((alpha*PLINK*abs(1-Geno))+((1-alpha)*b*Geno)),ifelse(AlM_afr=='FALSE' & AlM_eur=='FALSE', (((alpha*PLINK)*abs(1-Geno))+((1-alpha)*b*abs(1-Geno))), NA))))]
+}
+if(nrow(eurA)>=1){
+eurA[, PRS_part:=ifelse(AlM_eur=='TRUE', b*Geno, ifelse(AlM_eur=='FALSE', b*abs(Geno-1),NA))]
+}
+res<-sum(bind_rows(afrA,eurA)$PRS_part, na.rm=T)
+ return(res)
 }
 
 system.time(RES<-lapply(1:ncol(geno), function(I) LA_PRS(X2=I))) ### for chr22
-saveRDS(RES, file=paste0('~/height_prediction/loc_anc_analysis/output/chr', chr,'_',args[2],'_', args[3], '_prs.Rds'))
+names(RES)<-colnames(geno)
+lapply(seq(from=1, to=length(RES), by=2), function(I) RES[[I]]+RES[[I+1]])-> RES2  #combine two chr from each individual
+names(RES2)<-unique(gsub("_A", "", gsub("_B", "", colnames(geno))))
+saveRDS(RES2, file=paste0('~/height_prediction/loc_anc_analysis/output/chr', chr,'_', args[3], '_prs.Rds'))
 # print elapsed time
 new <- Sys.time() - old # calculate difference
 print(new) # print in nice format
