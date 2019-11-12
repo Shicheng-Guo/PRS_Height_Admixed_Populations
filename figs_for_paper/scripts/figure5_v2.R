@@ -12,9 +12,9 @@ data[,":="(sex=ifelse(sex=="FEMALE", "Female", sex))]
 
 model<-lm(HEIGHTX~sex+age+age2+Dataset, data=data)
 
-data$RES <- scale(model$residuals)
+data$RES <- scale(model$residuals) #take height residuals
 
-gamlss.mod1 <- gamlss(RES~EUR_ANC, family=NO2, data=data)
+gamlss.mod1 <- gamlss(RES~EUR_ANC, family=NO2, data=data) #model residuals as a function of Eur Anc.Normal Distribution (With Variance As Sigma Parameter) For Fitting A GAMLSS
 gamlss.mod2 <- gamlss(RES~EUR_ANC, sigma.formula=~EUR_ANC, family=NO2(sigma.link=identity), data=data)
 
 pdf("~/height_prediction/figs_for_paper/figs/Variance_model1_v2.pdf")
