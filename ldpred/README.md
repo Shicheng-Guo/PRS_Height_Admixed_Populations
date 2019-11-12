@@ -27,12 +27,12 @@ plink2 \
 ```
 # There are 336,474 samples in the Height GWAS
 ldpred coord \
-    --rs rs \
+    --rs SNP_ID \
     --A1 A1 \
     --A2 A2 \
-    --pos pos \
+    --pos POS \
     --chr CHR \
-    --pval pval \
+    --pval PVAL \
     --eff BETA \
     --ssf-format CUSTOM \
     --N 336474 \
@@ -44,22 +44,20 @@ ldpred coord \
 2. Adjust the effect size estimates
 
 ```
-# LDpred recommend radius to be Total number of SNPs in target / 3000
- ldpred gibbs \
-    --cf EUR.coord \
-    --ldr 226 \ ## 678993/3000
-    --ldf EUR.ld \
-    --out EUR.weight \
-    --N 336474
+# LDpred recommend radius to be Total number of SNPs in target / 3000= 589696/3000=196
+
+bsub -M 90000 -o ~/height_prediction/ldpred/loggibbs  -e ~/height_prediction/ldpred/loggibbs ~/.local/bin/ldpred gibbs  --cf ~/height_prediction/ldpred/output/EUR.coord  --ldr 196 --ldf ~/height_prediction/ldpred/output/EUR.ld --out ~/height_prediction/ldpred/output/EUR.weight --N 336474
 ```
 
 
 3. Calculate the PRS
 ```
-python LDpred.py score \
-    --gf EUR.ldpred \
-    --rf EUR.weight \
-    --out EUR.score \
-    --pf EUR.height \
+ldpred score \
+    --gf output/EUR.ldpred \
+    --rf output/EUR.weight \
+    --out output/EUR.score \
+    --pf output/EUR.height \
     --pf-format LSTANDARD 
 ```
+
+
