@@ -5,12 +5,14 @@ Here we evaluate the effect of recombination rates on prediction power of SNPs u
 *Using one chosen pruning strategy, take only pruned SNPs within a given quantile and calculate PRS
 
 ```
-for i in strat_prs_ukb_afr.R strat_prs_ukb_eur.R strat_prs_penn_afr.R strat_prs_penn_eur.R strat_prs_JHS.R strat_prs_WHI.R;
+for i in strat_prs_ukb_afr.R strat_prs_ukb_eur.R strat_prs_penn_afr.R strat_prs_penn_eur.R strat_prs_JHS.R strat_prs_WHI.R strat_prs_HRS_afr.R strat_prs_HRS_eur.R;
 do
-for k in 5000 10000 20000;
+for k in 20000 40000 100000;
 do
-bsub -M 60000 -o /project/mathilab/bbita/gwas_admix/height_prediction/strat_prs/logs/ Rscript --vanilla /project/mathilab/bbita/gwas_admix/height_prediction/strat_prs/scripts/${i} ${k} AA
-bsub -M 60000 -o /project/mathilab/bbita/gwas_admix/height_prediction/strat_prs/logs/ Rscript --vanilla /project/mathilab/bbita/gwas_admix/height_prediction/strat_prs/scripts/${i} ${k} CEU
+bsub -M 80000 Rscript --vanilla ~/height_prediction/strat_prs/scripts/${i} ${k} AA sib_betas
+bsub -M 80000 Rscript --vanilla ~/height_prediction/strat_prs/scripts/${i} ${k} AA gwas
+bsub -M 80000 Rscript --vanilla ~/height_prediction/strat_prs/scripts/${i} ${k} CEU sib_betas
+bsub -M 80000 Rscript --vanilla ~/height_prediction/strat_prs/scripts/${i} ${k} CEU gwas
 done
 done
 ```
@@ -19,8 +21,17 @@ See if there are differences.
 
 ```
 cd scripts
-Rscript --vanilla Plot.R'
+Rscript --vanilla Plot.R gwas
 ```
 
+```
+for i in strat_prs_ukb_afr_v2.R strat_prs_JHS_v2.R strat_prs_WHI_v2.R strat_prs_HRS_afr_v2.R strat_prs_HRS_eur_v2.R;
+do
+for k in 3000 6000 10000 20000 40000 100000;
+do
+Rscript --vanilla ~/height_prediction/strat_prs/scripts/${i} ${k} AA gwas
+Rscript --vanilla ~/height_prediction/strat_prs/scripts/${i} ${k} CEU gwas
+done
+```
 
 

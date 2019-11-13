@@ -10,11 +10,6 @@ source('~/height_prediction/strat_prs/scripts/Rsq_R2.R')
 
 #R2 vs ancestry for HRS_eur, HRS_afr, UKB_afr imputed data
 
-
-
-
-
-##
 #barplot eur_afr, imp, non-imp, prunings
 comp<-readRDS('~/height_prediction/imputed/output/comparison.Rds')
 

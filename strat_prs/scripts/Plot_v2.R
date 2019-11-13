@@ -1,8 +1,7 @@
-#!/usr/bin/env Rscript
-args = commandArgs(trailingOnly=TRUE)
-if (length(args)==0) {
-  stop("At least one argument must be supplied (a name for this run).n", call.=FALSE)
-}
+
+#if (length(args)==0) {
+#  stop("At least one argument must be supplied (a name for this run).n", call.=FALSE)
+#}
 library(ggplot2)
 library(reshape2)
 library(data.table)
@@ -10,7 +9,9 @@ library(reshape)
 library(RColorBrewer)
 library(MASS)
 library(cowplot)
+options(scipen=999)
 
+args<-'gwas'
 dtset<-args[1]
 source('~/height_prediction/strat_prs/scripts/fancy_scientific.R')
 a_list<-vector('list', 2)
@@ -22,10 +23,10 @@ names(a_list[['AA']])<-c("HRS_eur","JHS","WHI", "ukb_afr", "HRS_afr")
 names(a_list[['CEU']])<-c("HRS_eur","JHS","WHI","ukb_afr", "HRS_afr")
 
 for(I in c("WHI","JHS","ukb_afr","HRS_eur", "HRS_afr")){
-	a_list[['AA']][[I]]<-vector('list', 3)
-	a_list[['CEU']][[I]]<-vector('list', 3)
-	names(a_list[['AA']][[I]])<-c("20000", "40000", "100000")
- 	names(a_list[['CEU']][[I]])<-c("20000","40000","100000")
+	a_list[['AA']][[I]]<-vector('list', 6)
+	a_list[['CEU']][[I]]<-vector('list', 6)
+	names(a_list[['AA']][[I]])<-c("3000","6000","10000","20000", "40000", "100000")
+ 	names(a_list[['CEU']][[I]])<-c("3000","6000","10000","20000","40000","100000")
 	for(J in names(a_list[['AA']][[I]])){	
 		a_list[['AA']][[I]][[J]]<-readRDS(paste0('~/height_prediction/strat_prs/output/part_R2_', I,"_",dtset, "_", J, "_AA_v2.Rds"))
 		a_list[['CEU']][[I]][[J]]<-readRDS(paste0('~/height_prediction/strat_prs/output/part_R2_', I, "_", dtset,"_", J, "_CEU_v2.Rds"))
@@ -33,26 +34,26 @@ for(I in c("WHI","JHS","ukb_afr","HRS_eur", "HRS_afr")){
 }
 
 if(dtset=='gwas'){
-	r2_vec<-c(0.1210222,0.03587304,0.04100905,0.03776804,0.02376103)
+	r2_vec<-c(0.1210222,0.03910431,0.04100905,0.03776804,0.02376103)
 } else if (dtset=='sib_betas'){
 	r2_vec<-c(0.07511196,0.00967814,0.01993696,0.02717107,0.01060191)
 }
-df1<-data.table(Quantile=rep(c("q1","q2","q3","q4"),3),
-Win=c(rep(20000,4), rep(40000,4), rep(100000,4)),
-HRS_eur=unlist(a_list[['AA']])[1:12]/r2_vec[1], #updated
-JHS_afr=unlist(a_list[['AA']])[13:24]/r2_vec[2], #updated
-WHI_afr=unlist(a_list[['AA']])[25:36]/r2_vec[3], #updated
-UKB_afr=unlist(a_list[['AA']])[37:48]/r2_vec[4], #updated
-HRS_afr=unlist(a_list[['AA']])[49:60]/r2_vec[5] #updaed
+df1<-data.table(Quantile=rep(c("q1","q2","q3","q4"),6),
+Win=c(rep(3000, 4), rep(6000,4), rep(10000,4), rep(20000,4), rep(40000,4), rep(100000,4)),
+HRS_eur=unlist(a_list[['AA']])[1:24]/r2_vec[1], #updated
+JHS_afr=unlist(a_list[['AA']])[25:48]/r2_vec[2], #updated
+WHI_afr=unlist(a_list[['AA']])[49:72]/r2_vec[3], #updated
+UKB_afr=unlist(a_list[['AA']])[73:96]/r2_vec[4], #updated
+HRS_afr=unlist(a_list[['AA']])[97:120]/r2_vec[5] #updaed
 )
 
-df3<-data.table(Quantile=rep(c("q1","q2","q3","q4"),3),
-Win=c(rep(20000,4), rep(40000,4), rep(100000,4)),
-HRS_eur=unlist(a_list[['CEU']])[1:12]/r2_vec[1], #updated
-JHS_afr=unlist(a_list[['CEU']])[13:24]/r2_vec[2], #updated
-WHI_afr=unlist(a_list[['CEU']])[25:36]/r2_vec[3], #updated
-UKB_afr=unlist(a_list[['CEU']])[37:48]/r2_vec[4], #updated
-HRS_afr=unlist(a_list[['CEU']])[49:60]/r2_vec[5] #updaed
+df3<-data.table(Quantile=rep(c("q1","q2","q3","q4"),6),
+Win=c(rep(3000,4), rep(6000,4), rep(10000,4), rep(20000,4), rep(40000,4), rep(100000,4)),
+HRS_eur=unlist(a_list[['CEU']])[1:24]/r2_vec[1], #updated
+JHS_afr=unlist(a_list[['CEU']])[25:48]/r2_vec[2], #updated
+WHI_afr=unlist(a_list[['CEU']])[49:72]/r2_vec[3], #updated
+UKB_afr=unlist(a_list[['CEU']])[73:96]/r2_vec[4], #updated
+HRS_afr=unlist(a_list[['CEU']])[97:120]/r2_vec[5] #updaed
 )
 
 
@@ -62,8 +63,14 @@ df4<-rbind(df1,df3)
 
 
 melt(df4, id=c("Quantile","Win", "Map"))-> df5
+df5$variable<-factor(df5$variable, levels=c("UKB_afr", "WHI_afr", "JHS_afr", "HRS_afr",  "HRS_eur"))
 
-plot1<-ggplot(df5[Win==40000], aes(x=Quantile, y=value, fill=variable)) + geom_bar(stat='identity', position='dodge', alpha=0.7) + facet_grid(. ~Map) + labs(y=expression(paste("Relative partial R"^"2")),x="cM") +  scale_fill_brewer(name="Dataset", type="div", palette='Dark2') + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), legend.position = "bottom", legend.title=element_blank()) + scale_x_discrete(labels=c("Low", expression(symbol('\256')), expression(symbol('\256')), "High"))
+plot1<-ggplot(df5[Win==40000], aes(x=Quantile, y=value, fill=variable)) + 
+geom_bar(stat='identity', position='dodge', alpha=0.8) + 
+facet_grid(. ~Map) + 
+labs(y=expression(paste("Relative partial R"^"2")),x="cM") +  
+scale_fill_manual(values=c(brewer.pal(4, 'Set1'),"#101010")) +
+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), legend.position = "bottom", legend.title=element_blank(), axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15),axis.text.x=element_text(size=12), axis.text.y=element_text(size=12), legend.text=element_text(size=12)) + scale_x_discrete(labels=c("Low", expression(symbol('\256')), expression(symbol('\256')), "High"))
 
 print(plot1)
 
@@ -73,21 +80,21 @@ ggsave(paste0('~/height_prediction/strat_prs/figs/v2_barplot_AA_CEU_', dtset,'.p
 #
 
 df1<-data.table(Quantile=rep(c("q1","q2","q3","q4"),3),
-Win=c(rep(20000,4), rep(40000,4), rep(100000,4)),
-HRS_eur=unlist(a_list[['AA']])[1:12]/c(readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_HRS_eur_',dtset, '_20000_AA_v2.Rds')),readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_HRS_eur_', dtset, '_40000_AA_v2.Rds')),readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_HRS_eur_', dtset, '_100000_AA_v2.Rds'))),
-JHS_afr=unlist(a_list[['AA']])[13:24]/c(readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_JHS_', dtset, '_20000_AA_v2.Rds')),readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_JHS_', dtset, '_40000_AA_v2.Rds')),readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_JHS_', dtset,'_100000_AA_v2.Rds'))),
-WHI_afr=unlist(a_list[['AA']])[25:36]/c(readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_WHI_', dtset, '_20000_AA_v2.Rds')),readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_WHI_', dtset, '_40000_AA_v2.Rds')), readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_WHI_',dtset,'_100000_AA_v2.Rds'))),
-UKB_afr=unlist(a_list[['AA']])[37:48]/c(readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_ukb_afr_', dtset,'_20000_AA_v2.Rds')),readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_ukb_afr_', dtset, '_40000_AA_v2.Rds')),readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_ukb_afr_',dtset,'_100000_AA_v2.Rds'))),
-HRS_afr=unlist(a_list[['AA']])[49:60]/c(readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_HRS_afr_',dtset,'_20000_AA_v2.Rds')),readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_HRS_afr_', dtset, '_40000_AA_v2.Rds')),readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_HRS_afr_', dtset,'_100000_AA_v2.Rds')))
+Win=c(rep(3000,4), rep(6000,4), rep(10000,4),rep(20000,4), rep(40000,4), rep(100000,4)),
+HRS_eur=unlist(a_list[['AA']])[1:24]/c(readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_HRS_eur_',dtset, '_20000_AA_v2.Rds')),readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_HRS_eur_', dtset, '_40000_AA_v2.Rds')),readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_HRS_eur_', dtset, '_100000_AA_v2.Rds'))),
+JHS_afr=unlist(a_list[['AA']])[25:48]/c(readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_JHS_', dtset, '_20000_AA_v2.Rds')),readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_JHS_', dtset, '_40000_AA_v2.Rds')),readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_JHS_', dtset,'_100000_AA_v2.Rds'))),
+WHI_afr=unlist(a_list[['AA']])[49:72]/c(readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_WHI_', dtset, '_20000_AA_v2.Rds')),readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_WHI_', dtset, '_40000_AA_v2.Rds')), readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_WHI_',dtset,'_100000_AA_v2.Rds'))),
+UKB_afr=unlist(a_list[['AA']])[73:96]/c(readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_ukb_afr_', dtset,'_20000_AA_v2.Rds')),readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_ukb_afr_', dtset, '_40000_AA_v2.Rds')),readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_ukb_afr_',dtset,'_100000_AA_v2.Rds'))),
+HRS_afr=unlist(a_list[['AA']])[97:120]/c(readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_HRS_afr_',dtset,'_20000_AA_v2.Rds')),readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_HRS_afr_', dtset, '_40000_AA_v2.Rds')),readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_HRS_afr_', dtset,'_100000_AA_v2.Rds')))
 )
 
 df3<-data.table(Quantile=rep(c("q1","q2","q3","q4"),3),
-Win=c(rep(20000,4), rep(40000,4), rep(100000,4)),
-HRS_eur=unlist(a_list[['CEU']])[1:12]/c(readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_HRS_eur_',dtset, '_20000_AA_v2.Rds')),readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_HRS_eur_', dtset, '_40000_AA_v2.Rds')),readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_HRS_eur_', dtset, '_100000_AA_v2.Rds'))),
-JHS_afr=unlist(a_list[['CEU']])[13:24]/c(readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_JHS_', dtset, '_20000_AA_v2.Rds')),readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_JHS_', dtset, '_40000_AA_v2.Rds')),readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_JHS_', dtset,'_100000_AA_v2.Rds'))),
-WHI_afr=unlist(a_list[['CEU']])[25:36]/c(readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_WHI_', dtset, '_20000_AA_v2.Rds')),readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_WHI_', dtset, '_40000_AA_v2.Rds')), readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_WHI_',dtset,'_100000_AA_v2.Rds'))),
-UKB_afr=unlist(a_list[['CEU']])[37:48]/c(readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_ukb_afr_', dtset,'_20000_AA_v2.Rds')),readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_ukb_afr_', dtset, '_40000_AA_v2.Rds')),readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_ukb_afr_',dtset,'_100000_AA_v2.Rds'))),
-HRS_afr=unlist(a_list[['CEU']])[49:60]/c(readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_HRS_afr_',dtset,'_20000_AA_v2.Rds')),readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_HRS_afr_', dtset, '_40000_AA_v2.Rds')),readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_HRS_afr_', dtset,'_100000_AA_v2.Rds')))
+Win=c(rep(3000,4), rep(6000,4), rep(10000,4), rep(20000,4), rep(40000,4), rep(100000,4)),
+HRS_eur=unlist(a_list[['CEU']])[1:24]/c(readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_HRS_eur_',dtset, '_20000_AA_v2.Rds')),readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_HRS_eur_', dtset, '_40000_AA_v2.Rds')),readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_HRS_eur_', dtset, '_100000_AA_v2.Rds'))),
+JHS_afr=unlist(a_list[['CEU']])[25:48]/c(readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_JHS_', dtset, '_20000_AA_v2.Rds')),readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_JHS_', dtset, '_40000_AA_v2.Rds')),readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_JHS_', dtset,'_100000_AA_v2.Rds'))),
+WHI_afr=unlist(a_list[['CEU']])[49:72]/c(readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_WHI_', dtset, '_20000_AA_v2.Rds')),readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_WHI_', dtset, '_40000_AA_v2.Rds')), readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_WHI_',dtset,'_100000_AA_v2.Rds'))),
+UKB_afr=unlist(a_list[['CEU']])[73:96]/c(readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_ukb_afr_', dtset,'_20000_AA_v2.Rds')),readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_ukb_afr_', dtset, '_40000_AA_v2.Rds')),readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_ukb_afr_',dtset,'_100000_AA_v2.Rds'))),
+HRS_afr=unlist(a_list[['CEU']])[97:120]/c(readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_HRS_afr_',dtset,'_20000_AA_v2.Rds')),readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_HRS_afr_', dtset, '_40000_AA_v2.Rds')),readRDS(paste0('~/height_prediction/strat_prs/output/Nr_SNPs_HRS_afr_', dtset,'_100000_AA_v2.Rds')))
 )
 
 df1[, Map:='AA_Map']
@@ -95,11 +102,13 @@ df3[, Map:='CEU_Map']
 df4<-rbind(df1,df3)
 
 melt(df4, id=c("Quantile","Win","Map"))-> df5
+df5$variable<-factor(df5$variable, levels=c("UKB_afr", "WHI_afr", "JHS_afr", "HRS_afr",  "HRS_eur"))
 
-
-plot2<-ggplot(df5[Win==20000], aes(x=Quantile, y=value, fill=variable)) +  scale_y_continuous(labels=fancy_scientific) +
-geom_bar(stat='identity', position='dodge', alpha=0.7) + facet_grid(. ~Map) + labs(y=expression('Partial R'^2*'/Number of SNPs'), x="cM") + scale_fill_brewer(name="Dataset", type="div", palette='Dark2') + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-panel.background = element_blank(), axis.line = element_line(colour = "black"), legend.position='bottom', legend.title=element_blank()) + scale_x_discrete(labels=c("Low", expression(symbol('\256')), expression(symbol('\256')), "High"))
+plot2<-ggplot(df5[Win==3000], aes(x=Quantile, y=value, fill=variable)) +  scale_y_continuous(labels=fancy_scientific) +
+geom_bar(stat='identity', position='dodge', alpha=0.8) + facet_grid(. ~Map) + labs(y=expression('Partial R'^2*'/Number of SNPs'), x="cM") + 
+scale_fill_manual(values=c(brewer.pal(4, 'Set1'),"#101010")) +
+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(), axis.line = element_line(colour = "black"), legend.position='bottom', legend.title=element_blank(), axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15),axis.text.x=element_text(size=12), axis.text.y=element_text(size=12), legend.text=element_text(size=12)) + scale_x_discrete(labels=c("Low", expression(symbol('\256')), expression(symbol('\256')), "High"))
 print(plot2)
 ggsave(paste0('~/height_prediction/strat_prs/figs/v2_barplot_AA_CEU_v2_', dtset,'.pdf'))
 
@@ -114,16 +123,22 @@ ggsave(paste0('~/height_prediction/strat_prs/figs/v2_barplot_ALL_',dtset,'.pdf')
 ##
 
 if(dtset=='gwas'){
-	beta<-readRDS(paste0('~/height_prediction/', dtset, '/ukb_afr/output/betas_phys_100000_0.0005_20000.Rds'))
+	beta<-readRDS(paste0('~/height_prediction/', dtset, '/ukb_afr/output/betas_phys_100000_0.0005_20000.Rds'))  #THIS NEEDS TO BE PLINK EFFECT SIZES NEED TO FIX
 } else {
 	beta<-do.call(rbind, readRDS(paste0('~/height_prediction/', dtset, '/ukb_afr/output/betas_phys_100000_0.0005_20000.Rds')))
 }
 
+as.numeric(beta1$CHR)->beta1$CHR
+as.numeric(beta$CHR)->beta$CHR
+setkey(beta,CHR, POS)
+setkey(beta1,CHR, POS)
+beta[beta1,]-> beta
 beta[,Quantile:=cut(AA.rate, breaks=quantile(AA.rate, probs=seq(0,1, by=0.05), na.rm=T), include.lowest=T)]
 beta[, MeanBetaDiffChisq:=mean(Beta_Diff_Chisq, na.rm=T), by=Quantile]
 beta[, MedianRecRate:=median(AA.rate, na.rm=T), by=Quantile]
 
-plot3<-ggplot(beta, aes(x=AA.rate, y=Beta_Diff_Chisq)) + geom_point(cex=0.5, col='light gray') + geom_smooth(method='lm', se=F, lwd=1, col="black") + labs(y=expression(chi^2), x="cM (AA_Map)") + geom_point(aes(x=MedianRecRate, y=MeanBetaDiffChisq, col="red"), cex=0.3) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), legend.position = "none", legend.title=element_blank())
+plot3<-ggplot(beta, aes(x=AA.rate, y=Beta_Diff_Chisq)) + geom_point(cex=0.5, col='light gray') + geom_smooth(method='lm', se=F, lwd=1, col="black") + labs(y=expression(chi^2), x="cM (AA_Map)") + geom_point(aes(x=MedianRecRate, y=MeanBetaDiffChisq, col="red"), cex=0.3) + 
+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), legend.position = "none", legend.title=element_blank(), axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15),axis.text.x=element_text(size=12), axis.text.y=element_text(size=12), legend.text=element_text(size=12))
 
 
 #beta[,Quantile:=cut(CEU.rate, breaks=quantile(CEU.rate, probs=seq(0,1, by=0.2), na.rm=T), include.lowest=T)]
@@ -180,5 +195,5 @@ ggsave('~/height_prediction/strat_prs/figs/vioplot.pdf')
 
 
 ggplot(vio, aes(x=Rec, fill=Set)) +
-    geom_histogram(binwidth=.5, alpha=.5, position="identity")
+geom_histogram(binwidth=.5, alpha=.5, position="identity")
 ggsave('~/height_prediction/strat_prs/figs/histogram.pdf') 
