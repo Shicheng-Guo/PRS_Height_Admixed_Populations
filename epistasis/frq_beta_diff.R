@@ -1,12 +1,15 @@
 #!/usr/bin/env Rscript
-
 ############################
+args = commandArgs(trailingOnly=TRUE)
+if (length(args)==0) {
+  stop("At least one argument must be supplied (a name for this run).n", call.=FALSE)
+}
 library(data.table)
 library(dplyr)
 library(ggplot2)
 library(EnvStats)
 options(scipen=999)
-W<-2000 #window size
+W<-as.numeric(args[1])#window size
 #read in frequencies
 readRDS('~/height_prediction/epistasis/output/table_HRS_eur.Rds')->hrs_eur
 readRDS('~/height_prediction/epistasis/output/table_HRS_afr.Rds')->hrs_afr
@@ -22,10 +25,10 @@ comb<-hrs_eur[hrs_afr, nomatch=0]
 comb_ukb<-ukb_eur[ukb_afr, nomatch=0]
 comb$Freq_effect_allele<-as.numeric(comb$Freq_effect_allele)
 comb$i.Freq_effect_allele<-as.numeric(comb$i.Freq_effect_allele)
-comb[,Freq_Diff:=abs(Freq_effect_allele-i.Freq_effect_allele)]
+comb[,Freq_Diff:=Freq_effect_allele-i.Freq_effect_allele]
 comb_ukb$Freq_effect_allele<-as.numeric(comb_ukb$Freq_effect_allele)
 comb_ukb$i.Freq_effect_allele<-as.numeric(comb_ukb$i.Freq_effect_allele)
-comb_ukb[,Freq_Diff:=abs(Freq_effect_allele-i.Freq_effect_allele)]
+comb_ukb[,Freq_Diff:=(Freq_effect_allele-i.Freq_effect_allele)]
 comb[, POS1:=POS]
 comb[, POS2:=POS]
 comb_ukb[, POS1:=POS]
@@ -52,7 +55,7 @@ for(chr in 22:1){
 	coords_hrs[[chr]]$CHR<-as.integer(coords_hrs[[chr]]$CHR)
 	setkey(coords_hrs[[chr]], CHR,POS1, POS2)
 	foverlaps(tp, coords_hrs[[chr]], type='within', nomatch=0)[, Win:=paste0(POS1, "|",POS2)]-> res
-	res[,MeanFreqDiff:=mean(Freq_Diff, na.rm=T), by="Win"]
+	res[,MeanFreqDiff:=mean(Freq_Diff^2, na.rm=T), by="Win"]
 	RES[[chr]]<-res
 }
 for(chr in 22:1){
@@ -61,7 +64,7 @@ for(chr in 22:1){
         coords[[chr]]$CHR<-as.integer(coords[[chr]]$CHR)
         setkey(coords[[chr]], CHR,POS1, POS2)
         foverlaps(tp, coords[[chr]], type='within', nomatch=0)[, Win:=paste0(POS1, "|",POS2)]-> res
-        res[,MeanFreqDiff:=mean(Freq_Diff, na.rm=T), by="Win"]
+        res[,MeanFreqDiff:=mean(Freq_Diff^2, na.rm=T), by="Win"]
 	RES_UKB[[chr]]<-res
 	cat(chr,'\r')
 }
@@ -71,10 +74,10 @@ RES2[, Data:='HRS']
 RES2_UKB[, Data:='UKB']
 
 RES2<-unique(RES2, by=c('CHR','Win'))
-#add betas (POP 1 and UKB_eur)
+
 #calculate beta diff
 merge(final_plink, prs_snps_hrs, by=c('CHR', 'POS'))-> betas_plink_hrs
-betas_plink_hrs[, Beta_Diff:=abs(b-PLINK)]
+betas_plink_hrs[, Beta_Diff:=b-PLINK]
 betas_plink_hrs[, Beta_Diff_Chisq:=(Beta_Diff/sqrt(((SE^2)+(SE_plink^2))))^2]
 betas_plink_hrs$CHR<-as.integer(betas_plink_hrs$CHR)
 setkey(betas_plink_hrs,CHR, POS)
@@ -85,7 +88,7 @@ RES2_UKB<-unique(RES2_UKB, by=c('CHR','Win'))
 #add betas (POP 1 and UKB_eur)
 #calculate beta diff
 merge(final_plink, prs_snps, by=c('CHR', 'POS'))-> betas_plink
-betas_plink[, Beta_Diff:=abs(b-PLINK)]
+betas_plink[, Beta_Diff:=b-PLINK]
 betas_plink[, Beta_Diff_Chisq:=(Beta_Diff/sqrt(((SE^2)+(SE_plink^2))))^2]
 betas_plink$CHR<-as.integer(betas_plink$CHR)
 setkey(betas_plink,CHR, POS)
@@ -94,7 +97,7 @@ dt2_UKB<-betas_plink[RES2_UKB, nomatch=0]
 
 rbind(dt2, dt2_UKB)-> my_dt
 
-ggplot(my_dt, aes(x=MeanFreqDiff, y=Beta_Diff_Chisq)) + geom_point(cex=0.5, col="lightgray") + geom_smooth(method='lm', se=F, col='black') + labs(x="Mean Frequency Difference", y=expression(chi^2), cex=15) + facet_wrap(~Data, nrow=2) + theme_bw()
+ggplot(my_dt, aes(x=MeanFreqDiff, y=sqrt(Beta_Diff_Chisq))) + geom_point(cex=0.5, col="lightgray") + geom_smooth(method='lm', se=F, col='black') + labs(x="Mean Squared Frequency Difference", y=expression(chi^2), cex=15) + facet_wrap(~Data, nrow=2) + theme_bw()
 ggsave(paste0('~/height_prediction/epistasis/figs/epistasis_', W, '.pdf'))
 
 #p-values
@@ -109,6 +112,10 @@ attr(dt2$Beta_Diff_Chisq,"scaled:center")<-NULL
 model_hrs<-lm(Beta_Diff_Chisq~MeanFreqDiff,data=dt2)
 
 
+pdf(paste0('figs/boxcoxhrs_', W, '.pdf'))
+plot(boxcox(model_hrs))
+dev.off()
 
-boxcox(model_hrs, optimize=T)
-
+pdf(paste0('figs/boxcoxukb_', W, '.pdf'))
+plot(boxcox(model_ukb))
+dev.off()

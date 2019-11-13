@@ -15,3 +15,9 @@ do
 Rscript --vanilla ~/height_prediction/epistasis/freq_window.R ${i}
 done
 
+
+for i in 1000 2000 3000 5000 10000 15000 20000;
+do
+Rscript --vanilla ~/height_prediction/epistasis/frq_beta_diff.R ${i}
+done
+
