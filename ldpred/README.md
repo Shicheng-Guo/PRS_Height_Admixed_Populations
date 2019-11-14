@@ -17,7 +17,7 @@ Rscript --vanilla R_script.r
 Rscript --vanilla format_sumstat.R #format summary statistics file
 
 plink2 \
-    --bfile /project/mathilab/data/UKB/UKB_EUR \ #QC'd EUROPEAN bfiles
+    --bfile /project/mathilab/data/UKB/UKB_EUR \ 
     --pheno Pheno.txt \
     --keep /project/mathilab/data/UKB/UKB_EUR_IDS \
     --make-bed \
@@ -35,6 +35,7 @@ ldpred coord \
     --pval PVAL \
     --eff BETA \
     --ssf-format CUSTOM \
+    --eff_type LINREG\
     --N 336474 \
     --ssf output/Height.QC.gz \ 
     --out output/EUR.coord \
@@ -46,7 +47,11 @@ ldpred coord \
 ```
 # LDpred recommend radius to be Total number of SNPs in target / 3000= 589696/3000=196
 
-bsub -M 90000 -o ~/height_prediction/ldpred/loggibbs  -e ~/height_prediction/ldpred/loggibbs ~/.local/bin/ldpred gibbs  --cf ~/height_prediction/ldpred/output/EUR.coord  --ldr 196 --ldf ~/height_prediction/ldpred/output/EUR.ld --out ~/height_prediction/ldpred/output/EUR.weight --N 336474
+bsub -M 90000 -o ~/height_prediction/ldpred/logs/loggibbs  -e ~/height_prediction/ldpred/logs/loggibbs ~/.local/bin/ldpred gibbs  --cf ~/height_prediction/ldpred/output/EUR.coord  --ldr 196 --ldf ~/height_prediction/ldpred/output/EUR.ld --out ~/height_prediction/ldpred/output/EUR.weight --N 336474
+#bsub -M 90000 -o ~/height_prediction/ldpred/logs/loggibbs_1E-04.weight -e ~/height_prediction/ldpred/logs/loggibbs_1E-04.weight ldpred gibbs --cf ~/height_prediction/ldpred/output/EUR.coord  --ldr 196 --ldf ~/height_prediction/ldpred/output/EUR.ld --out ~/height_prediction/ldpred/output/EUR_1E-04.weight --N 336474 --f 0.0001 --h2 0.8
+#bsub -M 90000 -o ~/height_prediction/ldpred/logs/loggibbs_1E-02.weight -e ~/height_prediction/ldpred/logs/loggibbs_1E-02.weight ldpred gibbs --cf ~/height_prediction/ldpred/output/EUR.coord  --ldr 196 --ldf ~/height_prediction/ldpred/output/EUR.ld --out ~/height_prediction/ldpred/output/EUR_1E-02.weight --N 336474 --f 0.01 --h2 0.8
+#bsub -M 90000 -o ~/height_prediction/ldpred/logs/loggibbs_1E-03.weight -e ~/height_prediction/ldpred/logs/loggibbs_1E-03.weight ldpred gibbs --cf ~/height_prediction/ldpred/output/EUR.coord  --ldr 196 --ldf ~/height_prediction/ldpred/output/EUR.ld --out ~/height_prediction/ldpred/output/EUR_1E-03.weight --N 336474 --f 0.001 --h2 0.8
+
 ```
 
 
@@ -54,10 +59,24 @@ bsub -M 90000 -o ~/height_prediction/ldpred/loggibbs  -e ~/height_prediction/ldp
 ```
 ldpred score \
     --gf output/EUR.ldpred \
-    --rf output/EUR.weight \
-    --out output/EUR.score \
-    --pf output/EUR.height \
+    --rf output/EUR_1E-02.weights_LDpred \
+    --out output/EUR_1E-02.score \
+    --pf ~/height_prediction/input/ukb_eur/UKB_EUR_pheno.txt \
     --pf-format LSTANDARD 
+#the above would be for validation. For just PRS, run below code.
+ldpred score \
+    --gf output/EUR.ldpred \
+    --rf output/EUR_1E-02.weight \
+    --out output/EUR_1E-02.score \
+    --only-score \
+    --pf-format LSTANDARD
+
+ldpred score \
+    --gf output/EUR.ldpred \
+    --rf output/EUR_1E-03.weight \
+    --out output/EUR_1E-03.score \
+    --only-score \
+    --pf-format LSTANDARD
+
+
 ```
-
-
