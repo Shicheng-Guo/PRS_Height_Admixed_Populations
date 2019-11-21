@@ -8,6 +8,7 @@ library("optparse")
 library(data.table)
 library(dplyr)
 library(asbio)
+library(boot)
 ########################################
 home<-"/home/bbita"
 dir<-"height_prediction/strat_prs/scripts"
@@ -152,9 +153,12 @@ lapply(PGS2_HRS_eur, function(X) lm(HEIGHT~SEX+AGE+AGE2, X))-> lm7_HRS_eur
 lapply(PGS2_HRS_eur, function(X) lm(HEIGHT~SEX+AGE+AGE2+PGS, X))-> lm8_HRS_eur
 
 #Get partial R2, i.e, the proportion of variation in height explained by the PRS
-partial_r2_HRS_eur<-lapply(1:length(PGS2_HRS_eur), function(X) partial.R2(lm7_HRS_eur[[X]], lm8_HRS_eur[[X]])) 
+
+lapply(c("q1","q2","q3","q4"), function(i) boot(data=PGS2_HRS_eur[[I]], statistic=rsq.R2,R=999, formula1=HEIGHTX~SEX+AGE+AGE2+EUR_ANC, formula2=HEIGHTX~SEX+AGE+AGE2+EUR_ANC+PGS))-> results.HRS_eur
+boots.ci.HRS_eur<-lapply(results.HRS_eur, function(X) boot.ci(X, type = c("norm", 'basic', "perc")))
+partial_r2_HRS_eur<-lapply(1:length(PGS2_HRS_eur), function(X) partial.R2(lm7_HRS_eur[[X]], lm8_HRS_eur[[X]]))
 names(partial_r2_HRS_eur)<- names(PGS2_HRS_eur)
 
 
-saveRDS(partial_r2_HRS_eur,file=paste0('~/height_prediction/strat_prs/output/part_R2_HRS_eur_', args[3], '_',rate.dist,  "_", w_map, '_v2.Rds')) #store results
-
+saveRDS(partial_r2_HRS_eur,file=paste0('~/height_prediction/strat_prs/output/part_R2_HRS_eur_',args[3], "_", rate.dist,  "_", w_map, '_v2.Rds')) #store results
+saveRDS(boots.ci.HRS_eur, file=paste0('~/height_prediction/strat_prs/output/results_HRS_eur_', args[3], '_', rate.dist,"_", w_map, '_v2.Rds'))

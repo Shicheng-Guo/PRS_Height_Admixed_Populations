@@ -59,24 +59,16 @@ bsub -M 90000 -o ~/height_prediction/ldpred/logs/loggibbs  -e ~/height_predictio
 ```
 ldpred score \
     --gf output/EUR.ldpred \
-    --rf output/EUR_1E-02.weights_LDpred \
-    --out output/EUR_1E-02.score \
+    --rf output/EUR.weight \
+    --out output/EUR.score \
     --pf ~/height_prediction/input/ukb_eur/UKB_EUR_pheno.txt \
     --pf-format LSTANDARD 
 #the above would be for validation. For just PRS, run below code.
 ldpred score \
     --gf output/EUR.ldpred \
-    --rf output/EUR_1E-02.weight \
-    --out output/EUR_1E-02.score \
+    --rf output/EUR.weight \
+    --out output/EUR.score \
     --only-score \
-    --pf-format LSTANDARD
-
-ldpred score \
-    --gf output/EUR.ldpred \
-    --rf output/EUR_1E-03.weight \
-    --out output/EUR_1E-03.score \
-    --only-score \
-    --pf-format LSTANDARD
-
+    --pf-format LSTANDARD > logs/logscore
 
 ```
