@@ -8,6 +8,8 @@ library("optparse")
 library(data.table)
 library(dplyr)
 library(asbio)
+library(boot)
+options(scipen=999)
 ########################################
 #calculate PRS function
 home<-"/home/bbita"
@@ -163,8 +165,14 @@ lapply(PGS2_UKB_afr, function(X) lm(Height~Sex+Age+age2+EUR_ANC, X))-> lm7_UKB_a
 lapply(PGS2_UKB_afr, function(X) lm(Height~Sex+Age+age2+EUR_ANC+PGS, X))-> lm8_UKB_afr
 
 #Get partial R2, i.e, the proportion of variation in height explained by the PRS
+lapply(c("q1","q2","q3","q4"), function(i) boot(data=PGS2_UKB_afr[[I]], statistic=rsq.R2,R=2000, formula1=Height~Sex+Age+age2+EUR_ANC, formula2=Height~Sex+Age+age2+EUR_ANC+PGS))-> results.UKB_afr
+boots.ci.UKB_afr<-lapply(results.UKB_afr, function(X) boot.ci(X, type = c("norm", 'basic', "perc")))
+
 partial_r2_UKB_afr<-lapply(1:length(PGS2_UKB_afr), function(X) partial.R2(lm7_UKB_afr[[X]], lm8_UKB_afr[[X]])) 
 names(partial_r2_UKB_afr)<- names(PGS2_UKB_afr)
 
 
 saveRDS(partial_r2_UKB_afr,file=paste0('~/height_prediction/strat_prs/output/part_R2_ukb_afr_', args[3], '_', rate.dist, "_", w_map, '_v2.Rds')) #store results
+saveRDS(boots.ci.UKB_afr, file=paste0('~/height_prediction/strat_prs/output/results_ukb_afr_', args[3], '_', rate.dist,"_", w_map, '_v2.Rds'))
+
+

@@ -8,6 +8,8 @@ library("optparse")
 library(data.table)
 library(dplyr)
 library(asbio)
+library(boot)
+options(scopen=999)
 ########################################
 home<-"/home/bbita"
 dir<-"height_prediction/strat_prs/scripts"
@@ -170,8 +172,12 @@ lapply(PGS2_JHS, function(X) lm(HEIGHTX~sex+age+age2, X))-> lm6_JHS
 lapply(PGS2_JHS, function(X) lm(HEIGHTX~sex+age+age2+EUR_ANC, X))-> lm7_JHS
 lapply(PGS2_JHS, function(X) lm(HEIGHTX~sex+age+age2+EUR_ANC+PGS,X))-> lm8_JHS
 
+lapply(c("q1","q2","q3","q4"), function(i) boot(data=PGS2_JHS[[I]], statistic=rsq.R2,R=2000, formula1=HEIGHTX~sex+age+age2+EUR_ANC, formula2=HEIGHTX~sex+age++age2+EUR_ANC+PGS))-> results.JHS
+boots.ci.JHS<-lapply(results.JHS, function(X) boot.ci(X, type = c("norm", 'basic', "perc")))
 #Get partial R2, i.e, the proportion of variation in height explained by the PRS
 partial_r2_JHS<-lapply(1:length(PGS2_JHS), function(X) partial.R2(lm7_JHS[[X]], lm8_JHS[[X]])) 
 names(partial_r2_JHS)<- names(PGS2_JHS)
 
+
+saveRDS(boots.ci.JHS, file=paste0('~/height_prediction/strat_prs/output/results_JHS_', args[3], '_', rate.dist,"_", w_map, '_v2.Rds'))
 saveRDS(partial_r2_JHS,file=paste0('~/height_prediction/strat_prs/output/part_R2_JHS_', args[3], '_', rate.dist, "_", w_map, '_v2.Rds')) #store results

@@ -12,24 +12,7 @@ source('~/height_prediction/gwas/WHI/scripts/PolygenicScore_v3.R')
 source('~/height_prediction/gwas/WHI/scripts/short_fun_imputed.R')
 ########################
 cat('checkpoint number 1\n')
-plink<-fread('~/height_prediction/runSmartpCA-master/UKB_AFR_imputed/association_v3.Res.Height.glm.linear.adjusted', header=T, fill=T)
-colnames(plink)[2]<-'MarkerName'
-colnames(plink)[1]<-'CHR'
-N<-8816*2
-#
-plink2<-fread('~/height_prediction/runSmartpCA-master/UKB_AFR_imputed/plink_ukb_afr_height_glm_linear.txt', fill=T)
-colnames(plink2)<-c("CHR","POS", "MarkerName","REF","ALT","A1","TEST","OBS_CT","PLINK", "SE","T_STAT", "UNADJ") #plink is BETA
-gc()
-setkey(plink, MarkerName, CHR, UNADJ)
-setkey(plink2, MarkerName, CHR, UNADJ)
-plink[plink2, nomatch=0]-> final_plink
-remove(plink, plink2)
-gc()
-final_plink$POS<-as.numeric(final_plink$POS)
-gc()
-final_plink$CHR<-as.numeric(final_plink$CHR)
-gc()
-final_plink[order(CHR,POS)] -> final_plink
+final_plink<-readRDS('~/height_prediction/loc_anc_analysis/output/final_plink.Rds')
 setkey(final_plink, CHR, POS)
 gc()
 cat('checkpoint number 2\n')
@@ -193,8 +176,8 @@ geom_hline(yintercept=optimize(my_alpha_v2, interval=c(0,1), maximum=T, tol = 0.
 geom_hline(yintercept=optimize(my_alpha_conc_v2, interval=c(0,1), maximum=T, tol = 0.0001)$objective, col='red', lty=2) +
 coord_cartesian(ylim = c(0, 0.048), xlim=c(0,0.6))
 ggsave('~/height_prediction/imputed/figs/alfa_plink.pdf')
-optimize(my_alpha_v2, interval=c(0,1), maximum=T, tol = 0.0001) #one liner for max 0.2129367 //0.04488682
-optimize(my_alpha_conc_v2, interval=c(0,1), maximum=T, tol = 0.0001) #one liner for max  0.170529  0.03097396
+optimize(my_alpha_v2, interval=c(0,1), maximum=T, tol = 0.0001) #one liner for max 0.2126699 //0.04487896
+optimize(my_alpha_conc_v2, interval=c(0,1), maximum=T, tol = 0.0001) #one liner for max  0.1705468//  0.03094285
 
 ##################
 a_vec2<-seq(from=0, to=1, by=0.001)
@@ -217,8 +200,8 @@ max_alpha_conc_v2<-function(alpha, dt='final2_HRS_JHS'){
 all_prs_v2<-lapply(a_vec, function(X) max_alpha_v2(alpha=X))
 all_prs_conc_v2<-lapply(a_vec, function(X) max_alpha_conc_v2(alpha=X))
 
-optimize(max_alpha_v2, interval=c(0,1), maximum=T, tol = 0.0001) # 0.284506//0.04509755
-optimize(max_alpha_conc_v2, interval=c(0,1), maximum=T, tol = 0.0001) # 0.0.2056829// 0.03090236
+optimize(max_alpha_v2, interval=c(0,1), maximum=T, tol = 0.0001) # 0.2841475//0.04508872
+optimize(max_alpha_conc_v2, interval=c(0,1), maximum=T, tol = 0.0001) #  0.2058523 // 0.03087291
 
 temp_dt_v2<-rbind(data.table(part_R2=unlist(all_prs_v2), alfa=a_vec, Dataset='WHI'), data.table(part_R2=unlist(all_prs_conc_v2), alfa=a_vec, Dataset='JHS+HRS'))
 

@@ -8,6 +8,8 @@ library("optparse")
 library(data.table)
 library(dplyr)
 library(asbio)
+library(boot)
+options(scipen=999)
 ########################################
 home<-"/home/bbita"
 dir<-"height_prediction/strat_prs/scripts"
@@ -156,8 +158,11 @@ lapply(PGS2_WHI, function(X) lm(HEIGHTX~PGS+age2, X))-> lm6_WHI
 lapply(PGS2_WHI, function(X) lm(HEIGHTX~AGE+age2+EUR_ANC, X))-> lm7_WHI
 lapply(PGS2_WHI, function(X) lm(HEIGHTX~AGE+age2+EUR_ANC+PGS, X))-> lm8_WHI
 
+lapply(c("q1","q2","q3","q4"), function(i) boot(data=PGS2_WHI[[I]], statistic=rsq.R2,R=2000, formula1=HEIGHTX~AGE+age2+EUR_ANC, formula2=HEIGHTX~AGE+age2+EUR_ANC+PGS))-> results.WHI
+boots.ci.WHI<-lapply(results.WHI, function(X) boot.ci(X, type = c("norm", 'basic', "perc")))
 #Get partial R2, i.e, the proportion of variation in height explained by the PRS
 partial_r2_WHI<-lapply(1:length(PGS2_WHI), function(X) partial.R2(lm7_WHI[[X]], lm8_WHI[[X]]))
 names(partial_r2_WHI)<- names(PGS2_WHI)
 
 saveRDS(partial_r2_WHI,file=paste0('~/height_prediction/strat_prs/output/part_R2_WHI_', args[3], '_', rate.dist,"_", w_map, '_v2.Rds'))  #store results.
+saveRDS(boots.ci.WHI, file=paste0('~/height_prediction/strat_prs/output/results_WHI_', args[3], '_', rate.dist,"_", w_map, '_v2.Rds'))

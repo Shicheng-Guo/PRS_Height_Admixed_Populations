@@ -8,6 +8,7 @@ library("optparse")
 library(data.table)
 library(dplyr)
 library(asbio)
+options(scipe=999)
 ########################################
 home<-"/home/bbita"
 dir<-"height_prediction/strat_prs/scripts"
