@@ -33,7 +33,7 @@ final_plink<-na.omit(final_plink) #3382050
 arrange(final_plink, CHR, POS) %>% as.data.table-> final_plink
 gc()
 
-
+final_plink[, PLINK:=scale(PLINK, scale=14.5447)] #scaling to that b and PLINK have same variance.
 saveRDS(final_plink, file='~/height_prediction/loc_anc_analysis/output/final_plink.Rds')
 new <- Sys.time() - old # calculate difference
 print(new) # print in nice format
