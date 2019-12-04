@@ -71,7 +71,7 @@ merge(final_plink, hei1, by=c('CHR', 'POS'), sort=F)-> plink_prun #plink_prun[Ef
 if(nrow(snp1)!=nrow(plink_prun)){
 	snp2<-snp1[-which(!(snp1$POS %in% plink_prun$POS)),]
 	geno2<-geno1[-which(!(snp1$POS %in% plink_prun$POS)),]
-	anc2<-ancestry1[-which(!(snp1$POS %in% plink_prun$POS)),]
+	anc2<-anc1[-which(!(snp1$POS %in% plink_prun$POS)),]
 	hei2<-hei1[-which(!(snp1$POS %in% plink_prun$POS)),]
 } else{
 	snp2<-snp1
@@ -89,12 +89,12 @@ cat('checkpoint number 3\n')
 plink_prun[Allele1==Effect_Allele_plink] #100%	
 plink_prun[, AlM:=ifelse(Allele1==ALT_snp, "YES", "NO")] #if YES, 0=REF and 1=ALT. If NO, 1=REF, 0=ALT, thus 1-Geno
 #in the geno file 0 is ALT and 1 is REF
-LA_PRS<- function(X=geno2[1:27,], X2=1, Y=anc2[1:27,], alpha=as.numeric(args[3])){
-dataA<-cbind(data.table(Anc=unlist(Y[,X2]), plink_prun[1:27,]))[, Geno:=ifelse(AlM=='YES', (1-unlist(X[,X2])), unlist(X[,X2]))] ##if YES, 0=REF and 1=ALT. If NO, 1=REF, 0=ALT, thus 1-Geno
+LA_PRS<- function(X=geno2, X2=1, Y=anc2, alpha=as.numeric(args[3])){
+dataA<-cbind(data.table(Anc=unlist(Y[,X2]), plink_prun))[, Geno:=ifelse(AlM=='YES', (1-unlist(X[,X2])), unlist(X[,X2]))] ##if YES, 0=REF and 1=ALT. If NO, 1=REF, 0=ALT, thus 1-Geno
 afrA<-dataA[Anc==1]
 eurA<-dataA[Anc==2]
 if(nrow(afrA)>=1){
-afrA[,PRS_part:=(alpha*PLINK*(Geno))+((1-alpha)*b*(Geno))]
+afrA[,PRS_part:=(alpha*PLINK*Geno)+((1-alpha)*b*Geno)]
 }
 if(nrow(eurA)>=1){
 eurA[, PRS_part:=b*Geno]
