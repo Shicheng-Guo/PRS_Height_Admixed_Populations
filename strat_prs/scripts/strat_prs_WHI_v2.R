@@ -158,7 +158,7 @@ lapply(PGS2_WHI, function(X) lm(HEIGHTX~PGS+age2, X))-> lm6_WHI
 lapply(PGS2_WHI, function(X) lm(HEIGHTX~AGE+age2+EUR_ANC, X))-> lm7_WHI
 lapply(PGS2_WHI, function(X) lm(HEIGHTX~AGE+age2+EUR_ANC+PGS, X))-> lm8_WHI
 
-lapply(c("q1","q2","q3","q4"), function(i) boot(data=PGS2_WHI[[I]], statistic=rsq.R2,R=2000, formula1=HEIGHTX~AGE+age2+EUR_ANC, formula2=HEIGHTX~AGE+age2+EUR_ANC+PGS))-> results.WHI
+lapply(c("q1","q2","q3","q4"), function(I) boot(data=PGS2_WHI[[I]], statistic=rsq.R2,R=3000, formula1=HEIGHTX~AGE+age2+EUR_ANC, formula2=HEIGHTX~AGE+age2+EUR_ANC+PGS))-> results.WHI
 boots.ci.WHI<-lapply(results.WHI, function(X) boot.ci(X, type = c("norm", 'basic', "perc")))
 #Get partial R2, i.e, the proportion of variation in height explained by the PRS
 partial_r2_WHI<-lapply(1:length(PGS2_WHI), function(X) partial.R2(lm7_WHI[[X]], lm8_WHI[[X]]))

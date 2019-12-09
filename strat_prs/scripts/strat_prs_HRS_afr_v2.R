@@ -171,7 +171,7 @@ lapply(PGS2_HRS_afr, function(X) lm(HEIGHT~SEX+AGE+AGE2, X))-> lm7_HRS_afr
 lapply(PGS2_HRS_afr, function(X) lm(HEIGHT~SEX+AGE+AGE2+PGS, X))-> lm8_HRS_afr
 
 #Get partial R2, i.e, the proportion of variation in height explained by the PRS
-lapply(c("q1","q2","q3","q4"), function(i) boot(data=PGS2_HRS_afr[[I]], statistic=rsq.R2,R=2000, formula1=HEIGHT~SEX+AGE+AGE2+EUR_ANC, formula2=HEIGHT~SEX+AGE+AGE2+EUR_ANC+PGS))-> results.HRS_afr
+lapply(c("q1","q2","q3","q4"), function(I) boot(data=PGS2_HRS_afr[[I]], statistic=rsq.R2,R=3000, formula1=HEIGHT~SEX+AGE+AGE2+EUR_ANC, formula2=HEIGHT~SEX+AGE+AGE2+EUR_ANC+PGS))-> results.HRS_afr
 boots.ci.HRS_afr<-lapply(results.HRS_afr, function(X) boot.ci(X, type = c("norm", 'basic', "perc")))
 partial_r2_HRS_afr<-lapply(1:length(PGS2_HRS_afr), function(X) partial.R2(lm7_HRS_afr[[X]], lm8_HRS_afr[[X]])) 
 names(partial_r2_HRS_afr)<- names(PGS2_HRS_afr)

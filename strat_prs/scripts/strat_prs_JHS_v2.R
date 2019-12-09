@@ -172,7 +172,7 @@ lapply(PGS2_JHS, function(X) lm(HEIGHTX~sex+age+age2, X))-> lm6_JHS
 lapply(PGS2_JHS, function(X) lm(HEIGHTX~sex+age+age2+EUR_ANC, X))-> lm7_JHS
 lapply(PGS2_JHS, function(X) lm(HEIGHTX~sex+age+age2+EUR_ANC+PGS,X))-> lm8_JHS
 
-lapply(c("q1","q2","q3","q4"), function(i) boot(data=PGS2_JHS[[I]], statistic=rsq.R2,R=2000, formula1=HEIGHTX~sex+age+age2+EUR_ANC, formula2=HEIGHTX~sex+age++age2+EUR_ANC+PGS))-> results.JHS
+lapply(c("q1","q2","q3","q4"), function(I) boot(data=PGS2_JHS[[I]], statistic=rsq.R2,R=3000, formula1=HEIGHTX~sex+age+age2+EUR_ANC, formula2=HEIGHTX~sex+age++age2+EUR_ANC+PGS))-> results.JHS
 boots.ci.JHS<-lapply(results.JHS, function(X) boot.ci(X, type = c("norm", 'basic', "perc")))
 #Get partial R2, i.e, the proportion of variation in height explained by the PRS
 partial_r2_JHS<-lapply(1:length(PGS2_JHS), function(X) partial.R2(lm7_JHS[[X]], lm8_JHS[[X]])) 

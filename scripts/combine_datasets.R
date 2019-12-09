@@ -1,14 +1,15 @@
 #!/usr/bin/env Rscript
 ############################
-args = commandArgs(trailingOnly=TRUE)
-if (length(args)==0) {
-  stop("At least one argument must be supplied (a name for this run).n", call.=FALSE)
-}
+#args = commandArgs(trailingOnly=TRUE)
+#if (length(args)==0) {
+#  stop("At least one argument must be supplied (a name for this run).n", call.=FALSE)
 ##preable
 library("optparse")
 library(data.table)
 library(dplyr)
-library(ggplot2);library(reshape2); library(wesanderson)
+library(ggplot2)
+library(reshape2)
+library(wesanderson)
 library(rlist)
 library(asbio)
 library(GGally)
@@ -16,7 +17,9 @@ library(tidyr)
 library(hexbin)
 library(psychometric)
 library(boot)
-
+library(RColorBrewer)
+options(scipen=999)
+args<-'gwas'
 ##############################################################
 #combine all
 
@@ -37,16 +40,26 @@ readRDS(paste0('~/height_prediction/',args[1],'/JHS/output/PGS3_JHS.Rds'))-> PGS
 readRDS(paste0('~/height_prediction/',args[1],'/HRS_eur/output/PGS3_HRS_eur.Rds'))-> PGS3_HRS_eur
 readRDS(paste0('~/height_prediction/',args[1],'/HRS_afr/output/PGS3_HRS_afr.Rds'))-> PGS3_HRS_afr
 
+#if(args[1]=='sib_betas'){
+#	readRDS(paste0('~/height_prediction/', args[1], '/ukb_eur/output/results.UKB_eur.Rds'))-> results.UKB_eur
+#	readRDS(paste0('~/height_prediction/', args[1], '/ukb_eur/output/B_UKB_eur.Rds'))-> B_UKB_eur
+#	readRDS(paste0('~/height_prediction/', args[1], '/ukb_eur/output/PGS3_UKB_eur.Rds'))-> PGS3_UKB_eur
+#}
 for(I in names(B_JHS)){ #JHS lacks the LD prunning methods
+#	if(args[1]=='sib_betas'){
+#		ALL<-rbind(B_JHS[[I]][1:2,][, Dataset:='JHS_afr'], B_WHI[[I]][1:4,][, Dataset:='WHI_afr'], B_UKB_afr[[I]][1:4,][,Dataset:='UKB_afr'],B_HRS_afr[[I]][1:2,][, Dataset:='HRS_afr'],  B_HRS_eur[[I]], B_UKB_eur[[I]])
+#	} else{
 	ALL<-rbind(B_JHS[[I]][1:2,][, Dataset:='JHS_afr'], B_WHI[[I]][1:4,][, Dataset:='WHI_afr'], B_UKB_afr[[I]][1:4,][,Dataset:='UKB_afr'],B_HRS_afr[[I]][1:2,][, Dataset:='HRS_afr'],  B_HRS_eur[[I]])
+	ALL$Dataset<-factor(ALL$Dataset, levels=c("UKB_afr", "WHI_afr", "JHS_afr", "HRS_afr",  "HRS_eur"))
+#	}
 	#rbind(ALL[!(Dataset %in% c('UKB_EUR', 'pennBB_EA'))], ALL[Dataset %in% c('UKB_EUR', 'pennBB_EA')][, Med_Eur_Anc:=1])-> ALL
 	my_plot<-ggplot(ALL, aes(x=Med_Eur_Anc, y=R_sq, colour=Dataset, shape=Dataset)) +
-	geom_point(size=1.5, fill="white") +
+	geom_point(size=1.5, fill="white", alpha=0.8) +
 	geom_errorbar(aes(x=Med_Eur_Anc, group=Dataset, colour=Dataset,ymin=boots_perc_L, ymax=boots_perc_U), width=0.05, size=0.8) +
 	#geom_line(color='lightgray')+
-	geom_errorbarh(aes(x=Med_Eur_Anc, group=Dataset, colour=Dataset, xmin=HVB_L, xmax=HVB_U), width=0.05, size=0.5) +  scale_color_brewer(palette="Dark2") +
+	geom_errorbarh(aes(x=Med_Eur_Anc, group=Dataset, colour=Dataset, xmin=HVB_L, xmax=HVB_U), width=0.05, size=0.5) +  scale_color_manual(values=c(brewer.pal(4, 'Set1'),"#101010")) +
 	ylab(expression(paste("Partial R"^"2"))) + xlab("European Ancestry Proportion") +
-	theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15),axis.text.x=element_text(size=9), axis.text.y=element_text(size=9),legend.key=element_blank(),legend.background=element_blank(),legend.title=element_blank())
+	theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15),axis.text.x=element_text(size=12), axis.text.y=element_text(size=12),legend.key=element_blank(),legend.background=element_blank(),legend.title=element_blank(), legend.text=element_text(size=12))
 	print(my_plot)
 	if(args=='sib_betas'){
 	ggsave(paste0('~/height_prediction/figs/sib_error_bars_all_v2_', I, '.png'))
@@ -59,15 +72,21 @@ ALL2<-vector('list', length(names(B_JHS)))
 names(ALL2)<-names(B_JHS)
 
 for(I in names(B_JHS)){
-	ALL2[[I]]<-rbind(B_JHS[[I]][1:2,][, Dataset:='JHS_afr'], B_WHI[[I]][1:4,][, Dataset:='WHI_afr'], B_UKB_afr[[I]][1:4,][,Dataset:='UKB_afr'],B_HRS_afr[[I]][1:2,][, Dataset:='HRS_afr'],  B_HRS_eur[[I]])
+#	if(args[1]=='sib_betas'){
+#		ALL2[[I]]<-rbind(B_JHS[[I]][1:2,][, Dataset:='JHS_afr'], B_WHI[[I]][1:4,][, Dataset:='WHI_afr'], B_UKB_afr[[I]][1:4,][,Dataset:='UKB_afr'],B_HRS_afr[[I]][1:2,][, Dataset:='HRS_afr'],  B_HRS_eur[[I]], B_UKB_eur[[I]])
+#		tmp<-1/c(var(results.JHS[[I]][[1]]$t), var(results.JHS[[I]][[2]]$t), var(results.WHI[[I]][[1]]$t), var(results.WHI[[I]][[2]]$t), var(results.WHI[[I]][[3]]$t), var(results.WHI[[I]][[4]]$t), var(results.UKB_afr[[I]][[1]]$t),var(results.UKB_afr[[I]][[2]]$t), var(results.UKB_afr[[I]][[3]]$t), var(results.UKB_afr[[I]][[4]]$t), var(results.HRS_afr[[I]][[1]]$t), var(results.HRS_afr[[I]][[2]]$t), var(results.HRS_eur[[I]]$t), var(results.UKB_eur[[I]]$t))
+#	} else{
+		ALL2[[I]]<-rbind(B_JHS[[I]][1:2,][, Dataset:='JHS_afr'], B_WHI[[I]][1:4,][, Dataset:='WHI_afr'], B_UKB_afr[[I]][1:4,][,Dataset:='UKB_afr'],B_HRS_afr[[I]][1:2,][, Dataset:='HRS_afr'],  B_HRS_eur[[I]])
 	#rbind(ALL2[[I]][!(Dataset %in% c('UKB_EUR', 'pennBB_EA'))], ALL2[[I]][Dataset %in% c('UKB_EUR', 'pennBB_EA')][, Med_Eur_Anc:=1])-> ALL2[[I]]
-	tmp<-1/c(var(results.JHS[[I]][[1]]$t), var(results.JHS[[I]][[2]]$t), var(results.WHI[[I]][[1]]$t), var(results.WHI[[I]][[2]]$t), var(results.WHI[[I]][[3]]$t), var(results.WHI[[I]][[4]]$t), var(results.UKB_afr[[I]][[1]]$t),var(results.UKB_afr[[I]][[2]]$t), var(results.UKB_afr[[I]][[3]]$t), var(results.UKB_afr[[I]][[4]]$t), var(results.HRS_afr[[I]][[1]]$t), var(results.HRS_afr[[I]][[2]]$t), var(results.HRS_eur[[I]]$t))  #weighing lm by boostrap replicates.
+		tmp<-1/c(var(results.JHS[[I]][[1]]$t), var(results.JHS[[I]][[2]]$t), var(results.WHI[[I]][[1]]$t), var(results.WHI[[I]][[2]]$t), var(results.WHI[[I]][[3]]$t), var(results.WHI[[I]][[4]]$t), var(results.UKB_afr[[I]][[1]]$t),var(results.UKB_afr[[I]][[2]]$t), var(results.UKB_afr[[I]][[3]]$t), var(results.UKB_afr[[I]][[4]]$t), var(results.HRS_afr[[I]][[1]]$t), var(results.HRS_afr[[I]][[2]]$t), var(results.HRS_eur[[I]]$t))  #weighing lm by boostrap replicates.
+#	}
 	cbind(ALL2[[I]], W=tmp)-> ALL2[[I]]
+	ALL2[[I]]$Dataset<-factor(ALL2[[I]]$Dataset, levels=c("UKB_afr", "WHI_afr", "JHS_afr", "HRS_afr",  "HRS_eur"))
 	my_plot2<-ggplot(ALL2[[I]], aes(x=Med_Eur_Anc, y=R_sq)) +
-		geom_point(size=1.5, shape=21, fill="white") + stat_smooth(method = "lm", mapping = aes(weight = W), col='black') +
-		scale_color_brewer(palette="Dark2") +
-		ylab(expression(paste("Partial R"^"2"))) + xlab("European Ancestry Proportion") +
-		theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15),axis.text.x=element_text(size=9), axis.text.y=element_text(size=9), legend.key=element_blank(), legend.background=element_blank(),legend.title=element_blank())
+	geom_point(size=1.5, shape=21, fill="white", alpha=0.8) + stat_smooth(method = "lm", mapping = aes(weight = W), col='black') +
+	scale_color_manual(values=c(brewer.pal(4, 'Set1'),"#101010")) +
+	ylab(expression(paste("Partial R"^"2"))) + xlab("European Ancestry Proportion") +
+	theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15),axis.text.x=element_text(size=12), axis.text.y=element_text(size=12), legend.key=element_blank(), legend.background=element_blank(),legend.title=element_blank(), legend.text=element_text(size=12))
 	print(my_plot2)
 	if(args[1]=='sib_betas'){
 	ggsave(paste0('~/height_prediction/figs/sib_error_bars_all_v3_', I, '.png'))
@@ -75,19 +94,28 @@ for(I in names(B_JHS)){
 	ggsave(paste0('~/height_prediction/figs/error_bars_all_v3_', I, '.png'))
 	}
 }
+
+a<-data.table(Name=names(B_JHS), Intercept=unlist(lapply(1:80, function(I) coef(lm(R_sq~Med_Eur_Anc, weights= W, data=ALL2[[I]]))[[1]])), Slope=unlist(lapply(1:80, function(I) coef(lm(R_sq~Med_Eur_Anc, weights= W, data=ALL2[[I]]))[[2]])), R_sq=unlist(lapply(1:80, function(I) summary(lm(R_sq~Med_Eur_Anc, weights= W, data=ALL2[[I]]))[9])), P=unlist(lapply(1:80, function(I) summary(lm(R_sq~Med_Eur_Anc, weights= W, data=ALL2[[I]]))$coefficients[8])))
+
+#fwrite(a, file=paste0("~/height_prediction/figs_for_paper/figs/SM_Table1_", args[1], ".txt", sep=","))
 ALL2b<-vector('list', length(names(B_JHS)))
 names(ALL2b)<-names(B_JHS)
 
 for(I in names(B_JHS)){
-	ALL2b[[I]]<-rbind(B_JHS[[I]][1:2,][, Dataset:='JHS_afr'], B_WHI[[I]][1:4,][, Dataset:='WHI_afr'], B_UKB_afr[[I]][1:4,][,Dataset:='UKB_afr'],B_HRS_afr[[I]][1:2,][, Dataset:='HRS_afr'],  B_HRS_eur[[I]])
-       # rbind(ALL2b[[I]][!(Dataset %in% 'pennBB_EA')], ALL2b[[I]][Dataset %in% 'pennBB_EA'][, Med_Eur_Anc:=1])-> ALL2b[[I]]
-        tmp<-1/c(var(results.JHS[[I]][[1]]$t), var(results.JHS[[I]][[2]]$t), var(results.WHI[[I]][[1]]$t), var(results.WHI[[I]][[2]]$t), var(results.WHI[[I]][[3]]$t), var(results.WHI[[I]][[4]]$t), var(results.UKB_afr[[I]][[1]]$t),var(results.UKB_afr[[I]][[2]]$t), var(results.UKB_afr[[I]][[3]]$t), var(results.UKB_afr[[I]][[4]]$t), var(results.HRS_afr[[I]][[1]]$t), var(results.HRS_afr[[I]][[2]]$t),var(results.HRS_eur[[I]]$t))
-	cbind(ALL2b[[I]], W=tmp)-> ALL2b[[I]]
-        my_plot2<-ggplot(ALL2b[[I]], aes(x=Med_Eur_Anc, y=R_sq)) +
-                geom_point(size=1.5, shape=21, fill="white") + stat_smooth(method = "lm", mapping = aes(weight = W), col='black') +
-                scale_color_brewer(palette="Dark2") +
-                ylab(expression(paste("Partial R"^"2"))) + xlab("European Ancestry Proportion") +
-		theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15),axis.text.x=element_text(size=9), axis.text.y=element_text(size=9), legend.key=element_blank(), legend.background=element_blank(),legend.title=element_blank())
+#	if(args[1]=='sib_betas'){
+ #       	ALL2b[[I]]<-rbind(B_JHS[[I]][1:2,][, Dataset:='JHS_afr'], B_WHI[[I]][1:4,][, Dataset:='WHI_afr'], B_UKB_afr[[I]][1:4,][,Dataset:='UKB_afr'],B_HRS_afr[[I]][1:2,][, Dataset:='HRS_afr'],  B_HRS_eur[[I]], B_UKB_eur[[I]])
+ #              tmp<-1/c(var(results.JHS[[I]][[1]]$t), var(results.JHS[[I]][[2]]$t), var(results.WHI[[I]][[1]]$t), var(results.WHI[[I]][[2]]$t), var(results.WHI[[I]][[3]]$t), var(results.WHI[[I]][[4]]$t), var(results.UKB_afr[[I]][[1]]$t),var(results.UKB_afr[[I]][[2]]$t), var(results.UKB_afr[[I]][[3]]$t), var(results.UKB_afr[[I]][[4]]$t), var(results.HRS_afr[[I]][[1]]$t), var(results.HRS_afr[[I]][[2]]$t), var(results.HRS_eur[[I]]$t), var(results.UKB_eur[[I]]$t))
+#	} else{
+        	ALL2b[[I]]<-rbind(B_JHS[[I]][1:2,][, Dataset:='JHS_afr'], B_WHI[[I]][1:4,][, Dataset:='WHI_afr'], B_UKB_afr[[I]][1:4,][,Dataset:='UKB_afr'],B_HRS_afr[[I]][1:2,][, Dataset:='HRS_afr'],  B_HRS_eur[[I]])
+                tmp<-1/c(var(results.JHS[[I]][[1]]$t), var(results.JHS[[I]][[2]]$t), var(results.WHI[[I]][[1]]$t), var(results.WHI[[I]][[2]]$t), var(results.WHI[[I]][[3]]$t), var(results.WHI[[I]][[4]]$t), var(results.UKB_afr[[I]][[1]]$t),var(results.UKB_afr[[I]][[2]]$t), var(results.UKB_afr[[I]][[3]]$t), var(results.UKB_afr[[I]][[4]]$t), var(results.HRS_afr[[I]][[1]]$t), var(results.HRS_afr[[I]][[2]]$t), var(results.HRS_eur[[I]]$t))  #weighing lm by boostrap replicates.
+#        }
+        cbind(ALL2b[[I]], W=tmp)-> ALL2b[[I]]
+	ALL2b[[I]]$Dataset<-factor(ALL2b[[I]]$Dataset, levels=c("UKB_afr", "WHI_afr", "JHS_afr", "HRS_afr",  "HRS_eur"))
+	my_plot2<-ggplot(ALL2b[[I]], aes(x=Med_Eur_Anc, y=R_sq)) +
+                geom_point(size=1.5, shape=21, fill="white", alpha=0.8) + stat_smooth(method = "lm", mapping = aes(weight = W), col='black') +
+                scale_color_manual(values=c(brewer.pal(4, 'Set1'),"#101010")) +
+		ylab(expression(paste("Partial R"^"2"))) + xlab("European Ancestry Proportion") +
+		theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15),axis.text.x=element_text(size=12), axis.text.y=element_text(size=12), legend.key=element_blank(), legend.background=element_blank(),legend.title=element_blank(), legend.text=element_text(size=12))
         print(my_plot2)
 	if(args[1]=='sib_betas'){
 	ggsave(paste0('~/height_prediction/figs/sib_error_bars_all_v3b_', I, '.png'))	
@@ -97,13 +125,15 @@ for(I in names(B_JHS)){
 }
 
 for(I in names(B_JHS)){
+	ALL2[[I]]$Dataset<-factor(ALL2[[I]]$Dataset, levels=c("UKB_afr", "WHI_afr", "JHS_afr", "HRS_afr",  "HRS_eur"))
         my_plot<-ggplot(ALL2[[I]], aes(x=Med_Eur_Anc, y=R_sq,colour=Dataset)) +
-        geom_point(aes(shape=Dataset), size=1.5, fill="white") + stat_smooth(data=ALL2[[I]],method = "lm", mapping = aes(weight = W), col='black') +
+        geom_point(aes(shape=Dataset), size=1.5, fill="white", alpha=0.8) + stat_smooth(data=ALL2[[I]],method = "lm", mapping = aes(weight = W), col='black') +
         geom_errorbar(aes(x=Med_Eur_Anc, group=Dataset, colour=Dataset,ymin=boots_perc_L, ymax=boots_perc_U), width=0.05, size=0.8) +
         #geom_line(color='lightgray')+
-        geom_errorbarh(aes(x=Med_Eur_Anc, group=Dataset, colour=Dataset, xmin=HVB_L, xmax=HVB_U), width=0.05, size=0.5) +  scale_color_brewer(palette="Dark2")+
+        geom_errorbarh(aes(x=Med_Eur_Anc, group=Dataset, colour=Dataset, xmin=HVB_L, xmax=HVB_U), width=0.05, size=0.5) + 
+	scale_color_manual(values=c(brewer.pal(4, 'Set1'),"#101010")) + 
         ylab(expression(paste("Partial R"^"2"))) + xlab("European Ancestry Proportion") +
-  	theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15),axis.text.x=element_text(size=9), axis.text.y=element_text(size=9), legend.key=element_blank(), legend.background=element_blank(), legend.title=element_blank()) 
+  	theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.title.y = element_text(size = 18), axis.title.x=element_text(size=18),axis.text.x=element_text(size=15), axis.text.y=element_text(size=15), legend.key=element_blank(), legend.background=element_blank(), legend.title=element_blank(), legend.text=element_text(size=15),legend.position = c(0.15,0.85)) 
 	print(my_plot)
 	if(args[1]=='sib_betas'){
 	ggsave(paste0('~/height_prediction/figs/sib_error_bars_all_v4_', I, '.png'))
@@ -112,17 +142,22 @@ for(I in names(B_JHS)){
 	}
 }
 #
-
+#stop here 04/09/2019
 ALL3<-vector('list', length(names(B_JHS)))
 names(ALL3)<- names(B_JHS)
 
 for (I in names(B_JHS)){
-	ALL3[[I]]<-rbind(B_JHS[[I]][1:2,][, Dataset:='JHS_afr'], B_WHI[[I]][1:4,][, Dataset:='WHI_afr'], B_UKB_afr[[I]][1:4,][,Dataset:='UKB_afr'],B_HRS_afr[[I]][1:2,][, Dataset:='HRS_afr'],  B_HRS_eur[[I]])
+#	if(args[1]=='sib_betas'){
+#		ALL3[[I]]<-rbind(B_JHS[[I]][1:2,][, Dataset:='JHS_afr'], B_WHI[[I]][1:4,][, Dataset:='WHI_afr'], B_UKB_afr[[I]][1:4,][,Dataset:='UKB_afr'],B_HRS_afr[[I]][1:2,][, Dataset:='HRS_afr'],  B_HRS_eur[[I]], B_UKB_eur[[I]])
+#	 tmp<-lm(R_sq~Med_Eur_Anc,weights=1/
+#        c(var(results.JHS[[I]][[1]]$t), var(results.JHS[[I]][[2]]$t), var(results.WHI[[I]][[1]]$t), var(results.WHI[[I]][[2]]$t), var(results.WHI[[I]][[3]]$t), var(results.WHI[[I]][[4]]$t), var(results.UKB_afr[[I]][[1]]$t),var(results.UKB_afr[[I]][[2]]$t), var(results.UKB_afr[[I]][[3]]$t), var(results.UKB_afr[[I]][[4]]$t), var(results.HRS_afr[[I]][[1]]$t), var(results.HRS_afr[[I]][[2]]$t),var(results.HRS_eur[[I]]$t), var(results.UKB_eur[[I]])), data=ALL3[[I]])
+#	} else{
+                ALL3[[I]]<-rbind(B_JHS[[I]][1:2,][, Dataset:='JHS_afr'], B_WHI[[I]][1:4,][, Dataset:='WHI_afr'], B_UKB_afr[[I]][1:4,][,Dataset:='UKB_afr'],B_HRS_afr[[I]][1:2,][, Dataset:='HRS_afr'],  B_HRS_eur[[I]])
+	        tmp<-lm(R_sq~Med_Eur_Anc,weights=1/
+        c(var(results.JHS[[I]][[1]]$t), var(results.JHS[[I]][[2]]$t), var(results.WHI[[I]][[1]]$t), var(results.WHI[[I]][[2]]$t), var(results.WHI[[I]][[3]]$t), var(results.WHI[[I]][[4]]$t), var(results.UKB_afr[[I]][[1]]$t),var(results.UKB_afr[[I]][[2]]$t), var(results.UKB_afr[[I]][[3]]$t), var(results.UKB_afr[[I]][[4]]$t), var(results.HRS_afr[[I]][[1]]$t), var(results.HRS_afr[[I]][[2]]$t),var(results.HRS_eur[[I]]$t)), data=ALL3[[I]])
+#	}
 	#rbind(ALL3[[I]][!(Dataset %in% c('UKB_EUR', 'pennBB_EA'))], ALL3[[I]][Dataset %in% c('UKB_EUR', 'pennBB_EA')][, Med_Eur_Anc:=1])-> ALL3[[I]]
 	ALL3[[I]][,Set:=I]
-	tmp<-lm(R_sq~Med_Eur_Anc,weights=1/
-	c(var(results.JHS[[I]][[1]]$t), var(results.JHS[[I]][[2]]$t), var(results.WHI[[I]][[1]]$t), var(results.WHI[[I]][[2]]$t), var(results.WHI[[I]][[3]]$t), var(results.WHI[[I]][[4]]$t), var(results.UKB_afr[[I]][[1]]$t),var(results.UKB_afr[[I]][[2]]$t), var(results.UKB_afr[[I]][[3]]$t), var(results.UKB_afr[[I]][[4]]$t), var(results.HRS_afr[[I]][[1]]$t), var(results.HRS_afr[[I]][[2]]$t),var(results.HRS_eur[[I]]$t)), data=ALL3[[I]])
-	#c(var(results.JHS[[I]][[1]]$t),var(results.JHS[[I]][[2]]$t), var(results.WHI[[I]][[1]]$t), var(results.WHI[[I]][[2]]$t), var(results.WHI[[I]][[3]]$t), var(results.WHI[[I]][[4]]$t), var(results.WHI[[I]][[5]]$t),var(results.UKB_afr[[I]][[1]]$t),var(results.UKB_afr[[I]][[2]]$t), var(results.UKB_afr[[I]][[3]]$t), var(results.UKB_afr[[I]][[4]]$t), var(results.pennBB_afr[[I]][[1]]$t),var(results.pennBB_afr[[I]][[2]]$t), var(results.UKB_eur[[I]]$total$t), var(results.pennBB_eur[[I]]$total$t)), data=ALL3[[I]])  #weight lm
 	readRDS(paste0('~/height_prediction/', args[1],'/WHI/output/Nr_SNPs_WHI.Rds'))[Name==I][, Nr]->a
 	readRDS(paste0('~/height_prediction/', args[1],'/ukb_afr/output/Nr_SNPs_UKB_afr.Rds'))[Name==I][, Nr]->b
 	readRDS(paste0('~/height_prediction/', args[1],'/JHS/output/Nr_SNPs_JHS.Rds'))[Name==I][, Nr]->d
@@ -161,23 +196,22 @@ dt_LD[, method:=gsub("LD_50000_0.01_0.5", "LD_0.01_0.5", gsub("LD_100000_0.01_0.
 as.factor(dt_LD$window)-> dt_LD$window
 factor(dt_LD$window, levels(dt_LD$window)[c(1,4,2,3)])-> dt_LD$window
 
-ggplot(dt_LD,aes(x=method, y=value, colour=window, shape=variable)) + geom_point(size=2.5, alpha=1) + theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15), axis.text.x=element_text(size=9), axis.text.y=element_text(size=9))
+ggplot(dt_LD,aes(x=method, y=value, colour=window, shape=variable)) + geom_point(size=2.5, alpha=1) + theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15), axis.text.x=element_text(size=12), axis.text.y=element_text(size=12))
 ggsave('~/height_prediction/figs/reg_rsq_eur_anc_LD.png')
 #
 #
 melt(dt_genet)->dt_genet
 dt_genet[, c("method", "window","p") := tstrsplit(Set, "_")]
 as.factor(dt_genet$window)-> dt_genet$window
-ggplot() + geom_point(data=dt_genet,aes(x=p, y=value, colour=window, shape=variable), size=2.5, alpha = 1) + theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15), axis.text.x=element_text(size=9), axis.text.y=element_text(size=9)) 
+ggplot() + geom_point(data=dt_genet,aes(x=p, y=value, colour=window, shape=variable), size=2.5, alpha = 1) + theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15), axis.text.x=element_text(size=12), axis.text.y=element_text(size=12)) 
 ggsave('~/height_prediction/figs/reg_rsq_eur_anc_genet.png')
 #
 #
-
 melt(dt_phys)-> dt_phys
 dt_phys[, c("method", "window","p") := tstrsplit(Set, "_")]
 as.factor(dt_phys$window)-> dt_phys$window
 factor(dt_phys$window, levels(dt_phys$window)[c(3,7,2,8,6,4,1,5)])-> dt_phys$window
-ggplot() + geom_point(data=dt_phys,aes(x=p, y=value, colour=window, shape=variable), size=2.5, alpha = 1) + theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15), axis.text.x=element_text(size=9), axis.text.y=element_text(size=9))
+ggplot() + geom_point(data=dt_phys,aes(x=p, y=value, colour=window, shape=variable), size=2.5, alpha = 1) + theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15), axis.text.x=element_text(size=12), axis.text.y=element_text(size=12))
 ggsave('~/height_prediction/figs/reg_rsq_eur_anc_phys.png')
 
 #plot as function of Nr_SNPs
@@ -229,36 +263,51 @@ setkey(dt_genet, Set)
 dt_genet[A1,nomatch=0]-> dt_genet
 
 #
-ggplot() + geom_point(data=dt_phys,aes(x=Nr_SNPs, y=value, colour=window, shape=variable), size=2.5, alpha = 1) + theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15), axis.text.x=element_text(size=9), axis.text.y=element_text(size=9))
-ggsave('~/height_prediction/figs/reg_rsq_eur_anc_phys_v2.png')
+gsub("Slope_Intercept", "Slope+Intercept",dt_phys$variable)-> dt_phys$variable
+gsub("R_sq", "Partial R-squared",dt_phys$variable)-> dt_phys$variable
+dt_phys[variable!="Slope"]-> dt_phys
+plotA<-ggplot() + geom_point(data=dt_phys,aes(x=Nr_SNPs, y=value, colour=window, shape=variable), size=1.5, alpha = 0.7) + 
+theme(axis.title.y = element_text(size = 12), axis.title.x=element_text(size=12), axis.text.x=element_text(size=10), axis.text.y=element_text(size=10), legend.text=element_text(size=4), legend.title = element_blank()) + 
+guides(shape=FALSE,color=guide_legend(override.aes=list(shape=15))) + ylab(expression(Partial~R^2))
+#ggsave('~/height_prediction/figs/reg_rsq_eur_anc_phys_v2.png')
+gsub("Slope_Intercept", "Slope+Intercept",dt_genet$variable)-> dt_genet$variable
+gsub("R_sq", "Partial R-squared",dt_genet$variable)-> dt_genet$variable
+dt_genet[variable!="Slope"]-> dt_genet
+plotB<-ggplot() + geom_point(data=dt_genet,aes(x=Nr_SNPs, y=value, colour=window, shape=variable), size=1.5, alpha = 0.7) + 
+theme(axis.title.y = element_text(size = 12), axis.title.x=element_text(size=12), axis.text.x=element_text(size=10), axis.text.y=element_text(size=10), legend.text=element_text(size=4), legend.title = element_blank()) + guides(color=guide_legend(override.aes=list(shape=15))) + ylab(expression(Partial~R^2))
+#ggsave('~/height_prediction/figs/reg_rsq_eur_anc_genet_v2.png')
+gsub("Slope_Intercept", "Slope+Intercept",dt_LD$variable)-> dt_LD$variable
+gsub("R_sq", "Partial R-squared",dt_LD$variable)-> dt_LD$variable
+dt_LD[variable!="Slope"]-> dt_LD
+plotC<-ggplot() + geom_point(data=dt_LD,aes(x=Nr_SNPs, y=value, colour=Set, shape=variable), size=1.5, alpha = 0.7) + 
+theme(axis.title.y = element_text(size = 12), axis.title.x=element_text(size=12), axis.text.x=element_text(size=10), axis.text.y=element_text(size=10), legend.text=element_text(size=4), legend.title = element_blank()) + guides(shape=FALSE,color=guide_legend(override.aes=list(shape=15))) + ylab(expression(Partial~R^2))
+#ggsave('~/height_prediction/figs/reg_rsq_eur_anc_LD_v2.png')
 
-ggplot() + geom_point(data=dt_genet,aes(x=Nr_SNPs, y=value, colour=window, shape=variable), size=2.5, alpha = 1) + theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15), axis.text.x=element_text(size=9), axis.text.y=element_text(size=9))
-ggsave('~/height_prediction/figs/reg_rsq_eur_anc_genet_v2.png')
+plot_grid(plotC, plotB,plotA,  labels = c("A", "B", "C"), nrow=3, align="v")
 
-ggplot() + geom_point(data=dt_LD,aes(x=Nr_SNPs, y=value, colour=Set, shape=variable), size=2.5, alpha = 1) + theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15), axis.text.x=element_text(size=9), axis.text.y=element_text(size=9))
-ggsave('~/height_prediction/figs/reg_rsq_eur_anc_LD_v2.png')
-
+ggsave('~/height_prediction/figs/panel_Nr_snps.pdf')
 #try to use just one plot
 dt_LD[, p:=0.01]
 dt_LD[, .(Set, variable, value, method, window,p, Nr_SNPs)]-> dt_LD
 rbind(dt_phys,dt_genet, dt_LD)-> dt
 
+
 cat('STOP HERE STOP HERE\n')
-ggplot() + geom_point(data=dt,aes(x=Nr_SNPs, y=value, colour=method, shape=p), size=1.2, alpha = 0.7) + theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15), axis.text.x=element_text(size=9), axis.text.y=element_text(size=9)) + facet_wrap(~variable, nrow=2, scales='free_y')
+ggplot() + geom_point(data=dt,aes(x=Nr_SNPs, y=value, colour=method, shape=p), size=1.2, alpha = 0.7) + theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15), axis.text.x=element_text(size=12), axis.text.y=element_text(size=12), legend.text=element_text(size=12)) + facet_wrap(~variable, nrow=2, scales='free_y')
 ggsave('~/height_prediction/figs/test.png')
 
 
-ggplot() + geom_point(data=dt[variable=='R_sq'], ,aes(x=Nr_SNPs, y=value, colour=method, shape=p), size=1.2, alpha = 0.7) + theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15), axis.text.x=element_text(size=9), axis.text.y=element_text(size=9)) 
+ggplot() + geom_point(data=dt[variable=='R_sq'], ,aes(x=Nr_SNPs, y=value, colour=method, shape=p), size=1.2, alpha = 0.7) + theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15), axis.text.x=element_text(size=12), axis.text.y=element_text(size=12)) 
 ggsave('~/height_prediction/figs/testb.png')
 
-ggplot(dt, aes(x=Nr_SNPs, y=value, colour=method, shape=p)) + geom_point(size=1.2, alpha = 0.7) + scale_shape_manual(values=c(16,3,15,0,17,12)) + geom_line(alpha=0.4) + theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15), axis.text.x=element_text(size=9), axis.text.y=element_text(size=9)) +  facet_wrap(~variable, nrow=2, scales='free_y')
+ggplot(dt, aes(x=Nr_SNPs, y=value, colour=method, shape=p)) + geom_point(size=1.2, alpha = 0.7) + scale_shape_manual(values=c(16,3,15,0,17,12)) + geom_line(alpha=0.4) + theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15), axis.text.x=element_text(size=12), axis.text.y=element_text(size=12), legend.text=element_text(size=12)) +  facet_wrap(~variable, nrow=2, scales='free_y')
 ggsave('~/height_prediction/figs/test2.png')
 
 
-ggplot(dt[variable=='R_sq'], aes(x=Nr_SNPs, y=value, colour=method, shape=p)) + geom_point(size=1.2, alpha = 0.7) + scale_shape_manual(values=c(16,3,15,0,17,12)) + geom_line(alpha=0.4) + theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15), axis.text.x=element_text(size=9), axis.text.y=element_text(size=9))
+ggplot(dt[variable=='R_sq'], aes(x=Nr_SNPs, y=value, colour=method, shape=p)) + geom_point(size=1.2, alpha = 0.7) + scale_shape_manual(values=c(16,3,15,0,17,12)) + geom_line(alpha=0.4) + theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15), axis.text.x=element_text(size=12), axis.text.y=element_text(size=12), legend.text=element_text(size=12))
 ggsave('~/height_prediction/figs/test2b.png')
 
-ggplot(dt, aes(x=Nr_SNPs, y=value, colour=window, shape=method)) + geom_point(size=1.2, alpha = 0.7) + scale_shape_manual(values=c(16,3,13,0,17,12)) + geom_line(alpha=0.4) + theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15), axis.text.x=element_text(size=9), axis.text.y=element_text(size=9)) +  facet_wrap(~variable, nrow=2, scales='free_y')
+ggplot(dt, aes(x=Nr_SNPs, y=value, colour=window, shape=method)) + geom_point(size=1.2, alpha = 0.7) + scale_shape_manual(values=c(16,3,13,0,17,12)) + geom_line(alpha=0.4) + theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15), axis.text.x=element_text(size=12), axis.text.y=element_text(size=12), legend.text=element_text(size=12)) +  facet_wrap(~variable, nrow=2, scales='free_y')
 ggsave('~/height_prediction/figs/test3.png')
 
 
@@ -384,7 +433,7 @@ I<-names(AA)[63]
 png(paste0('~/height_prediction/igs/OR_WHI_', I,  ".png"))
 ggplot(AA[[I]], aes(x=Quantile, y=F3_X.F)) +
 geom_point(size=2) + labs(title="Odds ratio of P(>=Xth HEIGHT quantile|>=Xth PRS quantile)", y="OR") + geom_hline(yintercept=1, linetype="dashed", color = "orange") +
-theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15), axis.text.x=element_text(size=12), axis.text.y=element_text(size=12))
+theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15), axis.text.x=element_text(size=12), axis.text.y=element_text(size=12), legend.text=element_text(size=12))
 dev.off()
 
 tmp1<-AA[[I]]
@@ -428,20 +477,20 @@ tmp10[,OR:=F2_X][, F2_X:=NULL][,Group:="HRS_eur_matched"]
 
 all<-rbind(tmp1,tmp2,tmp3,tmp4,tmp5, tmp6,tmp7, tmp8, tmp9, tmp10)
 all[, Group2:=c(rep("WHI_afr", 100), rep("JHS_afr", 100), rep("UKB_afr", 100), rep("HRS_afr",100), rep("HRS_eur",100))]
-all[, Group3:=c(rep("Eur", 50), rep("Matched",50), rep("Eur",50), rep("Matched",50), rep("Eur",50), rep("Matched", 50), rep("Eur",50), rep("Matched", 50), rep("Eur", 50), rep("Matched", 50), rep("Matched", 50))]
+all[, Group3:=c(rep("Eur", 50), rep("Matched",50), rep("Eur",50), rep("Matched",50), rep("Eur",50), rep("Matched", 50), rep("Eur",50), rep("Matched", 50), rep("Eur", 50),  rep("Matched", 50))]
 all[, Prs.Quantile:=Quantile]
 
 pdf(paste0('~/height_prediction/figs/OR_WHI_JHS_', I,  ".pdf"))
 ggplot(all[Prs.Quantile<=0.975], aes(x=Prs.Quantile, y=OR, group=Group, color=Group2, linetype=Group3)) + geom_line() +
 geom_point(size=0.7) + labs(y="OR", x="Quantile") +
-theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15), axis.text.x=element_text(size=12), axis.text.y=element_text(size=12))
+theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15), axis.text.x=element_text(size=12), axis.text.y=element_text(size=12), legend.text=element_text(size=12))
 dev.off()
 
 
 pdf(paste0('~/height_prediction/figs/OR_WHI_JHS_', I,  "_v2.pdf"))
 ggplot(all[Prs.Quantile<=0.975], aes(x=Prs.Quantile, y=OR, group=Group, color=Group2, linetype=Group3)) + geom_smooth() +
 geom_point(size=0.7) + labs(y="OR", x="Quantile") + 
-theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15), axis.text.x=element_text(size=12), axis.text.y=element_text(size=12))
+theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15), axis.text.x=element_text(size=12), axis.text.y=element_text(size=12), legend.text=element_text(size=12))
 dev.off()
 #lapply(1:length(names(A)),function(X) combo[[X]][,Quantile:= cut(EUR_ANC,breaks=quantile(EUR_ANC, probs=seq(0,1, by=0.2), na.rm=TRUE),include.lowest=TRUE)])
 
@@ -478,7 +527,8 @@ for(I in names(AA)){
 	lapply(levels(d$Quantile), function(X) F2_x(data=d[Quantile==X], x=0.85))-> WOW[[I]][['UKB_afr']][[4]];list.append(WOW[[I]][['UKB_afr']][[4]], F2_x(data=d, x=0.85))-> WOW[[I]][['UKB_afr']][[4]]	
 	lapply(levels(d$Quantile), function(X) F2_x(data=d[Quantile==X], x=0.8))-> WOW[[I]][['UKB_afr']][[5]];list.append(WOW[[I]][['UKB_afr']][[5]], F2_x(data=d, x=0.8))-> WOW[[I]][['UKB_afr']][[5]]
 	names(WOW[[I]][['UKB_afr']])<-c('0.975perc', '0.95perc', '0.9perc','0.85perc', '0.8perc');names(WOW[[I]][['UKB_afr']][['0.9perc']])<-c(levels(d$Quantile), 'all')
-	names(WOW[[I]][['UKB_afr']][['0.95perc']])<-c(levels(d$Quantile), 'all');names(WOW[[I]][['UKB_afr']][['0.975perc']])<-c(levels(d$Quantile), 'all');names(WOW[[I]][['UKB_afr']][['0.85perc']])<-c(levels(d$Quantile), 'all'); names(WOW[[I]][['UKB_afr']][['0.8perc']])<-c(levels(d$Quantile), 'all')
+	names(WOW[[I]][['UKB_afr']][['0.95perc']])<-c(levels(d$Quantile), 'all');names(WOW[[I]][['UKB_afr']][['0.975perc']])<-c(levels(d$Quantile), 'all')
+	names(WOW[[I]][['UKB_afr']][['0.85perc']])<-c(levels(d$Quantile), 'all'); names(WOW[[I]][['UKB_afr']][['0.8perc']])<-c(levels(d$Quantile), 'all')
 	lapply(unique(f$Quantile), function(X) F2_x(data=f[Quantile==X], x=0.975))-> WOW[[I]][['HRS_eur']][[1]]
 	lapply(unique(f$Quantile), function(X) F2_x(data=f[Quantile==X], x=0.95))-> WOW[[I]][['HRS_eur']][[2]];lapply(unique(f$Quantile), function(X) F2_x(data=f[Quantile==X], x=0.9))-> WOW[[I]][['HRS_eur']][[3]]
 	lapply(unique(f$Quantile), function(X) F2_x(data=f[Quantile==X], x=0.85))-> WOW[[I]][['HRS_eur']][[4]];lapply(unique(f$Quantile), function(X) F2_x(data=f[Quantile==X], x=0.8))-> WOW[[I]][['HRS_eur']][[5]]
@@ -623,51 +673,51 @@ OR2_table<-vector('list', length(combo))
 names(OR2_table)<-names(AA)
 for(I in names(AA)){
         OR2_table[[I]]<-rbind(
-        data.table(Dataset=c(rep("WHI",6),rep("pennBB_AA",4), rep('UKB_AFR', 5), rep('UKB_EUR', 1), rep('pennBB_EA',1), rep("JHS",3)),
-        EUR_ANC=c(na.omit(c(unlist(lapply(names(WOW2[[I]][['WHI']][['0.975perc']]), function(X) median(test2[[I]][Dataset=='WHI'][Quantile==X][, EUR_ANC]))), median(combo[[I]][Dataset=='WHI'][, EUR_ANC]))),
-        na.omit(c(unlist(lapply(names(WOW2[[I]][['pennBB_AA']][['0.975perc']]), function(X) median(test2[[I]][Dataset=='pennBB_AA'][Quantile==X][, EUR_ANC]))), median(combo[[I]][Dataset=='pennBB_AA'][, EUR_ANC]))),
-	na.omit(c(unlist(lapply(names(WOW2[[I]][['UKB_AFR']][['0.975perc']]), function(X) median(test2[[I]][Dataset=='UKB_AFR'][Quantile==X][, EUR_ANC]))), median(combo[[I]][Dataset=='UKB_AFR'][, EUR_ANC]))),
-        median(test2[[I]][Dataset=='UKB_EUR'][Quantile==1][, EUR_ANC]), median(test2[[I]][Dataset=='pennBB_EA'][Quantile==1][, EUR_ANC]),
-	na.omit(c(unlist(lapply(names(WOW2[[I]][['JHS']][['0.975perc']]), function(X) median(test2[[I]][Dataset=='JHS'][Quantile==X][, EUR_ANC]))), median(combo[[I]][Dataset=='JHS'][, EUR_ANC])))),
+        data.table(Dataset=c(rep("WHI_afr",5), rep('HRS_afr', 3), rep('UKB_afr', 5), rep('HRS_eur',1), rep("JHS_afr",3)),
+        EUR_ANC=c(na.omit(c(unlist(lapply(names(WOW2[[I]][['WHI_afr']][['0.975perc']]), function(X) median(test2[[I]][Dataset=='WHI_afr'][Quantile==X][, EUR_ANC]))), median(combo[[I]][Dataset=='WHI_afr'][, EUR_ANC]))),
+        na.omit(c(unlist(lapply(names(WOW2[[I]][['HRS_afr']][['0.975perc']]), function(X) median(test2[[I]][Dataset=='HRS_afr'][Quantile==X][, EUR_ANC]))), median(combo[[I]][Dataset=='HRS_afr'][, EUR_ANC]))),
+	na.omit(c(unlist(lapply(names(WOW2[[I]][['UKB_afr']][['0.975perc']]), function(X) median(test2[[I]][Dataset=='UKB_afr'][Quantile==X][, EUR_ANC]))), median(combo[[I]][Dataset=='UKB_afr'][, EUR_ANC]))),
+        median(test2[[I]][Dataset=='HRS_eur'][Quantile==1][, EUR_ANC]),
+	na.omit(c(unlist(lapply(names(WOW2[[I]][['JHS_afr']][['0.975perc']]), function(X) median(test2[[I]][Dataset=='JHS_afr'][Quantile==X][, EUR_ANC]))), median(combo[[I]][Dataset=='JHS_afr'][, EUR_ANC])))),
         Alpha=0.975,
-        OR=c(sapply(WOW2[[I]][['WHI']][['0.975perc']], function(X) X$F),sapply(WOW2[[I]][['pennBB_AA']][['0.975perc']], function(X) X$F), sapply(WOW2[[I]][['UKB_AFR']][['0.975perc']], function(X) X$F), sapply(WOW2[[I]][['UKB_EUR']][['0.975perc']], function(X) X$F), sapply(WOW2[[I]][['pennBB_EA']][['0.975perc']], function(X) X$F), sapply(WOW2[[I]][['JHS']][['0.975perc']], function(X) X$F)),
-	Quantile=c(names(WOW2[[I]][['WHI']][['0.975perc']]), names(WOW2[[I]][['pennBB_AA']][['0.975perc']]),names(WOW2[[I]][['UKB_AFR']][['0.975perc']]), as.character(1),as.character(1), names(WOW2[[I]][['JHS']][['0.975perc']])), Prun=I),
-	data.table(Dataset=c(rep("WHI",6),rep("pennBB_AA",4), rep('UKB_AFR', 5), rep('UKB_EUR', 1), rep('pennBB_EA',1), rep("JHS",3)),
-        EUR_ANC=c(na.omit(c(unlist(lapply(names(WOW2[[I]][['WHI']][['0.95perc']]), function(X) median(test2[[I]][Dataset=='WHI'][Quantile==X][, EUR_ANC]))), median(combo[[I]][Dataset=='WHI'][, EUR_ANC]))),
-        na.omit(c(unlist(lapply(names(WOW2[[I]][['pennBB_AA']][['0.95perc']]), function(X) median(test2[[I]][Dataset=='pennBB_AA'][Quantile==X][, EUR_ANC]))), median(combo[[I]][Dataset=='pennBB_AA'][, EUR_ANC]))),
-	na.omit(c(unlist(lapply(names(WOW2[[I]][['UKB_AFR']][['0.95perc']]), function(X) median(test2[[I]][Dataset=='UKB_AFR'][Quantile==X][, EUR_ANC]))), median(combo[[I]][Dataset=='UKB_AFR'][, EUR_ANC]))),
-        median(test2[[I]][Dataset=='UKB_EUR'][Quantile==1][, EUR_ANC]), median(test2[[I]][Dataset=='pennBB_EA'][Quantile==1][, EUR_ANC]),
-	na.omit(c(unlist(lapply(names(WOW2[[I]][['JHS']][['0.95perc']]), function(X) median(test2[[I]][Dataset=='JHS'][Quantile==X][, EUR_ANC]))), median(combo[[I]][Dataset=='JHS'][, EUR_ANC])))),
+        OR=c(sapply(WOW2[[I]][['WHI_afr']][['0.975perc']], function(X) X$F),sapply(WOW2[[I]][['HRS_afr']][['0.975perc']], function(X) X$F), sapply(WOW2[[I]][['UKB_afr']][['0.975perc']], function(X) X$F), sapply(WOW2[[I]][['HRS_eur']][['0.975perc']], function(X) X$F), sapply(WOW2[[I]][['JHS_afr']][['0.975perc']], function(X) X$F)),
+	Quantile=c(names(WOW2[[I]][['WHI_afr']][['0.975perc']]), names(WOW2[[I]][['HRS_afr']][['0.975perc']]),names(WOW2[[I]][['UKB_afr']][['0.975perc']]), as.character(1),names(WOW2[[I]][['JHS_afr']][['0.975perc']])), Prun=I),
+	data.table(Dataset=c(rep("WHI",5),rep("HRS_afr",3), rep('UKB_afr', 5), rep('HRS_eur',1), rep("JHS_afr",3)),
+        EUR_ANC=c(na.omit(c(unlist(lapply(names(WOW2[[I]][['WHI_afr']][['0.95perc']]), function(X) median(test2[[I]][Dataset=='WHI_afr'][Quantile==X][, EUR_ANC]))), median(combo[[I]][Dataset=='WHI_afr'][, EUR_ANC]))),
+        na.omit(c(unlist(lapply(names(WOW2[[I]][['HRS_afr']][['0.95perc']]), function(X) median(test2[[I]][Dataset=='HRS_afr'][Quantile==X][, EUR_ANC]))), median(combo[[I]][Dataset=='HRS_afr'][, EUR_ANC]))),
+	na.omit(c(unlist(lapply(names(WOW2[[I]][['UKB_afr']][['0.95perc']]), function(X) median(test2[[I]][Dataset=='UKB_afr'][Quantile==X][, EUR_ANC]))), median(combo[[I]][Dataset=='UKB_afr'][, EUR_ANC]))),
+        median(test2[[I]][Dataset=='HRS_eur'][Quantile==1][, EUR_ANC]),
+	na.omit(c(unlist(lapply(names(WOW2[[I]][['JHS_afr']][['0.95perc']]), function(X) median(test2[[I]][Dataset=='JHS_afr'][Quantile==X][, EUR_ANC]))), median(combo[[I]][Dataset=='JHS_afr'][, EUR_ANC])))),
         Alpha=0.95,	
-        OR=c(sapply(WOW2[[I]][['WHI']][['0.95perc']], function(X) X$F),sapply(WOW2[[I]][['pennBB_AA']][['0.95perc']], function(X) X$F), sapply(WOW2[[I]][['UKB_AFR']][['0.95perc']], function(X) X$F), sapply(WOW2[[I]][['UKB_EUR']][['0.95perc']], function(X) X$F), sapply(WOW2[[I]][['pennBB_EA']][['0.95perc']], function(X) X$F), sapply(WOW2[[I]][['JHS']][['0.95perc']], function(X) X$F)),
-        Quantile=c(names(WOW2[[I]][['WHI']][['0.95perc']]), names(WOW2[[I]][['pennBB_AA']][['0.95perc']]),names(WOW2[[I]][['UKB_AFR']][['0.95perc']]), as.character(1),as.character(1), names(WOW2[[I]][['JHS']][['0.95perc']])), Prun=I),
-        data.table(Dataset=c(rep("WHI",6),rep("pennBB_AA",4), rep('UKB_AFR', 5), rep('UKB_EUR', 1), rep('pennBB_EA',1), rep("JHS",3)),
-        EUR_ANC=c(na.omit(c(unlist(lapply(names(WOW2[[I]][['WHI']][['0.9perc']]), function(X) median(test2[[I]][Dataset=='WHI'][Quantile==X][, EUR_ANC]))), median(combo[[I]][Dataset=='WHI'][, EUR_ANC]))),
-        na.omit(c(unlist(lapply(names(WOW2[[I]][['pennBB_AA']][['0.9perc']]), function(X) median(test2[[I]][Dataset=='pennBB_AA'][Quantile==X][, EUR_ANC]))), median(combo[[I]][Dataset=='pennBB_AA'][, EUR_ANC]))),
-	na.omit(c(unlist(lapply(names(WOW2[[I]][['UKB_AFR']][['0.9perc']]), function(X) median(test2[[I]][Dataset=='UKB_AFR'][Quantile==X][, EUR_ANC]))), median(combo[[I]][Dataset=='UKB_AFR'][, EUR_ANC]))),
-        median(test2[[I]][Dataset=='UKB_EUR'][Quantile==1][, EUR_ANC]), median(test2[[I]][Dataset=='pennBB_EA'][Quantile==1][, EUR_ANC]),
-	na.omit(c(unlist(lapply(names(WOW2[[I]][['JHS']][['0.9perc']]), function(X) median(test2[[I]][Dataset=='JHS'][Quantile==X][, EUR_ANC]))), median(combo[[I]][Dataset=='JHS'][, EUR_ANC])))), 
+        OR=c(sapply(WOW2[[I]][['WHI_afr']][['0.95perc']], function(X) X$F),sapply(WOW2[[I]][['HRS_afr']][['0.95perc']], function(X) X$F), sapply(WOW2[[I]][['UKB_afr']][['0.95perc']], function(X) X$F), sapply(WOW2[[I]][['HRS_eur']][['0.95perc']], function(X) X$F), sapply(WOW2[[I]][['JHS_afr']][['0.95perc']], function(X) X$F)),
+        Quantile=c(names(WOW2[[I]][['WHI_afr']][['0.95perc']]), names(WOW2[[I]][['HRS_afr']][['0.95perc']]),names(WOW2[[I]][['UKB_afr']][['0.95perc']]), as.character(1),names(WOW2[[I]][['JHS_afr']][['0.95perc']])), Prun=I),
+        data.table(Dataset=c(rep("WHI_afr",5),rep("HRS_afr",3), rep('UKB_afr', 5), rep('HRS_eur', 1), rep("JHS_afr",3)),
+        EUR_ANC=c(na.omit(c(unlist(lapply(names(WOW2[[I]][['WHI_afr']][['0.9perc']]), function(X) median(test2[[I]][Dataset=='WHI_afr'][Quantile==X][, EUR_ANC]))), median(combo[[I]][Dataset=='WHI_afr'][, EUR_ANC]))),
+        na.omit(c(unlist(lapply(names(WOW2[[I]][['HRS_afr']][['0.9perc']]), function(X) median(test2[[I]][Dataset=='HRS_afr'][Quantile==X][, EUR_ANC]))), median(combo[[I]][Dataset=='HRS_afr'][, EUR_ANC]))),
+	na.omit(c(unlist(lapply(names(WOW2[[I]][['UKB_afr']][['0.9perc']]), function(X) median(test2[[I]][Dataset=='UKB_afr'][Quantile==X][, EUR_ANC]))), median(combo[[I]][Dataset=='UKB_afr'][, EUR_ANC]))),
+        median(test2[[I]][Dataset=='HRS_eur'][Quantile==1][, EUR_ANC]), 
+	na.omit(c(unlist(lapply(names(WOW2[[I]][['JHS_afr']][['0.9perc']]), function(X) median(test2[[I]][Dataset=='JHS_afr'][Quantile==X][, EUR_ANC]))), median(combo[[I]][Dataset=='JHS_afr'][, EUR_ANC])))), 
         Alpha=0.9,
-        OR=c(sapply(WOW2[[I]][['WHI']][['0.9perc']], function(X) X$F),sapply(WOW2[[I]][['pennBB_AA']][['0.9perc']], function(X) X$F), sapply(WOW2[[I]][['UKB_AFR']][['0.9perc']], function(X) X$F), sapply(WOW2[[I]][['UKB_EUR']][['0.9perc']], function(X) X$F), sapply(WOW2[[I]][['pennBB_EA']][['0.9perc']], function(X) X$F), sapply(WOW2[[I]][['JHS']][['0.9perc']], function(X) X$F)),
-        Quantile=c(names(WOW2[[I]][['WHI']][['0.9perc']]), names(WOW2[[I]][['pennBB_AA']][['0.9perc']]),names(WOW2[[I]][['UKB_AFR']][['0.9perc']]), as.character(1),as.character(1), names(WOW2[[I]][['JHS']][['0.9perc']])), Prun=I),
-        data.table(Dataset=c(rep("WHI",6),rep("pennBB_AA",4), rep('UKB_AFR', 5), rep('UKB_EUR', 1), rep('pennBB_EA',1), rep("JHS",3)),
-	EUR_ANC=c(na.omit(c(unlist(lapply(names(WOW2[[I]][['WHI']][['0.85perc']]), function(X) median(test2[[I]][Dataset=='WHI'][Quantile==X][, EUR_ANC]))), median(combo[[I]][Dataset=='WHI'][, EUR_ANC]))),
-        na.omit(c(unlist(lapply(names(WOW2[[I]][['pennBB_AA']][['0.85perc']]), function(X) median(test2[[I]][Dataset=='pennBB_AA'][Quantile==X][, EUR_ANC]))), median(combo[[I]][Dataset=='pennBB_AA'][, EUR_ANC]))),
-	na.omit(c(unlist(lapply(names(WOW2[[I]][['UKB_AFR']][['0.85perc']]), function(X) median(test2[[I]][Dataset=='UKB_AFR'][Quantile==X][, EUR_ANC]))), median(combo[[I]][Dataset=='UKB_AFR'][, EUR_ANC]))),
-        median(test2[[I]][Dataset=='UKB_EUR'][Quantile==1][, EUR_ANC]), median(test2[[I]][Dataset=='pennBB_EA'][Quantile==1][, EUR_ANC]),
-	na.omit(c(unlist(lapply(names(WOW2[[I]][['JHS']][['0.85perc']]), function(X) median(test2[[I]][Dataset=='JHS'][Quantile==X][, EUR_ANC]))), median(combo[[I]][Dataset=='JHS'][, EUR_ANC])))),
+        OR=c(sapply(WOW2[[I]][['WHI_afr']][['0.9perc']], function(X) X$F),sapply(WOW2[[I]][['HRS_afr']][['0.9perc']], function(X) X$F), sapply(WOW2[[I]][['UKB_afr']][['0.9perc']], function(X) X$F), sapply(WOW2[[I]][['HRS_eur']][['0.9perc']], function(X) X$F), sapply(WOW2[[I]][['JHS_afr']][['0.9perc']], function(X) X$F)),
+        Quantile=c(names(WOW2[[I]][['WHI_afr']][['0.9perc']]), names(WOW2[[I]][['HRS_afr']][['0.9perc']]),names(WOW2[[I]][['UKB_afr']][['0.9perc']]), as.character(1),names(WOW2[[I]][['JHS_afr']][['0.9perc']])), Prun=I),
+        data.table(Dataset=c(rep("WHI_afr",5),rep("HRS_afr",3), rep('UKB_afr', 5), rep('HRS_eur', 1), rep('JHS_afr',3)),
+	EUR_ANC=c(na.omit(c(unlist(lapply(names(WOW2[[I]][['WHI_afr']][['0.85perc']]), function(X) median(test2[[I]][Dataset=='WHI_afr'][Quantile==X][, EUR_ANC]))), median(combo[[I]][Dataset=='WHI_afr'][, EUR_ANC]))),
+        na.omit(c(unlist(lapply(names(WOW2[[I]][['HRS_afr']][['0.85perc']]), function(X) median(test2[[I]][Dataset=='HRS_afr'][Quantile==X][, EUR_ANC]))), median(combo[[I]][Dataset=='HRS_afr'][, EUR_ANC]))),
+	na.omit(c(unlist(lapply(names(WOW2[[I]][['UKB_afr']][['0.85perc']]), function(X) median(test2[[I]][Dataset=='UKB_afr'][Quantile==X][, EUR_ANC]))), median(combo[[I]][Dataset=='UKB_afr'][, EUR_ANC]))),
+        median(test2[[I]][Dataset=='HRS_eur'][Quantile==1][, EUR_ANC]),
+	na.omit(c(unlist(lapply(names(WOW2[[I]][['JHS_afr']][['0.85perc']]), function(X) median(test2[[I]][Dataset=='JHS_afr'][Quantile==X][, EUR_ANC]))), median(combo[[I]][Dataset=='JHS_afr'][, EUR_ANC])))),
         Alpha=0.85,
-        OR=c(sapply(WOW2[[I]][['WHI']][['0.85perc']], function(X) X$F),sapply(WOW2[[I]][['pennBB_AA']][['0.85perc']], function(X) X$F), sapply(WOW2[[I]][['UKB_AFR']][['0.85perc']], function(X) X$F), sapply(WOW2[[I]][['UKB_EUR']][['0.85perc']], function(X) X$F), sapply(WOW2[[I]][['pennBB_EA']][['0.85perc']], function(X) X$F), sapply(WOW2[[I]][['JHS']][['0.85perc']], function(X) X$F)),
-        Quantile=c(names(WOW2[[I]][['WHI']][['0.85perc']]), names(WOW2[[I]][['pennBB_AA']][['0.85perc']]),names(WOW2[[I]][['UKB_AFR']][['0.85perc']]), as.character(1),as.character(1), names(WOW2[[I]][['JHS']][['0.85perc']])), Prun=I),
-        data.table(Dataset=c(rep("WHI",6),rep("pennBB_AA",4), rep('UKB_AFR', 5), rep('UKB_EUR', 1), rep('pennBB_EA',1), rep("JHS",3)),
-	EUR_ANC=c(na.omit(c(unlist(lapply(names(WOW2[[I]][['WHI']][['0.8perc']]), function(X) median(test2[[I]][Dataset=='WHI'][Quantile==X][, EUR_ANC]))), median(combo[[I]][Dataset=='WHI'][, EUR_ANC]))),
-        na.omit(c(unlist(lapply(names(WOW2[[I]][['pennBB_AA']][['0.8perc']]), function(X) median(test2[[I]][Dataset=='pennBB_AA'][Quantile==X][, EUR_ANC]))), median(combo[[I]][Dataset=='pennBB_AA'][, EUR_ANC]))),
-	na.omit(c(unlist(lapply(names(WOW2[[I]][['UKB_AFR']][['0.8perc']]), function(X) median(test2[[I]][Dataset=='UKB_AFR'][Quantile==X][, EUR_ANC]))), median(combo[[I]][Dataset=='UKB_AFR'][, EUR_ANC]))),
-        median(test2[[I]][Dataset=='UKB_EUR'][Quantile==1][, EUR_ANC]), median(test2[[I]][Dataset=='pennBB_EA'][Quantile==1][, EUR_ANC]),
-	na.omit(c(unlist(lapply(names(WOW2[[I]][['JHS']][['0.8perc']]), function(X) median(test2[[I]][Dataset=='JHS'][Quantile==X][, EUR_ANC]))), median(combo[[I]][Dataset=='JHS'][, EUR_ANC])))),
+        OR=c(sapply(WOW2[[I]][['WHI_afr']][['0.85perc']], function(X) X$F),sapply(WOW2[[I]][['HRS_afr']][['0.85perc']], function(X) X$F), sapply(WOW2[[I]][['UKB_afr']][['0.85perc']], function(X) X$F), sapply(WOW2[[I]][['HRS_eur']][['0.85perc']], function(X) X$F), sapply(WOW2[[I]][['JHS_afr']][['0.85perc']], function(X) X$F)),
+        Quantile=c(names(WOW2[[I]][['WHI_afr']][['0.85perc']]), names(WOW2[[I]][['HRS_afr']][['0.85perc']]),names(WOW2[[I]][['UKB_afr']][['0.85perc']]), as.character(1),names(WOW2[[I]][['JHS_afr']][['0.85perc']])), Prun=I),
+        data.table(Dataset=c(rep("WHI_afr",5),rep("HRS_afr",3), rep('UKB_afr', 5), rep('HRS_eur', 1), rep("JHS_afr",3)),
+	EUR_ANC=c(na.omit(c(unlist(lapply(names(WOW2[[I]][['WHI_afr']][['0.8perc']]), function(X) median(test2[[I]][Dataset=='WHI_afr'][Quantile==X][, EUR_ANC]))), median(combo[[I]][Dataset=='WHI_afr'][, EUR_ANC]))),
+        na.omit(c(unlist(lapply(names(WOW2[[I]][['HRS_afr']][['0.8perc']]), function(X) median(test2[[I]][Dataset=='HRS_afr'][Quantile==X][, EUR_ANC]))), median(combo[[I]][Dataset=='HRS_afr'][, EUR_ANC]))),
+	na.omit(c(unlist(lapply(names(WOW2[[I]][['UKB_afr']][['0.8perc']]), function(X) median(test2[[I]][Dataset=='UKB_afr'][Quantile==X][, EUR_ANC]))), median(combo[[I]][Dataset=='UKB_afr'][, EUR_ANC]))),
+        median(test2[[I]][Dataset=='HRS_eur'][Quantile==1][, EUR_ANC]),
+	na.omit(c(unlist(lapply(names(WOW2[[I]][['JHS_afr']][['0.8perc']]), function(X) median(test2[[I]][Dataset=='JHS_afr'][Quantile==X][, EUR_ANC]))), median(combo[[I]][Dataset=='JHS_afr'][, EUR_ANC])))),
         Alpha=0.8,
-        OR=c(sapply(WOW2[[I]][['WHI']][['0.8perc']], function(X) X$F),sapply(WOW2[[I]][['pennBB_AA']][['0.8perc']], function(X) X$F), sapply(WOW2[[I]][['UKB_AFR']][['0.8perc']], function(X) X$F), sapply(WOW2[[I]][['UKB_EUR']][['0.8perc']], function(X) X$F), sapply(WOW2[[I]][['pennBB_EA']][['0.8perc']], function(X) X$F), sapply(WOW2[[I]][['JHS']][['0.8perc']], function(X) X$F)),
-        Quantile=c(names(WOW2[[I]][['WHI']][['0.8perc']]), names(WOW2[[I]][['pennBB_AA']][['0.8perc']]),names(WOW2[[I]][['UKB_AFR']][['0.8perc']]), as.character(1),as.character(1), names(WOW2[[I]][['JHS']][['0.8perc']])), Prun=I)
+        OR=c(sapply(WOW2[[I]][['WHI_afr']][['0.8perc']], function(X) X$F),sapply(WOW2[[I]][['HRS_afr']][['0.8perc']], function(X) X$F), sapply(WOW2[[I]][['UKB_afr']][['0.8perc']], function(X) X$F), sapply(WOW2[[I]][['HRS_eur']][['0.8perc']], function(X) X$F), sapply(WOW2[[I]][['JHS_afr']][['0.8perc']], function(X) X$F)),
+        Quantile=c(names(WOW2[[I]][['WHI_afr']][['0.8perc']]), names(WOW2[[I]][['HRS_afr']][['0.8perc']]),names(WOW2[[I]][['UKB_afr']][['0.8perc']]), as.character(1),names(WOW2[[I]][['JHS_afr']][['0.8perc']])), Prun=I)
 	)
         cat(I)
         cat('\n')
@@ -681,98 +731,46 @@ OR2_table[[I]]<-rbind(OR2_table[[I]][Quantile!='all'],OR2_table[[I]][Quantile=='
 
 do.call(rbind, OR_table)-> OR_table2
 do.call(rbind, OR2_table)-> OR_table3
-fwrite(OR_table2, file='Odds_Ratio_all_datasets.txt', quote=F, sep="\t")
-fwrite(OR_table3, file='Odds_Ratio_all_datasets_v2.txt', quote=F, sep="\t")
+fwrite(OR_table2, file='~/height_prediction/figs/Odds_Ratio_all_datasets.txt', quote=F, sep="\t")
+fwrite(OR_table3, file='~/height_prediction/figs/Odds_Ratio_all_datasets_v2.txt', quote=F, sep="\t")
 as.factor(OR_table[[63]]$Alpha)-> OR_table[[63]]$Alpha
 OR_table[[63]][, logOR:=log(OR)]
 
 as.factor(OR2_table[[63]]$Alpha)-> OR2_table[[63]]$Alpha
 OR2_table[[63]][, logOR:=log(OR)]
 
-png(paste0('figs/logOR_test_', names(AA)[63], '.png'))
-one<-ggplot(OR_table[[63]], aes(x=EUR_ANC, y=logOR, shape=Dataset, colour=Alpha)) +
-geom_point(size=2) + labs(title="Log odds-ratio of P(>=Xth HEIGHT quantile|>=Xth PRS quantile)", y="log(OR)") + geom_hline(yintercept=0, linetype="dashed", color = "orange") + stat_smooth(method = "lm", se=F, aes(group=Alpha))
+colors<-brewer.pal(n = 5, name = 'RdBu')
+factor(OR_table[[63]]$Alpha, levels=c(0.975,0.95,0.9, 0.85, 0.8))-> OR_table[[63]]$Alpha
+png(paste0('~/height_prediction/figs/logOR_test_', names(AA)[63], '.png'))
+one<-ggplot(OR_table[[63]], aes(x=EUR_ANC, y=logOR,  colour=Alpha)) +
+geom_point(size=2) + labs(y="log(OR)", x="European Ancestry Proportion") + geom_hline(yintercept=0, linetype="dashed", color = "orange") + stat_smooth(method = "lm", se=F, aes(group=Alpha)) + theme(legend.text=element_text(size=12)) + scale_colour_manual(values=colors)
 print(one)
 dev.off()
 
-png(paste0('figs/logOR_v2_test', names(AA)[63], '.png'))
-one<-ggplot(OR2_table[[63]], aes(x=EUR_ANC, y=logOR, shape=Dataset, colour=Alpha)) +
-geom_point(size=2) + labs(title="Log odds-ratio of P(>=Xth HEIGHT quantile|>=Xth PRS quantile)", y="log(OR)") + geom_hline(yintercept=0, linetype="dashed", color = "orange") + stat_smooth(method = "lm", se=F, aes(group=Alpha))
+png(paste0('~/height_prediction/figs/logOR_v2_test', names(AA)[63], '.png'))
+one<-ggplot(OR2_table[[63]], aes(x=EUR_ANC, y=logOR,colour=Alpha)) +
+geom_point(size=2) + labs( y="log(OR)", x="European Ancestry Proportion") + geom_hline(yintercept=0, linetype="dashed", color = "orange") + stat_smooth(method = "lm", se=F, aes(group=Alpha)) + theme(legend.text=element_text(size=12)) + scale_colour_manual(values=colors)
 print(one)
 dev.off()
 
-png(paste0('figs/OR_test_', names(AA)[63], '.png'))
-two<-ggplot(OR_table[[63]], aes(x=EUR_ANC, y=OR, shape=Dataset, colour=Alpha)) +
-geom_point(size=2) + labs(title="Odds-ratio of P(>=Xth HEIGHT quantile|>=Xth PRS quantile)", y="OR") + geom_hline(yintercept=1, linetype="dashed", color = "orange") + stat_smooth(method = "lm", se=F, aes(group=Alpha))
+png(paste0('~/height_prediction/figs/OR_test_', names(AA)[63], '.png'))
+two<-ggplot(OR_table[[63]], aes(x=EUR_ANC, y=OR,colour=Alpha)) +
+geom_point(size=2) + labs(y="OR", x="European Ancestry Proportion") + geom_hline(yintercept=1, linetype="dashed", color = "orange") + stat_smooth(method = "lm", se=F, aes(group=Alpha)) + theme(legend.text=element_text(size=12)) + scale_colour_manual(values=colors)
 print(two)
 dev.off()
 
-png(paste0('figs/OR2_test_' , names(AA)[63],'_v2.png'))
+png(paste0('~/height_prediction/figs/OR2_test_' , names(AA)[63],'_v2.png'))
 two<-ggplot(OR2_table[[63]], aes(x=EUR_ANC, y=OR, shape=Dataset, colour=Alpha)) +
 geom_point(size=3) + labs(title="Odds-ratio of P(>=Xth HEIGHT quantile|>=Xth PRS quantile)", y="OR") + geom_hline(yintercept=1, linetype="dashed", color = "orange") + stat_smooth(method = "lm", se=F, aes(group=Alpha)) + 
-theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15),  axis.text.x=element_text(size=12), axis.text.y=element_text(size=12))
+theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15),  axis.text.x=element_text(size=12), axis.text.y=element_text(size=12),legend.text=element_text(size=12)) + scale_colour_manual(values=colors)
 print(two)
 dev.off()
-
-###area under the curve
-I<-names(AA)[63]
-lapply(seq(0.2, 0.98, by=0.01), function(X) F3_x(data=combo[[I]][Dataset=='WHI'],data2=combo[[I]], x=X))-> my.auc.WHI
-lapply(seq(0.2, 0.98, by=0.01), function(X) F3_x(data=combo[[I]][Dataset=='JHS'],data2=combo[[I]], x=X))-> my.auc.JHS
-lapply(seq(0.2, 0.98, by=0.01), function(X) F3_x(data=combo[[I]][Dataset=='UKB_EUR'],data2=combo[[I]], x=X))-> my.auc.UKB_EUR
-lapply(seq(0.2, 0.98, by=0.01), function(X) F3_x(data=combo[[I]][Dataset=='UKB_AFR'],data2=combo[[I]], x=X))-> my.auc.UKB_AFR
-lapply(seq(0.2, 0.98, by=0.01), function(X) F3_x(data=combo[[I]][Dataset=='pennBB_AA'],data2=combo[[I]], x=X))-> my.auc.pennBB_AFR
-lapply(seq(0.2, 0.98, by=0.01), function(X) F3_x(data=combo[[I]][Dataset=='pennBB_EA'],data2=combo[[I]], x=X))-> my.auc.pennBB_EUR
-my.dt.WHI<-data.table(F=unlist(lapply(my.auc.WHI, function(x) x$F)), G=unlist(lapply(my.auc.WHI, function(x) x$G)), TP=unlist(lapply(my.auc.WHI, function(x) x$f)), FP=unlist(lapply(my.auc.WHI, function(x) x$g)), Alpha=seq(0.2, 0.98, by=0.01), Dataset='WHI', Ref="UKB_EUR")
-my.dt.JHS<-data.table(F=unlist(lapply(my.auc.JHS, function(x) x$F)), G=unlist(lapply(my.auc.JHS, function(x) x$G)), TP=unlist(lapply(my.auc.JHS, function(x) x$f)), FP=unlist(lapply(my.auc.JHS, function(x) x$g)), Alpha=seq(0.2, 0.98, by=0.01), Dataset='JHS', Ref="UKB_EUR")
-my.dt.UKB_EUR<-data.table(F=unlist(lapply(my.auc.UKB_EUR, function(x) x$F)), G=unlist(lapply(my.auc.UKB_EUR, function(x) x$G)), TP=unlist(lapply(my.auc.UKB_EUR, function(x) x$f)), FP=unlist(lapply(my.auc.UKB_EUR, function(x) x$g)), Alpha=seq(0.2, 0.98, by=0.01), Dataset='UKB_EUR', Ref="UKB_EUR")
-my.dt.UKB_AFR<-data.table(F=unlist(lapply(my.auc.UKB_AFR, function(x) x$F)), G=unlist(lapply(my.auc.UKB_AFR, function(x) x$G)), TP=unlist(lapply(my.auc.UKB_AFR, function(x) x$f)), FP=unlist(lapply(my.auc.UKB_AFR, function(x) x$g)), Alpha=seq(0.2, 0.98, by=0.01), Dataset='UKB_AFR', Ref="UKB_EUR")
-my.dt.pennBB_EUR<-data.table(F=unlist(lapply(my.auc.pennBB_EUR, function(x) x$F)), G=unlist(lapply(my.auc.pennBB_EUR, function(x) x$G)), TP=unlist(lapply(my.auc.pennBB_EUR, function(x) x$f)), FP=unlist(lapply(my.auc.pennBB_EUR, function(x) x$g)), Alpha=seq(0.2, 0.98, by=0.01), Dataset='pennBB_EA', Ref="UKB_EUR")
-my.dt.pennBB_AFR<-data.table(F=unlist(lapply(my.auc.pennBB_AFR, function(x) x$F)), G=unlist(lapply(my.auc.pennBB_AFR, function(x) x$G)), TP=unlist(lapply(my.auc.pennBB_AFR, function(x) x$f)), FP=unlist(lapply(my.auc.pennBB_AFR, function(x) x$g)), Alpha=seq(0.2, 0.98, by=0.01), Dataset='pennBB_AA', Ref="UKB_EUR")
-rbind(my.dt.WHI, my.dt.JHS,my.dt.UKB_EUR, my.dt.UKB_AFR, my.dt.pennBB_AFR, my.dt.pennBB_EUR)-> my.dt
-#rbind(my.dt.WHI, my.dt.UKB_EUR, my.dt.UKB_AFR)-> my.dt
-#
-
-lapply(seq(0.2, 0.98, by=0.01), function(X) F4_x(data=combo[[I]][Dataset=='WHI'], x=X))-> my.auc.WHI.f4
-lapply(seq(0.2, 0.98, by=0.01), function(X) F4_x(data=combo[[I]][Dataset=='JHS'], x=X))-> my.auc.JHS.f4
-lapply(seq(0.2, 0.98, by=0.01), function(X) F4_x(data=combo[[I]][Dataset=='UKB_EUR'], x=X))-> my.auc.UKB_EUR.f4
-lapply(seq(0.2, 0.98, by=0.01), function(X) F4_x(data=combo[[I]][Dataset=='UKB_AFR'], x=X))-> my.auc.UKB_AFR.f4
-lapply(seq(0.2, 0.98, by=0.01), function(X) F4_x(data=combo[[I]][Dataset=='pennBB_AA'], x=X))-> my.auc.pennBB_AFR.f4
-lapply(seq(0.2, 0.98, by=0.01), function(X) F4_x(data=combo[[I]][Dataset=='pennBB_EA'], x=X))-> my.auc.pennBB_EUR.f4
-my.dt.WHI.f4<-data.table(F=unlist(lapply(my.auc.WHI.f4, function(x) x$F)), G=unlist(lapply(my.auc.WHI.f4, function(x) x$G)), TP=unlist(lapply(my.auc.WHI.f4, function(x) x$f)), FP=unlist(lapply(my.auc.WHI.f4, function(x) x$g)), Alpha=seq(0.2, 0.98, by=0.01), Dataset='WHI', Ref="Matched")
-my.dt.JHS.f4<-data.table(F=unlist(lapply(my.auc.JHS.f4, function(x) x$F)), G=unlist(lapply(my.auc.JHS.f4, function(x) x$G)), TP=unlist(lapply(my.auc.JHS.f4, function(x) x$f)), FP=unlist(lapply(my.auc.JHS.f4, function(x) x$g)), Alpha=seq(0.2, 0.98, by=0.01), Dataset='JHS', Ref="Matched")
-my.dt.UKB_EUR.f4<-data.table(F=unlist(lapply(my.auc.UKB_EUR.f4, function(x) x$F)), G=unlist(lapply(my.auc.UKB_EUR.f4, function(x) x$G)), TP=unlist(lapply(my.auc.UKB_EUR.f4, function(x) x$f)), FP=unlist(lapply(my.auc.UKB_EUR.f4, function(x) x$g)), Alpha=seq(0.2, 0.98, by=0.01), Dataset='UKB_EUR', Ref="Matched")
-my.dt.UKB_AFR.f4<-data.table(F=unlist(lapply(my.auc.UKB_AFR.f4, function(x) x$F)), G=unlist(lapply(my.auc.UKB_AFR.f4, function(x) x$G)), TP=unlist(lapply(my.auc.UKB_AFR.f4, function(x) x$f)), FP=unlist(lapply(my.auc.UKB_AFR.f4, function(x) x$g)), Alpha=seq(0.2, 0.98, by=0.01), Dataset='UKB_AFR', Ref="Matched")
-my.dt.pennBB_EUR.f4<-data.table(F=unlist(lapply(my.auc.pennBB_EUR.f4, function(x) x$F)), G=unlist(lapply(my.auc.pennBB_EUR.f4, function(x) x$G)), TP=unlist(lapply(my.auc.pennBB_EUR.f4, function(x) x$f)), FP=unlist(lapply(my.auc.pennBB_EUR.f4, function(x) x$g)), Alpha=seq(0.2, 0.98, by=0.01), Dataset='pennBB_EA', Ref="Matched")
-my.dt.pennBB_AFR.f4<-data.table(F=unlist(lapply(my.auc.pennBB_AFR.f4, function(x) x$F)), G=unlist(lapply(my.auc.pennBB_AFR.f4, function(x) x$G)), TP=unlist(lapply(my.auc.pennBB_AFR.f4, function(x) x$f)), FP=unlist(lapply(my.auc.pennBB_AFR.f4, function(x) x$g)), Alpha=seq(0.2, 0.98, by=0.01), Dataset='pennBB_AA', Ref="Matched")
-rbind(my.dt.WHI.f4, my.dt.JHS.f4,  my.dt.UKB_EUR.f4, my.dt.UKB_AFR.f4, my.dt.pennBB_AFR.f4, my.dt.pennBB_EUR.f4)-> my.dt.f4
-#rbind(my.dt.WHI.f4, my.dt.UKB_EUR.f4, my.dt.UKB_AFR.f4)-> my.dt.f4
-rbind(my.dt, my.dt.f4)-> my.dt
-
-
-ggplot(my.dt[Alpha>=0.50], aes(x=FP, y=TP, colour=Dataset, group=Alpha)) + geom_point(size=0.3)  + facet_wrap(~Ref, nrow=2, scales='free_y')
-
-ggsave('figs/auc_test.pdf')
-
-#this didn't work well. let's try something else
-#I<-names(A)[67]
-#my.alpha<-0.9
-#data<-combo[[I]][Dataset=='WHI']
-#data2<-combo[[I]]
-#z<-quantile(data[,HEIGHTX], probs=my.alpha)[[1]]
-#z2<-quantile(data2[Dataset=='UKB_EUR'][,PGS], probs=my.alpha)[[1]]
-#tp<-combo[[I]][Dataset=='WHI'][,Outcome:=ifelse(HEIGHTX>=z, "tall", "not-tall")]
-
-#pdf('figs/roc_test.pdf')
-#plot.roc(Outcome ~ HEIGHTX, tp)
-#dev.off() #this doesn't make any sense either. need to continue tomorrow.
-
-
 
 ###
 
 combo[[63]]-> tmp
 melt(tmp[,.(PGS, Std.PRS, HEIGHTX, Res.Height, Dataset)])-> me
 ggplot(me, aes(x=value, group=Dataset, color=Dataset))+ geom_density() + facet_wrap(~variable, nrow=4, scales='free') + 
-theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15),  axis.text.x=element_text(size=9), axis.text.y=element_text(size=9))
+theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15),  axis.text.x=element_text(size=12), axis.text.y=element_text(size=12), legend.text=element_text(size=12))
 ggsave('figs/test_density.png')
 

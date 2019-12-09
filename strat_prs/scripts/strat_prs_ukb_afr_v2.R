@@ -165,7 +165,7 @@ lapply(PGS2_UKB_afr, function(X) lm(Height~Sex+Age+age2+EUR_ANC, X))-> lm7_UKB_a
 lapply(PGS2_UKB_afr, function(X) lm(Height~Sex+Age+age2+EUR_ANC+PGS, X))-> lm8_UKB_afr
 
 #Get partial R2, i.e, the proportion of variation in height explained by the PRS
-lapply(c("q1","q2","q3","q4"), function(i) boot(data=PGS2_UKB_afr[[I]], statistic=rsq.R2,R=2000, formula1=Height~Sex+Age+age2+EUR_ANC, formula2=Height~Sex+Age+age2+EUR_ANC+PGS))-> results.UKB_afr
+lapply(c("q1","q2","q3","q4"), function(I) boot(data=PGS2_UKB_afr[[I]], statistic=rsq.R2,R=3000, formula1=Height~Sex+Age+age2+EUR_ANC, formula2=Height~Sex+Age+age2+EUR_ANC+PGS))-> results.UKB_afr
 boots.ci.UKB_afr<-lapply(results.UKB_afr, function(X) boot.ci(X, type = c("norm", 'basic', "perc")))
 
 partial_r2_UKB_afr<-lapply(1:length(PGS2_UKB_afr), function(X) partial.R2(lm7_UKB_afr[[X]], lm8_UKB_afr[[X]])) 
