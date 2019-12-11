@@ -16,7 +16,7 @@ final_plink<-readRDS('~/height_prediction/loc_anc_analysis/output/final_plink.Rd
 setkey(final_plink, CHR, POS)
 gc()
 cat('checkpoint number 2\n')
-#stopped here Sept 23 2019
+#
 res_all<-vector('list', 22)
 for(I in 1:22){
 	res_all[[I]]<-short_fun_imputed(args=I)
@@ -137,7 +137,7 @@ fwrite(final2, file="~/height_prediction/imputed/all_prs_whi.txt", sep="\t")
 fwrite(final2_HRS_JHS, file="~/height_prediction/imputed/output/all_prs_hrs_jsh.txt", sep="\t")
 
 partial.R2(lm(HEIGHTX~AGE+AGE2+EUR_ANC, data=final2), lm(HEIGHTX~AGE+AGE2+EUR_ANC+PRS_EUR, data=final2))*100 #4.1%
-partial.R2(lm(HEIGHTX~AGE+AGE2+EUR_ANC, data=final2), lm(HEIGHTX~AGE+AGE2+EUR_ANC+PRS_plink, data=final2))*100 #1.67
+partial.R2(lm(HEIGHTX~AGE+AGE2+EUR_ANC, data=final2), lm(HEIGHTX~AGE+AGE2+EUR_ANC+PRS_plink, data=final2))*100 #1.66
 partial.R2(lm(HEIGHTX~AGE+AGE2+EUR_ANC, data=final2), lm(HEIGHTX~AGE+AGE2+EUR_ANC+PRS_plink_tstat_1, data=final2))*100 #1.41%
 partial.R2(lm(HEIGHTX~AGE+AGE2+EUR_ANC, data=final2), lm(HEIGHTX~AGE+AGE2+EUR_ANC+PRS_eur_afr_plink, data=final2))*100 # #2.49%
 partial.R2(lm(HEIGHTX~AGE+AGE2+EUR_ANC+PRS_EUR, data=final2),lm(HEIGHTX~AGE+AGE2+EUR_ANC+PRS_EUR+PRS_eur_afr_plink, data=final2))*100 #0.40

@@ -55,27 +55,27 @@ if(dtset=='gwas'){ ##UKB_afr, WHI_afr, JHS_afr, HRS_afr,HRS_eur
 
 df1<-rbind(data.table(Quantile=rep(c("q1","q2","q3","q4"),6),
 Dataset='HRS_eur',Win=c(rep(3000, 4), rep(6000,4), rep(10000,4), rep(20000,4), rep(40000,4), rep(100000,4)),
-R2=unlist(a_list[['AA']][['HRS_eur']]),
+R2=unlist(a_list[['AA']][['HRS_eur']])/r2_vec[5],
 Perc_L=c(unlist(lapply(ci[['AA']][['HRS_eur']][['3000']], function(X) X$percent[4])), unlist(lapply(ci[['AA']][['HRS_eur']][['6000']], function(X) X$percent[4])), unlist(lapply(ci[['AA']][['HRS_eur']][['10000']], function(X) X$percent[4])), unlist(lapply(ci[['AA']][['HRS_eur']][['20000']], function(X) X$percent[4])), unlist(lapply(ci[['AA']][['HRS_eur']][['40000']], function(X) X$percent[4])), unlist(lapply(ci[['AA']][['HRS_eur']][['100000']], function(X) X$percent[4]))),
 Perc_U=c(unlist(lapply(ci[['AA']][['HRS_eur']][['3000']], function(X) X$percent[5])), unlist(lapply(ci[['AA']][['HRS_eur']][['6000']], function(X) X$percent[5])), unlist(lapply(ci[['AA']][['HRS_eur']][['10000']], function(X) X$percent[5])), unlist(lapply(ci[['AA']][['HRS_eur']][['20000']], function(X) X$percent[5])), unlist(lapply(ci[['AA']][['HRS_eur']][['40000']], function(X) X$percent[5])), unlist(lapply(ci[['AA']][['HRS_eur']][['100000']], function(X) X$percent[5])))),
 data.table(Quantile=rep(c("q1","q2","q3","q4"),6),
 Dataset='JHS_afr',Win=c(rep(3000, 4), rep(6000,4), rep(10000,4), rep(20000,4), rep(40000,4), rep(100000,4)),
-R2=unlist(a_list[['AA']][['JHS']]),
+R2=unlist(a_list[['AA']][['JHS']])/r2_vec[3],
 Perc_L=c(unlist(lapply(ci[['AA']][['JHS']][['3000']], function(X) X$percent[4])), unlist(lapply(ci[['AA']][['JHS']][['6000']], function(X) X$percent[4])), unlist(lapply(ci[['AA']][['JHS']][['10000']], function(X) X$percent[4])), unlist(lapply(ci[['AA']][['JHS']][['20000']], function(X) X$percent[4])), unlist(lapply(ci[['AA']][['JHS']][['40000']], function(X) X$percent[4])), unlist(lapply(ci[['AA']][['JHS']][['100000']], function(X) X$percent[4]))),
 Perc_U=c(unlist(lapply(ci[['AA']][['JHS']][['3000']], function(X) X$percent[5])), unlist(lapply(ci[['AA']][['JHS']][['6000']], function(X) X$percent[5])), unlist(lapply(ci[['AA']][['JHS']][['10000']], function(X) X$percent[5])), unlist(lapply(ci[['AA']][['JHS']][['20000']], function(X) X$percent[5])), unlist(lapply(ci[['AA']][['JHS']][['40000']], function(X) X$percent[5])), unlist(lapply(ci[['AA']][['JHS']][['100000']], function(X) X$percent[5])))),
 data.table(Quantile=rep(c("q1","q2","q3","q4"),6),
 Dataset='WHI_afr',Win=c(rep(3000, 4), rep(6000,4), rep(10000,4), rep(20000,4), rep(40000,4), rep(100000,4)),
-R2=unlist(a_list[['AA']][['WHI']]),
+R2=unlist(a_list[['AA']][['WHI']])/r2_vec[2],
 Perc_L=c(unlist(lapply(ci[['AA']][['WHI']][['3000']], function(X) X$percent[4])), unlist(lapply(ci[['AA']][['WHI']][['6000']], function(X) X$percent[4])), unlist(lapply(ci[['AA']][['WHI']][['10000']], function(X) X$percent[4])), unlist(lapply(ci[['AA']][['WHI']][['20000']], function(X) X$percent[4])), unlist(lapply(ci[['AA']][['WHI']][['40000']], function(X) X$percent[4])), unlist(lapply(ci[['AA']][['WHI']][['100000']], function(X) X$percent[4]))),
 Perc_U=c(unlist(lapply(ci[['AA']][['WHI']][['3000']], function(X) X$percent[5])), unlist(lapply(ci[['AA']][['WHI']][['6000']], function(X) X$percent[5])), unlist(lapply(ci[['AA']][['WHI']][['10000']], function(X) X$percent[5])), unlist(lapply(ci[['AA']][['WHI']][['20000']], function(X) X$percent[5])), unlist(lapply(ci[['AA']][['WHI']][['40000']], function(X) X$percent[5])), unlist(lapply(ci[['AA']][['WHI']][['100000']], function(X) X$percent[5])))),
 data.table(Quantile=rep(c("q1","q2","q3","q4"),6),
 Dataset='UKB_afr',Win=c(rep(3000, 4), rep(6000,4), rep(10000,4), rep(20000,4), rep(40000,4), rep(100000,4)),
-R2=unlist(a_list[['AA']][['ukb_afr']]),
+R2=unlist(a_list[['AA']][['ukb_afr']])/r2_vec[1],
 Perc_L=c(unlist(lapply(ci[['AA']][['ukb_afr']][['3000']], function(X) X$percent[4])), unlist(lapply(ci[['AA']][['ukb_afr']][['6000']], function(X) X$percent[4])), unlist(lapply(ci[['AA']][['ukb_afr']][['10000']], function(X) X$percent[4])), unlist(lapply(ci[['AA']][['ukb_afr']][['20000']], function(X) X$percent[4])), unlist(lapply(ci[['AA']][['ukb_afr']][['40000']], function(X) X$percent[4])), unlist(lapply(ci[['AA']][['ukb_afr']][['100000']], function(X) X$percent[4]))),
 Perc_U=c(unlist(lapply(ci[['AA']][['ukb_afr']][['3000']], function(X) X$percent[5])), unlist(lapply(ci[['AA']][['ukb_afr']][['6000']], function(X) X$percent[5])), unlist(lapply(ci[['AA']][['ukb_afr']][['10000']], function(X) X$percent[5])), unlist(lapply(ci[['AA']][['ukb_afr']][['20000']], function(X) X$percent[5])), unlist(lapply(ci[['AA']][['ukb_afr']][['40000']], function(X) X$percent[5])), unlist(lapply(ci[['AA']][['ukb_afr']][['100000']], function(X) X$percent[5])))),
 data.table(Quantile=rep(c("q1","q2","q3","q4"),6),
 Dataset='HRS_afr',Win=c(rep(3000, 4), rep(6000,4), rep(10000,4), rep(20000,4), rep(40000,4), rep(100000,4)),
-R2=unlist(a_list[['AA']][['HRS_afr']]),
+R2=unlist(a_list[['AA']][['HRS_afr']])/r2_vec[4],
 Perc_L=c(unlist(lapply(ci[['AA']][['HRS_afr']][['3000']], function(X) X$percent[4])), unlist(lapply(ci[['AA']][['HRS_afr']][['6000']], function(X) X$percent[4])), unlist(lapply(ci[['AA']][['HRS_afr']][['10000']], function(X) X$percent[4])), unlist(lapply(ci[['AA']][['HRS_afr']][['20000']], function(X) X$percent[4])), unlist(lapply(ci[['AA']][['HRS_afr']][['40000']], function(X) X$percent[4])), unlist(lapply(ci[['AA']][['HRS_afr']][['100000']], function(X) X$percent[4]))),
 Perc_U=c(unlist(lapply(ci[['AA']][['HRS_afr']][['3000']], function(X) X$percent[5])), unlist(lapply(ci[['AA']][['HRS_afr']][['6000']], function(X) X$percent[5])), unlist(lapply(ci[['AA']][['HRS_afr']][['10000']], function(X) X$percent[5])), unlist(lapply(ci[['AA']][['HRS_afr']][['20000']], function(X) X$percent[5])), unlist(lapply(ci[['AA']][['HRS_afr']][['40000']], function(X) X$percent[5])), unlist(lapply(ci[['AA']][['HRS_afr']][['100000']], function(X) X$percent[5])))))
 
@@ -85,36 +85,36 @@ Perc_U=c(unlist(lapply(ci[['AA']][['HRS_afr']][['3000']], function(X) X$percent[
 #
 df3<-rbind(data.table(Quantile=rep(c("q1","q2","q3","q4"),6),
 Dataset='HRS_eur',Win=c(rep(3000, 4), rep(6000,4), rep(10000,4), rep(20000,4), rep(40000,4), rep(100000,4)),
-R2=unlist(a_list[['CEU']][['HRS_eur']]),
+R2=unlist(a_list[['CEU']][['HRS_eur']])/r2_vec[5],
 Perc_L=c(unlist(lapply(ci[['CEU']][['HRS_eur']][['3000']], function(X) X$percent[4])), unlist(lapply(ci[['CEU']][['HRS_eur']][['6000']], function(X) X$percent[4])), unlist(lapply(ci[['CEU']][['HRS_eur']][['10000']], function(X) X$percent[4])), unlist(lapply(ci[['CEU']][['HRS_eur']][['20000']], function(X) X$percent[4])), unlist(lapply(ci[['CEU']][['HRS_eur']][['40000']], function(X) X$percent[4])), unlist(lapply(ci[['CEU']][['HRS_eur']][['100000']], function(X) X$percent[4]))),
 Perc_U=c(unlist(lapply(ci[['CEU']][['HRS_eur']][['3000']], function(X) X$percent[5])), unlist(lapply(ci[['CEU']][['HRS_eur']][['6000']], function(X) X$percent[5])), unlist(lapply(ci[['CEU']][['HRS_eur']][['10000']], function(X) X$percent[5])), unlist(lapply(ci[['CEU']][['HRS_eur']][['20000']], function(X) X$percent[5])), unlist(lapply(ci[['CEU']][['HRS_eur']][['40000']], function(X) X$percent[5])), unlist(lapply(ci[['CEU']][['HRS_eur']][['100000']], function(X) X$percent[5])))),
 data.table(Quantile=rep(c("q1","q2","q3","q4"),6),
 Dataset='JHS_afr',Win=c(rep(3000, 4), rep(6000,4), rep(10000,4), rep(20000,4), rep(40000,4), rep(100000,4)),
-R2=unlist(a_list[['CEU']][['JHS']]),
+R2=unlist(a_list[['CEU']][['JHS']])/r2_vec[3],
 Perc_L=c(unlist(lapply(ci[['CEU']][['JHS']][['3000']], function(X) X$percent[4])), unlist(lapply(ci[['CEU']][['JHS']][['6000']], function(X) X$percent[4])), unlist(lapply(ci[['CEU']][['JHS']][['10000']], function(X) X$percent[4])), unlist(lapply(ci[['CEU']][['JHS']][['20000']], function(X) X$percent[4])), unlist(lapply(ci[['CEU']][['JHS']][['40000']], function(X) X$percent[4])), unlist(lapply(ci[['CEU']][['JHS']][['100000']], function(X) X$percent[4]))),
 Perc_U=c(unlist(lapply(ci[['CEU']][['JHS']][['3000']], function(X) X$percent[5])), unlist(lapply(ci[['CEU']][['JHS']][['6000']], function(X) X$percent[5])), unlist(lapply(ci[['CEU']][['JHS']][['10000']], function(X) X$percent[5])), unlist(lapply(ci[['CEU']][['JHS']][['20000']], function(X) X$percent[5])), unlist(lapply(ci[['CEU']][['JHS']][['40000']], function(X) X$percent[5])), unlist(lapply(ci[['CEU']][['JHS']][['100000']], function(X) X$percent[5])))),
 data.table(Quantile=rep(c("q1","q2","q3","q4"),6),
 Dataset='WHI_afr',Win=c(rep(3000, 4), rep(6000,4), rep(10000,4), rep(20000,4), rep(40000,4), rep(100000,4)),
-R2=unlist(a_list[['CEU']][['WHI']]),
+R2=unlist(a_list[['CEU']][['WHI']])/r2_vec[2],
 Perc_L=c(unlist(lapply(ci[['CEU']][['WHI']][['3000']], function(X) X$percent[4])), unlist(lapply(ci[['CEU']][['WHI']][['6000']], function(X) X$percent[4])), unlist(lapply(ci[['CEU']][['WHI']][['10000']], function(X) X$percent[4])), unlist(lapply(ci[['CEU']][['WHI']][['20000']], function(X) X$percent[4])), unlist(lapply(ci[['CEU']][['WHI']][['40000']], function(X) X$percent[4])), unlist(lapply(ci[['CEU']][['WHI']][['100000']], function(X) X$percent[4]))),
 Perc_U=c(unlist(lapply(ci[['CEU']][['WHI']][['3000']], function(X) X$percent[5])), unlist(lapply(ci[['CEU']][['WHI']][['6000']], function(X) X$percent[5])), unlist(lapply(ci[['CEU']][['WHI']][['10000']], function(X) X$percent[5])), unlist(lapply(ci[['CEU']][['WHI']][['20000']], function(X) X$percent[5])), unlist(lapply(ci[['CEU']][['WHI']][['40000']], function(X) X$percent[5])), unlist(lapply(ci[['CEU']][['WHI']][['100000']], function(X) X$percent[5])))),
 data.table(Quantile=rep(c("q1","q2","q3","q4"),6),
 Dataset='UKB_afr',Win=c(rep(3000, 4), rep(6000,4), rep(10000,4), rep(20000,4), rep(40000,4), rep(100000,4)),
-R2=unlist(a_list[['CEU']][['ukb_afr']]),
+R2=unlist(a_list[['CEU']][['ukb_afr']])/r2_vec[1],
 Perc_L=c(unlist(lapply(ci[['CEU']][['ukb_afr']][['3000']], function(X) X$percent[4])), unlist(lapply(ci[['CEU']][['ukb_afr']][['6000']], function(X) X$percent[4])), unlist(lapply(ci[['CEU']][['ukb_afr']][['10000']], function(X) X$percent[4])), unlist(lapply(ci[['CEU']][['ukb_afr']][['20000']], function(X) X$percent[4])), unlist(lapply(ci[['CEU']][['ukb_afr']][['40000']], function(X) X$percent[4])), unlist(lapply(ci[['CEU']][['ukb_afr']][['100000']], function(X) X$percent[4]))),
 Perc_U=c(unlist(lapply(ci[['CEU']][['ukb_afr']][['3000']], function(X) X$percent[5])), unlist(lapply(ci[['CEU']][['ukb_afr']][['6000']], function(X) X$percent[5])), unlist(lapply(ci[['CEU']][['ukb_afr']][['10000']], function(X) X$percent[5])), unlist(lapply(ci[['CEU']][['ukb_afr']][['20000']], function(X) X$percent[5])), unlist(lapply(ci[['CEU']][['ukb_afr']][['40000']], function(X) X$percent[5])), unlist(lapply(ci[['CEU']][['ukb_afr']][['100000']], function(X) X$percent[5])))),
 data.table(Quantile=rep(c("q1","q2","q3","q4"),6),
 Dataset='HRS_afr',Win=c(rep(3000, 4), rep(6000,4), rep(10000,4), rep(20000,4), rep(40000,4), rep(100000,4)),
-R2=unlist(a_list[['AA']][['HRS_afr']]),
+R2=unlist(a_list[['CEU']][['HRS_afr']])/r2_vec[4],
 Perc_L=c(unlist(lapply(ci[['CEU']][['HRS_afr']][['3000']], function(X) X$percent[4])), unlist(lapply(ci[['CEU']][['HRS_afr']][['6000']], function(X) X$percent[4])), unlist(lapply(ci[['CEU']][['HRS_afr']][['10000']], function(X) X$percent[4])), unlist(lapply(ci[['CEU']][['HRS_afr']][['20000']], function(X) X$percent[4])), unlist(lapply(ci[['CEU']][['HRS_afr']][['40000']], function(X) X$percent[4])), unlist(lapply(ci[['CEU']][['HRS_afr']][['100000']], function(X) X$percent[4]))),
 Perc_U=c(unlist(lapply(ci[['CEU']][['HRS_afr']][['3000']], function(X) X$percent[5])), unlist(lapply(ci[['CEU']][['HRS_afr']][['6000']], function(X) X$percent[5])), unlist(lapply(ci[['CEU']][['HRS_afr']][['10000']], function(X) X$percent[5])), unlist(lapply(ci[['CEU']][['HRS_afr']][['20000']], function(X) X$percent[5])), unlist(lapply(ci[['CEU']][['HRS_afr']][['40000']], function(X) X$percent[5])), unlist(lapply(ci[['CEU']][['HRS_afr']][['100000']], function(X) X$percent[5])))))
 
 
 df1[, Map:='AA_Map'] #order ##UKB_afr, WHI_afr, JHS_afr, HRS_afr,HRS_eur
-#df1[, Perc_U_ratio:=Perc_U/c(rep(r2_u_vec[5],24), rep(r2_u_vec[3], 24), rep(r2_u_vec[2], 24), rep(r2_u_vec[1], 24), rep(r2_u_vec[4], 24))]
-#df1[, Perc_L_ratio:=Perc_L/c(rep(r2_l_vec[5],24), rep(r2_l_vec[3], 24), rep(r2_l_vec[2], 24), rep(r2_l_vec[1], 24), rep(r2_l_vec[4], 24))]
-#df3[, Perc_U_ratio:=Perc_U/c(rep(r2_u_vec[5],24), rep(r2_u_vec[3], 24), rep(r2_u_vec[2], 24), rep(r2_u_vec[1], 24), rep(r2_u_vec[4], 24))]
-#df3[, Perc_L_ratio:=Perc_L/c(rep(r2_l_vec[5],24), rep(r2_l_vec[3], 24), rep(r2_l_vec[2], 24), rep(r2_l_vec[1], 24), rep(r2_l_vec[4], 24))]
+df1[, Perc_U_ratio:=Perc_U/c(rep(r2_u_vec[5],24), rep(r2_u_vec[3], 24), rep(r2_u_vec[2], 24), rep(r2_u_vec[1], 24), rep(r2_u_vec[4], 24))]
+df1[, Perc_L_ratio:=Perc_L/c(rep(r2_l_vec[5],24), rep(r2_l_vec[3], 24), rep(r2_l_vec[2], 24), rep(r2_l_vec[1], 24), rep(r2_l_vec[4], 24))]
+df3[, Perc_U_ratio:=Perc_U/c(rep(r2_u_vec[5],24), rep(r2_u_vec[3], 24), rep(r2_u_vec[2], 24), rep(r2_u_vec[1], 24), rep(r2_u_vec[4], 24))]
+df3[, Perc_L_ratio:=Perc_L/c(rep(r2_l_vec[5],24), rep(r2_l_vec[3], 24), rep(r2_l_vec[2], 24), rep(r2_l_vec[1], 24), rep(r2_l_vec[4], 24))]
 df3[, Map:='CEU_Map']
 df4<-rbind(df1,df3)
 
@@ -128,16 +128,14 @@ pd <- position_dodge(0.5)
 plot1<-ggplot(df, aes(x=Quantile, y=R2, colour=Dataset)) + 
 #geom_bar(stat='identity', position='dodge', alpha=0.8) + 
 geom_point(position=pd) +
-geom_errorbar(aes(ymin=Perc_L, ymax=Perc_U), position = pd) +
+geom_errorbar(aes(ymin=Perc_L_ratio, ymax=Perc_U_ratio), position = pd) +
 facet_grid(. ~Map) + 
 labs(y=expression(paste("Relative partial R"^"2")),x="Recombination Rate") +  
 scale_colour_manual(values=c(brewer.pal(4, 'Set1'),"#101010")) +
 theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), legend.position = "bottom", legend.title=element_blank(), axis.title.y = element_text(size = 18), axis.title.x=element_text(size=18),axis.text.x=element_text(size=15), axis.text.y=element_text(size=15), legend.text=element_text(size=15)) + scale_x_discrete(labels=c("Low", expression(symbol('\256')), expression(symbol('\256')), "High"))
 
 print(plot1)
-
 ggsave(paste0('~/height_prediction/strat_prs/figs/v2_barplot_AA_CEU_', dtset,'.pdf'))
-
 
 #
 
@@ -202,7 +200,7 @@ for(chr in 22:1){
 cat('start chr ')
 cat(chr)
 cat('\n')
-rate.dist<-3000
+rate.dist<-20000
 betas<-beta2[CHR==chr]
 maps<-fread(paste0('zcat /project/mathilab/data/maps_b37/maps_chr.', chr, '.gz'))
 snps <- read.table(paste0("~/height_prediction/input/WHI/WHI_b37_strand_include_kgCY_chr", chr, ".phsnp"), as.is=TRUE)
@@ -258,8 +256,8 @@ BETA[,Quantile:=cut(AA.rate, breaks=quantile(AA.rate, probs=seq(0,1, by=0.05), n
 BETA[, MeanBetaDiffChisq:=mean(Beta_Diff_Chisq, na.rm=T), by=Quantile]
 BETA[, MedianRecRate:=median(AA.rate, na.rm=T), by=Quantile]
 
-plot3<-ggplot(BETA, aes(x=AA.rate, y=Beta_Diff_Chisq)) + geom_point(cex=0.5, col='light gray') + geom_smooth(method='lm', se=T, lwd=1, col="black") + labs(y=expression(chi^2), x="cM (AA_Map)") + geom_point(aes(x=MedianRecRate, y=MeanBetaDiffChisq, col="red"), cex=0.3) + 
-theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), legend.position = "none", legend.title=element_blank(), axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15),axis.text.x=element_text(size=12), axis.text.y=element_text(size=12), legend.text=element_text(size=12))
+plot3<-ggplot(BETA, aes(x=AA.rate, y=Beta_Diff_Chisq)) + geom_point(cex=0.5, col='light gray') + geom_smooth(method='lm', se=T, lwd=1, col="black") + labs(y=expression(chi^2), x="Recombination Rate") + geom_point(aes(x=MedianRecRate, y=MeanBetaDiffChisq, col="red"), cex=0.5) + 
+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), legend.position = "none", legend.title=element_blank(), axis.title.y = element_text(size = 18), axis.title.x=element_text(size=18),axis.text.x=element_text(size=15), axis.text.y=element_text(size=15), legend.text=element_text(size=15))
 plot1a<-plot1 + guides(fill=FALSE)
 
 ld<-do.call(rbind, lapply(1:22, function(X) fread(paste0('zcat ~/height_prediction/figs_for_paper/eur_w_ld_chr/', X,'.l2.ldscore.gz'))))
@@ -270,36 +268,39 @@ setkey(ld, CHR, POS)
 #beta$CHR<-as.integer(beta$CHR)
 setkey(BETA, CHR, POS)
 #beta[ld,nomatch=0]-> test
-test<-merge(BETA,ld, by=c(CHR, POS,i.MarkerName))
+test<-merge(BETA,ld, by=c('CHR', 'POS','i.MarkerName'))
 
 test[,Quantile:=cut(L2, breaks=quantile(L2, probs=seq(0,1, by=0.05), na.rm=T), include.lowest=T)]
 test[, MeanBetaDiffChisq:=mean(Beta_Diff_Chisq, na.rm=T), by=Quantile]
 test[, MedianL2:=median(L2, na.rm=T), by=Quantile]
 
 #plot4<-ggplot(test, aes(x=MedianL2, y=MeanBetaDiffChisq)) + geom_point(cex=0.5, col='light gray') + geom_smooth(method='lm', se=F) + labs(y=expression(Mean~chi^2), x="LD Score" )
-plot4<-ggplot(test, aes(x=L2, y=Beta_Diff_Chisq)) + geom_point(cex=0.5, col='light gray') + geom_smooth(method='lm', se=T, col='black') + labs(y=expression(chi^2), x="LD Score" ) + geom_point(aes(x=MedianL2, y=MeanBetaDiffChisq, col="red"), cex=0.3) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), legend.position = "none", legend.title=element_blank())
+plot4<-ggplot(test, aes(x=L2, y=Beta_Diff_Chisq)) + geom_point(cex=0.5, col='light gray') + geom_smooth(method='lm', se=T, col='black') + 
+labs(y=expression(chi^2), x="LD Score" ) + 
+geom_point(aes(x=MedianL2, y=MeanBetaDiffChisq, col="red"), cex=0.5) + 
+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), legend.position = "none", legend.title=element_blank(), axis.title.y = element_text(size = 18), axis.title.x=element_text(size=18),axis.text.x=element_text(size=15), axis.text.y=element_text(size=15), legend.text=element_text(size=15))
 
 plot_grid(plot1,plot_grid(plot3,plot4,labels = c("B", "C"), nrow=1), labels="A", nrow=2, align="v")
 ggsave(paste0('~/height_prediction/strat_prs/figs/panel_', args[1], '_v2.pdf'))
 
 ######
 #check if variants with different signal for eur and afr are in regions of high recombination
-rbind(beta[ALL<0 & b>0][Beta_Diff_Chisq>6.994026], beta[ALL>0 & b<0][Beta_Diff_Chisq>6.994026])-> ww
-ecdf(beta$AA.rate)(mean(ww$AA.rate))
+#rbind(beta[ALL<0 & b>0][Beta_Diff_Chisq>6.994026], beta[ALL>0 & b<0][Beta_Diff_Chisq>6.994026])-> ww
+#ecdf(beta$AA.rate)(mean(ww$AA.rate))
 
 
-rbind(beta[ALL<0 & b>0], beta[ALL>0 & b<0])-> www
-ecdf(beta$AA.rate)(mean(www$AA.rate, na.rm=T))
+#rbind(beta[ALL<0 & b>0], beta[ALL>0 & b<0])-> www
+#ecdf(beta$AA.rate)(mean(www$AA.rate, na.rm=T))
 
 
-data.table(Rec=c(beta[,AA.rate], ww$AA.rate), Set=c(rep('All SNPs', nrow(beta)), rep('Opposite effect', nrow(ww))))-> vio
+#data.table(Rec=c(beta[,AA.rate], ww$AA.rate), Set=c(rep('All SNPs', nrow(beta)), rep('Opposite effect', nrow(ww))))-> vio
 
-ggplot(vio, aes(factor(Set), Rec)) + geom_violin(fill = "grey80", colour = "#3366FF")
-ggsave('~/height_prediction/strat_prs/figs/vioplot.pdf')
+#ggplot(vio, aes(factor(Set), Rec)) + geom_violin(fill = "grey80", colour = "#3366FF")
+#ggsave('~/height_prediction/strat_prs/figs/vioplot.pdf')
 
 
 
-ggplot(vio, aes(x=Rec, fill=Set)) +
-geom_histogram(binwidth=.5, alpha=.5, position="identity")
-ggsave('~/height_prediction/strat_prs/figs/histogram.pdf') 
+#ggplot(vio, aes(x=Rec, fill=Set)) +
+#geom_histogram(binwidth=.5, alpha=.5, position="identity")
+#ggsave('~/height_prediction/strat_prs/figs/histogram.pdf') 
 
