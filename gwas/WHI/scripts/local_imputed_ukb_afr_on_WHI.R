@@ -72,7 +72,7 @@ data.table(SUBJID=names(res_all_JHS[[1]][[1]]),PRS_plink=(unlist(res_all_JHS[[1]
 
 a_JHS[, PRS_plink:=scale(PRS_plink)]
 a_JHS[, PRS_plink_tstat_1:=scale(PRS_plink_tstat_1)]
-
+remove(res_all_JHS)
 
 #phenotype
 fread('~/height_prediction/input/WHI/WHI_phenotypes.txt')-> Pheno_WHI
@@ -145,7 +145,6 @@ partial.R2(lm(HEIGHTX~AGE+AGE2+EUR_ANC+PRS_EUR, data=final2),lm(HEIGHTX~AGE+AGE2
 #
 partial.R2(lm(HEIGHTX~SEX+AGE+AGE2+Dt+EUR_ANC, data=final2_HRS_JHS), lm(HEIGHTX~SEX+AGE+AGE2+Dt+EUR_ANC+PRS_EUR, data=final2_HRS_JHS))*100 #2.93
 partial.R2(lm(HEIGHTX~SEX+AGE+AGE2+Dt+EUR_ANC, data=final2_HRS_JHS), lm(HEIGHTX~SEX+AGE+AGE2+Dt+EUR_ANC+PRS_plink, data=final2_HRS_JHS))*100 #0.99%
-
 
 ###################
 ##################a
@@ -221,7 +220,10 @@ ggsave('~/height_prediction/imputed/figs/alfa_plink_withAnc.pdf')
 #The End
 
 #playground
-
+LA<-readRDS('~/height_prediction/loc_anc_analysis/output/part_R2_WHI.Rds')[, Dataset:='WHI']
+rbind(LA, data.table(Alfa=LA$Alfa, part_R2=NA,Dataset='JHS+HRS'))-> LA #for now
+LA[, alpha:=Alfa][,Alfa:=NULL]
+LA[, PRS3:=part_R2][,part_R2:=NULL]
 test4<-cbind(wanna_plot_v2, temp_dt_v2)
 test4[,alfa:=NULL]
 test4[, alpha:=alfa]
@@ -229,12 +231,15 @@ test4[,alfa:=NULL]
 colnames(test4)[1]<-"PRS1"
 colnames(test4)[3]<-"PRS2"
 test4[,Dataset:=NULL]
+
+merge(test4, LA,by=c('alpha', 'Dataset'))-> test4
 melt(test4,id=c('Dataset', 'alpha'))-> test5
 
  
 test5[, Dataset2:=ifelse(Dataset=='WHI', "Women's Health Initiative", "Jackson Heart Study + \nHealth and Retirement Study")]
+test5[alpha<=0.5]-> test5
 ggplot(test5, aes(x=alpha, y=value,colour=variable)) + facet_wrap(~Dataset2) +
-geom_line(size=1.2) + coord_cartesian(xlim=c(0,0.5), ylim=c(0.02, 0.048)) + scale_color_manual(values=c("darkseagreen4", "darkslateblue")) +
+geom_line(size=1.2) + coord_cartesian(xlim=c(0,0.5), ylim=c(0.02, 0.048)) + scale_color_manual(values=c("darkseagreen4", "darkslateblue", "darkorange3")) +
 theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.title.y = element_text(size = 18), axis.title.x=element_text(size=18),axis.text.x=element_text(size=15), axis.text.y=element_text(size=15), legend.key=element_blank(), legend.background=element_blank(),legend.title=element_blank(), legend.text=element_text(size=18)) + labs(x=expression(alpha), y=expression(Partial~R^2)) 
 
 ggsave('~/height_prediction/imputed/figs/test_this_plink.pdf')
