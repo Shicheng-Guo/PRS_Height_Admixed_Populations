@@ -126,8 +126,11 @@ geom_point(position=pd) +
 geom_errorbar(aes(ymin=Perc_L, ymax=Perc_U), position = pd) +
 facet_wrap(. ~Set, scales='free_y') + 
 labs(y=expression(paste("Partial R"^"2")), x="Recombination Rate")+  
-scale_colour_manual(values=c(brewer.pal(4, 'Set1'),"#101010")) 
-#theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), legend.position = "none", legend.title=element_blank(), axis.title.y = element_text(size = 18), axis.title.x=element_text(size=15),axis.text.x=element_text(size=15), axis.text.y=element_text(size=15), legend.text=element_text(size=10)) + scale_x_discrete(labels=c("Low", expression(symbol('\256')), expression(symbol('\256')), "High"))
+scale_colour_manual(values=c(brewer.pal(4, 'Set1'),"#101010")) +
+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"),legend.title=element_blank(), axis.title.y = element_text(size = 18), axis.title.x=element_text(size=18),axis.text.x=element_text(size=15), axis.text.y=element_text(size=15),legend.text=element_text(size=12),legend.position = "bottom") + 
+scale_x_discrete(labels=c("Low", expression(symbol('\256')), expression(symbol('\256')), "High"))
+
+#axis.line = element_line(colour = "black"), legend.position = "none", legend.title=element_blank(), axis.title.y = element_text(size = 18), axis.title.x=element_text(size=15),axis.text.x=element_text(size=15), axis.text.y=element_text(size=15), legend.text=element_text(size=10)) + scale_x_discrete(labels=c("Low", expression(symbol('\256')), expression(symbol('\256')), "High"))
 
 print(plot1)
 ggsave(paste0('~/height_prediction/strat_prs/figs/v2_barplot_AA_CEU_', dtset,'.pdf'))
@@ -142,7 +145,7 @@ plot2<-ggplot(df2, aes(x=Quantile, y=R2, colour=Dataset)) +
 #geom_bar(stat='identity', position='dodge', alpha=0.8) +
 geom_point(position=pd) +
 geom_errorbar(aes(ymin=Perc_L, ymax=Perc_U), position = pd) +
-#facet_grid(. ~Map) +
+#faet_grid(. ~Map) +
 labs(y=expression(paste("Partial R"^"2")),x="Recombination Rate") +
 scale_colour_manual(values=c(brewer.pal(4, 'Set1'),"#101010")) +
 theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), legend.position = "right", legend.direction='vertical', legend.title=element_blank(), axis.title.y = element_text(size = 18), axis.title.x=element_text(size=18),axis.text.x=element_text(size=15), axis.text.y=element_text(size=15), legend.text=element_text(size=10)) + scale_x_discrete(labels=c("Low", expression(symbol('\256')), expression(symbol('\256')), "High"))
@@ -234,7 +237,7 @@ lm_test0<-lm(Beta_Diff_Chisq~AA.rate, data=BETA)
 require(broom)
 glance(lm_test0)
 pval<-glance(lm_test0)$p.value
-plot3<-ggplot(BETA, aes(x=AA.rate, y=Beta_Diff_Chisq)) + geom_point(cex=0.5, col='light gray') + geom_smooth(method='lm', se=T, lwd=1, col="black") + labs(y=expression(chi^2), x="Recombination Rate") + geom_point(aes(x=MedianRecRate, y=MeanBetaDiffChisq, col="red"), cex=0.5) + 
+plot3<-ggplot(BETA, aes(x=AA.rate, y=Beta_Diff_Chisq)) + geom_point(cex=0.5, col='light gray') + geom_smooth(method='lm', se=T, lwd=1, col="black") + labs(y=expression(chi[diff]^2), x="Recombination Rate") + geom_point(aes(x=MedianRecRate, y=MeanBetaDiffChisq, col="red"), cex=0.5) + 
 annotate("text", x=0.4, y=0.1, label=paste("p=", round(pval,4))) +
 theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), legend.position = "none", legend.title=element_blank(), axis.title.y = element_text(size = 18), axis.title.x=element_text(size=18),axis.text.x=element_text(size=15), axis.text.y=element_text(size=15), legend.text=element_text(size=15))
 plot1a<-plot1 + guides(fill=FALSE)
@@ -259,7 +262,7 @@ require(broom)
 glance(lm_test)
 pval<-glance(lm_test)$p.value
 plot4<-ggplot(test, aes(x=L2, y=Beta_Diff_Chisq)) + geom_point(cex=0.5, col='light gray') + geom_smooth(method='lm', se=T, col='black') + 
-labs(y=expression(chi^2), x="LD Score" ) + 
+labs(y=expression(chi[diff]^2), x="LD Score" ) + 
 geom_point(aes(x=MedianL2, y=MeanBetaDiffChisq, col="red"), cex=0.5) + 
 annotate("text", x=250, y=0.1, label=paste("p=", round(pval,4))) +
 theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), legend.position = "none", legend.title=element_blank(), axis.title.y = element_text(size = 18), axis.title.x=element_text(size=18),axis.text.x=element_text(size=15), axis.text.y=element_text(size=15), legend.text=element_text(size=15))
