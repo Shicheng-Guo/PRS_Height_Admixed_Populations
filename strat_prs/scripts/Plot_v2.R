@@ -238,7 +238,7 @@ require(broom)
 glance(lm_test0)
 pval<-glance(lm_test0)$p.value
 plot3<-ggplot(BETA, aes(x=AA.rate, y=Beta_Diff_Chisq)) + geom_point(cex=0.5, col='light gray') + geom_smooth(method='lm', se=T, lwd=1, col="black") + labs(y=expression(chi[diff]^2), x="Recombination Rate") + geom_point(aes(x=MedianRecRate, y=MeanBetaDiffChisq, col="red"), cex=0.5) + 
-annotate("text", x=0.4, y=0.1, label=paste("p=", round(pval,4))) +
+annotate("text", x=0.4, y=0.14, label=paste("p=", round(pval,4))) +
 theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), legend.position = "none", legend.title=element_blank(), axis.title.y = element_text(size = 18), axis.title.x=element_text(size=18),axis.text.x=element_text(size=15), axis.text.y=element_text(size=15), legend.text=element_text(size=15))
 plot1a<-plot1 + guides(fill=FALSE)
 
