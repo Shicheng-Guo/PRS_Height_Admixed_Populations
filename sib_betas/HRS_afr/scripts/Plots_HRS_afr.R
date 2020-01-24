@@ -27,8 +27,9 @@ for(j in 1:length(PGS_HRS_afr)){
 	gsub("[0-9]+_","",names(PGS_HRS_afr[[j]]))-> names(PGS_HRS_afr[[j]])
 }
 as.character(Pheno_HRS_afr$ID)-> Pheno_HRS_afr$ID
+Pheno_HRS_afr[, HEIGHT:=HEIGHT*100]
+Pheno_HRS_afr[, ":="(SEX=ifelse(SEX==1, "Male", "Female"))]
 setkey(Pheno_HRS_afr, ID)
-
 #add ancestry
 ancestry<-do.call(rbind, lapply(1:22, function(X) fread(paste0('~/height_prediction/input/HRS_afr/rfmix_anc_chr', X, '.txt'))))
 
@@ -66,9 +67,10 @@ lapply(PGS2_HRS_afr, function(X) lm(HEIGHT~SEX+AGE+AGE2+EUR_ANC+PGS, X))-> lm8_H
 partial_r2_HRS_afr<-lapply(1:length(PGS2_HRS_afr), function(X) partial.R2(lm7_HRS_afr[[X]], lm8_HRS_afr[[X]])) #
 names(partial_r2_HRS_afr)<-names(PGS2_HRS_afr)
 
-partial.R2(lm7_HRS_afr[[63]],lm8_HRS_afr[[63]]) #1,06
-partial.R2(lm7_HRS_afr[[67]],lm8_HRS_afr[[67]]) #1.08
-partial.R2(lm7_HRS_afr[[64]],lm8_HRS_afr[[64]]) #1.29
+partial.R2(lm7_HRS_afr[[63]],lm8_HRS_afr[[63]]) #0.02376103
+partial.R2(lm7_HRS_afr[[67]],lm8_HRS_afr[[67]]) #0.03114019
+partial.R2(lm7_HRS_afr[[64]],lm8_HRS_afr[[64]]) #0.02612528
+partial.R2(lm7_HRS_afr[[35]],lm8_HRS_afr[[35]]) #0.02863406
 
 Nr_SNPs<-rep(NA, length(PGS2_HRS_afr))
 names(Nr_SNPs)<- names(PGS2_HRS_afr)
@@ -85,8 +87,8 @@ data.table(Nr=unlist(Nr_SNPs), Name=names(Nr_SNPs), Part_R2=unlist(partial_r2_HR
 saveRDS(A_table, file='~/height_prediction/sib_betas/HRS_afr/output/Nr_SNPs_HRS_afr.Rds')
 
 #
-cor.test(unlist(Nr_SNPs), unlist(partial_r2_HRS_afr))#  -0.058
-summary(lm(Part_R2~Nr,data=A_table))$r.squared #0.003
+cor.test(unlist(Nr_SNPs), unlist(partial_r2_HRS_afr))#  0.84
+summary(lm(Part_R2~Nr,data=A_table))$r.squared #0.72
 
 for(I in 1:length(PGS2_HRS_afr)){
         A<-ggpairs(PGS2_HRS_afr[[I]][,.(HEIGHT, SEX, PGS, AGE, AGE2,EUR_ANC)])
@@ -108,11 +110,11 @@ lapply(1:length(PGS3_HRS_afr), function(X) PGS3_HRS_afr[[X]][,Med_Eur_Anc:=media
 
 lapply(1:length(PGS3_HRS_afr), function(X) as.character(unique((PGS3_HRS_afr[[X]]$Quantile))))-> a
 
-lapply(a, function(X) c(X[2], X[1]))-> a1 #check
+lapply(a, function(X) c(X[2],X[1]))-> a1 #check
 
 names(a1)<-names(PGS3_HRS_afr)
 
-r2_HRS_afr<-vector('list', length(PGS3_HRS_afr))
+r2_HRS_afr<-vector('list', length(PGS3_HRS_afr))	
 names(r2_HRS_afr)<-names(PGS3_HRS_afr)
 
 for(I in names(r2_HRS_afr)){

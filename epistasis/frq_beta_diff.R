@@ -62,7 +62,8 @@ dt2[, MedianMeanFreqDiff:=median(MeanFreqDiff, na.rm=T), by=Quantile]
 #check correlation between freq_diff and beta_diff
 #add betas (POP 1 and UKB_eur)
 #calculate beta diff
-my_dt<-dt2
+
+my_dt<-dt2[Beta_Diff_Chisq<=15]
 model_hrs<-lm(Beta_Diff_Chisq~MeanFreqDiff,data=dt2)
 require(broom)
 glance(model_hrs)
@@ -70,7 +71,7 @@ pval<-glance(model_hrs)$p.value
 ggplot(my_dt, aes(x=MeanFreqDiff, y=Beta_Diff_Chisq)) + geom_point(cex=0.5, col="lightgray") + 
 geom_smooth(method='lm', se=T, col='black') + 
 geom_point(aes(x=MedianMeanFreqDiff, y=MeanBetaDiffChisq), col='red', cex=0.5) +
-labs(x="Mean Squared Frequency Difference", y=expression(chi^2), cex=18) + 
+labs(x="Mean Squared Frequency Difference", y=expression(chi[diff]^2), cex=18) + 
 annotate("text", x=0.35, y=0.15, label=paste("p=", round(pval,4))) +
 #facet_wrap(~Data, nrow=2) + 
 theme(axis.text.x=element_text(size=15), axis.text.y=element_text(size=15), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.title.y = element_text(size = 18), axis.title.x=element_text(size=18))
@@ -86,6 +87,4 @@ pdf(paste0('figs/boxcoxhrs_', W, '.pdf'))
 plot(boxcox(model_hrs))
 dev.off()
 
-pdf(paste0('figs/boxcoxukb_', W, '.pdf'))
-plot(boxcox(model_ukb))
-dev.off()
+

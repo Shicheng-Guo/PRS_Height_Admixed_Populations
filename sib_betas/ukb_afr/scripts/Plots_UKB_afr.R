@@ -62,10 +62,10 @@ lapply(PGS2_UKB_afr, function(X) lm(Height~PGS+age2, X))-> lm6_UKB_afr
 lapply(PGS2_UKB_afr, function(X) lm(Height~Sex+Age+age2+EUR_ANC, X))-> lm7_UKB_afr
 lapply(PGS2_UKB_afr, function(X) lm(Height~Sex+Age+age2+EUR_ANC+PGS, X))-> lm8_UKB_afr
 
-partial.R2(lm7_UKB_afr[[63]],lm8_UKB_afr[[63]]) # 
-partial.R2(lm7_UKB_afr[[67]],lm8_UKB_afr[[67]]) #
+partial.R2(lm7_UKB_afr[[63]],lm8_UKB_afr[[63]]) #4.362483e-05 
+partial.R2(lm7_UKB_afr[[67]],lm8_UKB_afr[[67]]) #1.48167e-05
 
-partial_r2_UKB_afr<-lapply(1:length(PGS2_UKB_afr), function(X) partial.R2(lm7_UKB_afr[[X]], lm8_UKB_afr[[X]])) #
+partial_r2_UKB_afr<-lapply(1:length(PGS2_UKB_afr), function(X) partial.R2(lm7_UKB_afr[[X]], lm8_UKB_afr[[X]])) 
 names(partial_r2_UKB_afr)<-names(PGS2_UKB_afr)
 
 
@@ -84,8 +84,8 @@ data.table(Nr=unlist(Nr_SNPs), Name=names(Nr_SNPs), Part_R2=unlist(partial_r2_UK
 saveRDS(A_table, file='~/height_prediction/sib_betas/ukb_afr/output/Nr_SNPs_UKB_afr.Rds')
 
 #
-cor.test(unlist(Nr_SNPs), unlist(partial_r2_UKB_afr))#  0.1311096
-summary(lm(Part_R2~Nr,data=A_table))$r.squared #
+cor.test(unlist(Nr_SNPs), unlist(partial_r2_UKB_afr))# 0.9898004
+summary(lm(Part_R2~Nr,data=A_table))$r.squared #0.9797049
 
 for(I in 1:length(PGS2_UKB_afr)){
         A<-ggpairs(PGS2_UKB_afr[[I]][,.(Height, Sex, PGS, Age, age2,EUR_ANC)])

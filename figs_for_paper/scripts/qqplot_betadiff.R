@@ -8,6 +8,38 @@ library(mgcViz)
 #########################
 cat('checkpoint number 1\n')
 
+
+beta1<-readRDS('~/height_prediction/loc_anc_analysis/output/final_plink.Rds')
+whi<-readRDS('~/height_prediction/gwas/WHI/output/plink_whi.Rds')
+pdf('~/height_prediction/figs_for_paper/figs/qqplot_plink.pdf')
+#qq.chisq(whi$Beta_Diff_Chisq, df=1,  main="QQ plot PRS SNPs",  xlab="Expected", ylab="Observed", slope.one=TRUE, slope.lambda=TRUE, overdisp=TRUE)
+qq.chisq(whi$Beta_Diff_Chisq, df=1,  main="QQ plot PRS SNPs",  xlab="Expected", ylab="Observed", slope.one=TRUE)
+dev.off()
+
+
+##################################################
+##################################################
+##################################################
+##################################################
+##################################################
+##################################################
+##Everything after this point is obsolete
+##Everything after this point is obsolete
+##Everything after this point is obsolete
+##Everything after this point is obsolete
+##Everything after this point is obsolete
+##Everything after this point is obsolete
+##Everything after this point is obsolete
+###
+###
+###
+###
+###
+###
+###
+###
+###
+###
 ###
 #source('~/height_prediction/gwas/ukb_afr/scripts/compare_betas.R') #Run the analysis
 ##

@@ -1,3 +1,4 @@
+#!/usr/bin/env Rscript
 ##preable###
 ###########
 library("optparse")
@@ -11,6 +12,7 @@ library(tidyr)
 library(hexbin)
 library(psychometric)
 library(boot)
+library(readr)
 #############
 #############
 
@@ -21,14 +23,7 @@ readRDS('~/height_prediction/sib_betas/WHI/output/PGS_WHI.Rds')-> PGS_WHI
 fread('~/height_prediction/input/WHI/WHI_phenotypes.txt')-> Pheno_WHI
 
 #a partial R2 function
-###########
-rsq.R2 <- function(formula1, formula2, data, indices) {
-  d <- data[indices,] # allows boot to select sample
-  fit <- lm(formula1, data=d)
-  fit2<- lm(formula2, data=d)
-  res<-partial.R2(fit, fit2)
-  return(res)
-}
+source('~/height_prediction/strat_prs/scripts/Rsq_R2.R')
 ##############
 
 #add PGS to Pheno table in order to be able to make multiple analyses
@@ -37,10 +32,15 @@ Pheno_WHI[, SUBJID:=paste0("0_", as.character(Pheno_WHI[, SUBJID]))]
 setkey(Pheno_WHI, SUBJID)
 
 #add ancestry
+ancestry<-do.call(rbind, lapply(1:22, function(X) fread(paste0('~/height_prediction/input/WHI/rfmix_anc_chr', X, '.txt'))))
 
-anc_WHI<-cbind(fread('~/height_prediction/input/WHI/WHI_b37_strand_prune_include.2.Q'), fread('~/height_prediction/input/WHI/WHI_b37_strand_prune_include.fam')[,V2])
-colnames(anc_WHI)<-c("AFR_ANC","EUR_ANC","SUBJID")
-anc_WHI[,SUBJID:=paste0("0_", SUBJID)]
+anc_WHI<-ancestry %>% group_by(SUBJID) %>% summarise(AFR_ANC=mean(AFR_ANC), EUR_ANC=1-mean(AFR_ANC)) %>% as.data.table #mean across chromosomes for each individual
+
+#admixture (obsolete)
+#anc_WHI<-cbind(fread('~/height_prediction/input/WHI/WHI_b37_strand_prune_include.2.Q'), fread('~/height_prediction/input/WHI/WHI_b37_strand_prune_include.fam')[,V2])
+#colnames(anc_WHI)<-c("AFR_ANC","EUR_ANC","SUBJID")
+#anc_WHI<-data.table(AFR_ANC=unlist(indiv2), EUR_ANC=1-unlist(indiv2), SUBJID=as.integer(unique(gsub("_[A|B]", "",gsub("0:","",ind[,1])))))
+#anc_WHI[,SUBJID:=paste0("0_", SUBJID)]
 setkey(anc_WHI, SUBJID)
 
 
@@ -67,14 +67,14 @@ lapply(PGS2_WHI, function(X) lm(HEIGHTX~AGE+age2+EUR_ANC, X))-> lm7_WHI
 lapply(PGS2_WHI, function(X) lm(HEIGHTX~AGE+age2+EUR_ANC+PGS, X))-> lm8_WHI
 
 
-partial.R2(lm7_WHI[[67]],lm8_WHI[[67]]) #2.1%
+partial.R2(lm7_WHI[[67]],lm8_WHI[[67]]) #4.7
 
-partial_r2_WHI<-lapply(1:length(PGS2_WHI), function(X) partial.R2(lm7_WHI[[X]], lm8_WHI[[X]])) #min 2.27, max 4.83%
+partial_r2_WHI<-lapply(1:length(PGS2_WHI), function(X) partial.R2(lm7_WHI[[X]], lm8_WHI[[X]])) 
 names(partial_r2_WHI)<- names(PGS2_WHI)
 
-summary(unlist(partial_r2_WHI)) #min 1 ma 2.4%
+summary(unlist(partial_r2_WHI)) ##min 2.27, max 5.6%
 
-which.max(unlist(partial_r2_WHI)) #
+which.max(unlist(partial_r2_WHI)) #77, or LD_100000_0.01_0.5. Excluding the LD ones, it's 68, phys_5000_0.0005
 
 Nr_SNPs<-rep(NA, length(PGS2_WHI))
 names(Nr_SNPs)<- names(PGS2_WHI)
@@ -85,10 +85,10 @@ for(I in names(Nr_SNPs)){
 	cat(I, ' \n')
 }
 data.table(Nr=unlist(Nr_SNPs), Name=names(Nr_SNPs), Part_R2=unlist(partial_r2_WHI))-> A_table
-saveRDS(A_table, file='~/height_prediction/sib_betas/WHI/utput/Nr_SNPs_WHI.Rds')
+saveRDS(A_table, file='~/height_prediction/sib_betas/WHI/output/Nr_SNPs_WHI.Rds')
 
-cor(A_table$Part_R2, A_table$Nr) #-0.589 #strong negative correlation
-summary(lm(Part_R2~Nr,data=A_table))$r.squared #0.3375
+cor(A_table$Part_R2, A_table$Nr) #0.89
+summary(lm(Part_R2~Nr,data=A_table))$r.squared #0.79
 #
 
 ###########################
@@ -113,7 +113,7 @@ lapply(1:length(PGS3_WHI), function(X) PGS3_WHI[[X]][,Med_Eur_Anc:=median(EUR_AN
 
 lapply(1:length(PGS3_WHI), function(X) as.character(unique((PGS3_WHI[[X]]$Quantile))))-> a
 
-lapply(a, function(X) c(X[3],X[4], X[1], X[2]))-> a1
+lapply(a, function(X) c(X[4],X[2], X[1], X[3]))-> a1
 
 names(a1)<-names(PGS3_WHI)
 
@@ -144,6 +144,7 @@ for (I in names(r2_WHI)){
 }
 
 ### add confidence intervals calculated with bootstrap: https://www.statmethods.net/advstats/bootstrapping.html
+
 results.WHI<-vector('list', length(PGS3_WHI))
 
 for (I in names(PGS3_WHI)){
@@ -161,12 +162,10 @@ for (I in names(PGS3_WHI)){
         cat(I)
 	cat(' done\n')
 }
-results.WHI<-results.WHI[81:160]
 saveRDS(PGS3_WHI, file='~/height_prediction/sib_betas/WHI/output/PGS3_WHI.Rds')
 saveRDS(results.WHI, file='~/height_prediction/sib_betas/WHI/output/results.WHI.Rds')
 
 #confidence intervals
-
 boots.ci.WHI<-lapply(results.WHI, function(Y) lapply(Y, function(X) boot.ci(X, type = c("norm", 'basic', "perc"))))
 names(boots.ci.WHI)<-names(results.WHI)
 

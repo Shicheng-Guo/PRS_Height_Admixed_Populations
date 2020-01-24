@@ -25,23 +25,15 @@ a_list[['CEU']]<-vector('list', 5)
 ci[['AA']]<-vector('list', 5)
 ci[['CEU']]<-vector('list', 5)
 names(a_list[['AA']])<-c("ukb_afr", "WHI", "JHS", "HRS_afr",  "HRS_eur")
-names(a_list[['CEU']])<-c("ukb_afr", "WHI", "JHS", "HRS_afr",  "HRS_eur")
 names(ci[['AA']])<-c("ukb_afr", "WHI", "JHS", "HRS_afr",  "HRS_eur")
-names(ci[['CEU']])<-c("ukb_afr", "WHI", "JHS", "HRS_afr",  "HRS_eur")
 for(I in c("WHI","JHS","ukb_afr","HRS_eur", "HRS_afr")){
 	a_list[['AA']][[I]]<-vector('list', 6)
-	a_list[['CEU']][[I]]<-vector('list', 6)
 	ci[['AA']][[I]]<-vector('list', 6)
-        ci[['CEU']][[I]]<-vector('list', 6)
 	names(a_list[['AA']][[I]])<-c("3000","6000","10000","20000", "40000", "100000")
- 	names(a_list[['CEU']][[I]])<-c("3000","6000","10000","20000","40000","100000")
 	names(ci[['AA']][[I]])<-c("3000","6000","10000","20000", "40000", "100000")
-        names(ci[['CEU']][[I]])<-c("3000","6000","10000","20000","40000","100000")
 	for(J in names(a_list[['AA']][[I]])){	
 		a_list[['AA']][[I]][[J]]<-readRDS(paste0('~/height_prediction/strat_prs/output/part_R2_', I,"_",dtset, "_", J, "_AA_v2.Rds"))
-		a_list[['CEU']][[I]][[J]]<-readRDS(paste0('~/height_prediction/strat_prs/output/part_R2_', I, "_", dtset,"_", J, "_CEU_v2.Rds"))
 		ci[['AA']][[I]][[J]]<-readRDS(paste0('~/height_prediction/strat_prs/output/results_', I,"_",dtset, "_", J, "_AA_v2.Rds"))
-                ci[['CEU']][[I]][[J]]<-readRDS(paste0('~/height_prediction/strat_prs/output/results_', I, "_", dtset,"_", J, "_CEU_v2.Rds"))
 	}
 }
 
@@ -133,7 +125,7 @@ scale_x_discrete(labels=c("Low", expression(symbol('\256')), expression(symbol('
 #axis.line = element_line(colour = "black"), legend.position = "none", legend.title=element_blank(), axis.title.y = element_text(size = 18), axis.title.x=element_text(size=15),axis.text.x=element_text(size=15), axis.text.y=element_text(size=15), legend.text=element_text(size=10)) + scale_x_discrete(labels=c("Low", expression(symbol('\256')), expression(symbol('\256')), "High"))
 
 print(plot1)
-ggsave(paste0('~/height_prediction/strat_prs/figs/v2_barplot_AA_CEU_', dtset,'.pdf'))
+ggsave(paste0('~/height_prediction/strat_prs/figs/v2_barplot_AA_', dtset,'.pdf'))
 
 #
 df2$Dataset<-factor(df2$Dataset, levels=c("UKB_afr", "WHI_afr", "JHS_afr", "HRS_afr",  "HRS_eur"))

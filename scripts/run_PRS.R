@@ -85,17 +85,30 @@ if((args[3] %in% c("LD_50000_0.01_0.5", "LD_100000_0.01_0.5", "LD_250000_0.01_0.
 cat('checkpoint 3\n')
 PGS<-vector('list',22)
 names(PGS)<-c(1:22)
-for (CR in 1:22){
+#chose those that have no snps:
+skip_me<-which(unlist(lapply(1:22, function(X) nrow(hei[[X]])))==0)
+for (CR in seq(1:22)[-skip_me]){
 	print(paste0("Chromosome is ", CR))
-        try(PolScore2(CHR=CR, panel=args[1], panel2=args[2], tag=args[3]))-> PGS[[CR]]
+        PolScore2(CHR=CR, panel=args[1], panel2=args[2], tag=args[3])-> PGS[[CR]]
         cat(paste0(CR, '  done\n'))
 }
 
 samps<-names(PGS[[1]]) #sum PGS across chromosomes.
 PGS2<-vector('list', length(samps))
-names(PGS2)<-samps
+if(length(skip_me)==1){
+        PGS[[skip_me]]<-rep(NA, length(samps))
+        names(PGS[[skip_me]])<-samps
+}
+if(length(skip_me)>1){
+        for(I in skip_me){
+                PGS[[skip_me[I]]]<-rep(NA, length(samps))
+                names(PGS[[skip_me[I]]])<-samps
+}
+}
+saveRDS(PGS,file=paste0(home, args[1], '/', args[2], '/output/PGS_chrs_', args[3], '.Rds'))
+
 for (S in samps){
-	sum(PGS[[1]][[S]],PGS[[2]][[S]],PGS[[3]][[S]],PGS[[4]][[S]],PGS[[5]][[S]],PGS[[6]][[S]],PGS[[7]][[S]],PGS[[8]][[S]],PGS[[9]][[S]],PGS[[10]][[S]],PGS[[11]][[S]],PGS[[12]][[S]],PGS[[13]][[S]],PGS[[14]][[S]],PGS[[15]][[S]],PGS[[16]][[S]],PGS[[17]][[S]],PGS[[18]][[S]],PGS[[19]][[S]],PGS[[20]][[S]],PGS[[21]][[S]],PGS[[22]][[S]])->PGS2[[S]]
+	sum(PGS[[1]][[S]],PGS[[2]][[S]],PGS[[3]][[S]],PGS[[4]][[S]],PGS[[5]][[S]],PGS[[6]][[S]],PGS[[7]][[S]],PGS[[8]][[S]],PGS[[9]][[S]],PGS[[10]][[S]],PGS[[11]][[S]],PGS[[12]][[S]],PGS[[13]][[S]],PGS[[14]][[S]],PGS[[15]][[S]],PGS[[16]][[S]],PGS[[17]][[S]],PGS[[18]][[S]],PGS[[19]][[S]],PGS[[20]][[S]],PGS[[21]][[S]],PGS[[22]][[S]], na.rm=T)->PGS2[[S]]
         cat(paste0(S, ' done\n'))
         }
 saveRDS(PGS2, file=paste0(home, args[1], '/', args[2],'/output/PGS_', args[2], '_', args[3], '.Rds'))
