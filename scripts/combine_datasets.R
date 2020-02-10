@@ -19,7 +19,11 @@ library(psychometric)
 library(boot)
 library(RColorBrewer)
 options(scipen=999)
-args<-'gwas'
+library(TeachingDemos)
+args<-'sib_betas'
+
+txtStart("~/height_prediction/sib_betas/outout_sib.txt")
+# Your code
 ##############################################################
 #combine all
 
@@ -70,7 +74,6 @@ for(I in names(B_JHS)){ #JHS lacks the LD prunning methods
 #
 ALL2<-vector('list', length(names(B_JHS)))
 names(ALL2)<-names(B_JHS)
-
 for(I in names(B_JHS)){
 #	if(args[1]=='sib_betas'){
 #		ALL2[[I]]<-rbind(B_JHS[[I]][1:2,][, Dataset:='JHS_afr'], B_WHI[[I]][1:4,][, Dataset:='WHI_afr'], B_UKB_afr[[I]][1:4,][,Dataset:='UKB_afr'],B_HRS_afr[[I]][1:2,][, Dataset:='HRS_afr'],  B_HRS_eur[[I]], B_UKB_eur[[I]])
@@ -142,6 +145,9 @@ for(I in names(B_JHS)){
 	}
 }
 #
+lm( ALL2[[63]]$R_sq ~ ALL2[[63]]$Med_Eur_Anc)
+summary(lm( ALL2[[63]]$R_sq ~ ALL2[[63]]$Med_Eur_Anc, weights=ALL2[[63]]$W)) #p-value: 0.001586, adj-r2=0.5762
+txtStop()
 #stop here 04/09/2019
 ALL3<-vector('list', length(names(B_JHS)))
 names(ALL3)<- names(B_JHS)

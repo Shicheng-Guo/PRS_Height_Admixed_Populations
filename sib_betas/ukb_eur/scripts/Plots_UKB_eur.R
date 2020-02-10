@@ -13,7 +13,7 @@ library(psychometric)
 library(boot)
 
 #read in PGS scores
-readRDS('~/height_prediction/gwas/ukb_eur/output/PGS_ukb_eur.Rds')-> PGS_UKB_eur
+readRDS('~/height_prediction/sib_betas/ukb_eur/output/PGS_ukb_eur.Rds')-> PGS_UKB_eur
 #read in phenotype data
 fread('~/height_prediction/input/ukb_eur/UKB_EUR_pheno.txt')-> Pheno_UKB_eur
 #a partial R2 function
@@ -50,10 +50,9 @@ lapply(PGS2_UKB_eur, function(X) lm(Height~PGS+age2, X))-> lm6_UKB_eur
 lapply(PGS2_UKB_eur, function(X) lm(Height~Sex+Age+age2+EUR_ANC, X))-> lm7_UKB_eur
 lapply(PGS2_UKB_eur, function(X) lm(Height~Sex+Age+age2+EUR_ANC+PGS, X))-> lm8_UKB_eur
 
-partial.R2(lm7_UKB_eur[[63]],lm8_UKB_eur[[63]]) # 22.5
-partial.R2(lm7_UKB_eur[[67]],lm8_UKB_eur[[67]]) ##18.3
+partial.R2(lm7_UKB_eur[[63]],lm8_UKB_eur[[63]]) # 20.43% 2nd highest after LD_block_AFR
 
-partial_r2_UKB_eur<-lapply(1:length(PGS2_UKB_eur), function(X) partial.R2(lm7_UKB_eur[[X]], lm8_UKB_eur[[X]])) #range 2.53 to 5%
+partial_r2_UKB_eur<-lapply(1:length(PGS2_UKB_eur), function(X) partial.R2(lm7_UKB_eur[[X]], lm8_UKB_eur[[X]])) #range 8.5 to 21.5%
 names(partial_r2_UKB_eur)<-names(PGS2_UKB_eur)
 
 
@@ -61,7 +60,7 @@ Nr_SNPs<-rep(NA, length(PGS2_UKB_eur))
 names(Nr_SNPs)<- names(PGS2_UKB_eur)
 
 for(I in names(Nr_SNPs)){
-        readRDS(paste0('~/height_prediction/gwas/ukb_eur/output/hei_', I, '.Rds'))-> smtg
+        readRDS(paste0('~/height_prediction/sib_betas/ukb_eur/output/hei_', I, '.Rds'))-> smtg
         sum(sapply(smtg, function(X) nrow(X)))-> Nr_SNPs[I]
 	remove(smtg)
 	gc()
@@ -69,20 +68,21 @@ for(I in names(Nr_SNPs)){
 }
 
 data.table(Nr=unlist(Nr_SNPs), Name=names(Nr_SNPs), Part_R2=unlist(partial_r2_UKB_eur))-> A_table
-saveRDS(A_table, file='~/height_prediction/gwas/ukb_eur/output/Nr_SNPs_UKB_eur.Rds')
+saveRDS(A_table, file='~/height_prediction/sib_betas/ukb_eur/output/Nr_SNPs_UKB_eur.Rds')
 
 #
-cor.test(unlist(Nr_SNPs), unlist(partial_r2_UKB_eur))# 0.4
-summary(lm(Part_R2~Nr,data=A_table))$r.squared #0.16
+cor.test(unlist(Nr_SNPs), unlist(partial_r2_UKB_eur))# 0.245
+summary(lm(Part_R2~Nr,data=A_table))$r.squared #0.06
 
 for(I in 1:length(PGS2_UKB_eur)){
         A<-ggpairs(PGS2_UKB_eur[[I]][,.(Height, Sex, PGS, Age, age2)])
-        png(filename=paste0('~/height_prediction/gwas/ukb_eur/figs/UKB_eur_ggpairs_', names(PGS2_UKB_eur)[I], '.png'))
+        png(filename=paste0('~/height_prediction/sib_betas/ukb_eur/figs/UKB_eur_ggpairs_', names(PGS2_UKB_eur)[I], '.png'))
         print(A)
         cat(names(PGS2_UKB_eur)[I])
         cat(' done\n')
         dev.off()
 }
+
 
 lapply(PGS2_UKB_eur, function(X) X[, Quantile:='total'][,Med_Eur_Anc:=1])-> PGS3_UKB_eur
 
@@ -104,12 +104,14 @@ names(results.UKB_eur)<-names(PGS3_UKB_eur)
 
 for (I in names(PGS3_UKB_eur)){
         results.UKB_eur[[I]] <- boot(data=PGS2_UKB_eur[[I]], statistic=rsq.R2, R=999, formula1=Height~Sex+Age+age2, formula2=Height~Sex+Age+age2+PGS)
+#        names(results.UKB_eur[[I]])<-c(a1[[I]], "total")
         cat(' done\n')
 }
-saveRDS(PGS3_UKB_eur, file='~/height_prediction/gwas/ukb_eur/output/PGS3_UKB_eur.Rds')
-saveRDS(results.UKB_eur, file='~/height_prediction/gwas/ukb_eur/output/results.UKB_eur.Rds')
+saveRDS(PGS3_UKB_eur, file='~/height_prediction/sib_betas/ukb_eur/output/PGS3_UKB_eur.Rds')
+saveRDS(results.UKB_eur, file='~/height_prediction/sib_betas/ukb_eur/output/results.UKB_eur.Rds')
 
 #confidence intervals
+
 
 boots.ci.UKB_eur<-lapply(results.UKB_eur, function(X)  boot.ci(X, type = c("norm", 'basic', "perc")))
 names(boots.ci.UKB_eur)<-names(results.UKB_eur)
@@ -126,4 +128,4 @@ for (I in names(PGS3_UKB_eur)){
         B_UKB_eur[[I]][, boots_basic_U:=boots.ci.UKB_eur[[I]]$basic[5]]
 }
 
-saveRDS(B_UKB_eur, file="~/height_prediction/gwas/ukb_eur/output/B_UKB_eur.Rds")
+saveRDS(B_UKB_eur, file="~/height_prediction/sib_betas/ukb_eur/output/B_UKB_eur.Rds")

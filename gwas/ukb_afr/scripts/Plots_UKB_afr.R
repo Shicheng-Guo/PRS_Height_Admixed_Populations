@@ -50,6 +50,7 @@ for (I in names(PGS_UKB_afr)){
         PGS2_UKB_afr[[I]][,age2:=Age^2]
 	PGS2_UKB_afr[[I]][AFR_ANC>=0.05]-> PGS2_UKB_afr[[I]]
         PGS2_UKB_afr[[I]][-which(is.na(PGS2_UKB_afr[[I]][,Height])),]-> PGS2_UKB_afr[[I]]
+	PGS2_UKB_afr[[I]][ID!="6007195"]-> PGS2_UKB_afr[[I]]
 }
 
 lapply(PGS2_UKB_afr, function(X) lm(Height~Sex, X))-> lm0_UKB_afr
@@ -62,8 +63,8 @@ lapply(PGS2_UKB_afr, function(X) lm(Height~PGS+age2, X))-> lm6_UKB_afr
 lapply(PGS2_UKB_afr, function(X) lm(Height~Sex+Age+age2+EUR_ANC, X))-> lm7_UKB_afr
 lapply(PGS2_UKB_afr, function(X) lm(Height~Sex+Age+age2+EUR_ANC+PGS, X))-> lm8_UKB_afr
 
-partial.R2(lm7_UKB_afr[[63]],lm8_UKB_afr[[63]]) # 3.78
-partial.R2(lm7_UKB_afr[[67]],lm8_UKB_afr[[67]]) #4.7%
+partial.R2(lm7_UKB_afr[[63]],lm8_UKB_afr[[63]]) # 3.76
+partial.R2(lm7_UKB_afr[[67]],lm8_UKB_afr[[67]]) #4.74%
 
 partial_r2_UKB_afr<-lapply(1:length(PGS2_UKB_afr), function(X) partial.R2(lm7_UKB_afr[[X]], lm8_UKB_afr[[X]])) #range 2.53 to 5%
 names(partial_r2_UKB_afr)<-names(PGS2_UKB_afr)

@@ -7,8 +7,9 @@ echo ${chr}
 done
 ```
 *Prepare p values file*
-cp ../../input/sib_beta_gwas_p.txt output/
-sed -i 's/b/BETA/' sib_beta_gwas_p.txt
-sed -i 's/p/P/' sib_beta_gwas_p.txt
+cp ../../input/sibestimates_50.tsv output/
+sed -i 's/b/BETA/' output/sibestimates_50.tsv
+sed -i 's/p/P/' output/sibestimates_50.tsv
 #sed -i 's/se/SE/' 50.assoc.tsv
-sed -i 's/MarkerName/SNP/' output/sib_beta_gwas_p.txt
+sed -i 's/MarkerName/SNP/' output/sibestimates_50.tsv
+sed -i 's/BETAeta/BETA/' output/sibestimates_50.tsv

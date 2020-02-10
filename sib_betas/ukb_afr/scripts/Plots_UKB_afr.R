@@ -29,6 +29,11 @@ for(j in 1:length(PGS_UKB_afr)){
 as.character(Pheno_UKB_afr$ID)-> Pheno_UKB_afr$ID
 setkey(Pheno_UKB_afr, ID)
 
+
+#######
+#ATTENTION: NEED TO REMOVE 6007195
+######
+
 #add ancestry
 ancestry<-do.call(rbind, lapply(1:22, function(X) fread(paste0('~/height_prediction/input/ukb_afr/rfmix_anc_chr', X, '.txt'))))
 
@@ -50,6 +55,7 @@ for (I in names(PGS_UKB_afr)){
         PGS2_UKB_afr[[I]][,age2:=Age^2]
 	PGS2_UKB_afr[[I]][AFR_ANC>=0.05]-> PGS2_UKB_afr[[I]]
         PGS2_UKB_afr[[I]][-which(is.na(PGS2_UKB_afr[[I]][,Height])),]-> PGS2_UKB_afr[[I]]
+	PGS2_UKB_afr[[I]][ID!="6007195"]-> PGS2_UKB_afr[[I]]
 }
 
 lapply(PGS2_UKB_afr, function(X) lm(Height~Sex, X))-> lm0_UKB_afr
@@ -62,8 +68,8 @@ lapply(PGS2_UKB_afr, function(X) lm(Height~PGS+age2, X))-> lm6_UKB_afr
 lapply(PGS2_UKB_afr, function(X) lm(Height~Sex+Age+age2+EUR_ANC, X))-> lm7_UKB_afr
 lapply(PGS2_UKB_afr, function(X) lm(Height~Sex+Age+age2+EUR_ANC+PGS, X))-> lm8_UKB_afr
 
-partial.R2(lm7_UKB_afr[[63]],lm8_UKB_afr[[63]]) #4.362483e-05 
-partial.R2(lm7_UKB_afr[[67]],lm8_UKB_afr[[67]]) #1.48167e-05
+partial.R2(lm7_UKB_afr[[63]],lm8_UKB_afr[[63]]) #0.0317
+partial.R2(lm7_UKB_afr[[67]],lm8_UKB_afr[[67]]) #0.042
 
 partial_r2_UKB_afr<-lapply(1:length(PGS2_UKB_afr), function(X) partial.R2(lm7_UKB_afr[[X]], lm8_UKB_afr[[X]])) 
 names(partial_r2_UKB_afr)<-names(PGS2_UKB_afr)
@@ -83,9 +89,10 @@ for(I in names(Nr_SNPs)){
 data.table(Nr=unlist(Nr_SNPs), Name=names(Nr_SNPs), Part_R2=unlist(partial_r2_UKB_afr))-> A_table
 saveRDS(A_table, file='~/height_prediction/sib_betas/ukb_afr/output/Nr_SNPs_UKB_afr.Rds')
 
+partial_r2_UKB_afr[which.max(partial_r2_UKB_afr)]
 #
-cor.test(unlist(Nr_SNPs), unlist(partial_r2_UKB_afr))# 0.9898004
-summary(lm(Part_R2~Nr,data=A_table))$r.squared #0.9797049
+cor.test(unlist(Nr_SNPs), unlist(partial_r2_UKB_afr))# 0.77
+summary(lm(Part_R2~Nr,data=A_table))$r.squared #0.59
 
 for(I in 1:length(PGS2_UKB_afr)){
         A<-ggpairs(PGS2_UKB_afr[[I]][,.(Height, Sex, PGS, Age, age2,EUR_ANC)])
