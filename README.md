@@ -1,13 +1,13 @@
 Date created: April 18th 2019
 Last modified: February 12th 2020
 
-In this directory you will find all scripts to recreate analyses described in our paper.
+**In this directory you will find all scripts to recreate analyses described in our paper**
 
-Intro
+*Intro*
 
 Height is a very polygenic trait and well-studied in humans. GWAS summary statistics for height used hundreds of thousands of individuals of European ancestry. It is unclear how well polygenic risk scores (PRS) predict height in non-Europeans in comparison to Europeans. Here we explore and quantify this, and then provide improvements.
 
-*Subdirectories in this repo
+*Subdirectories in this repo*
 
 WHI, JHS, etc: names of datasets
 
@@ -31,7 +31,7 @@ WHI, JHS, etc: names of datasets
 
 Note: This will be updated as needed.
 ####
-RECREATING ANALYSES IN THE PAPER:
+**RECREATING ANALYSES IN THE PAPER:**
 
 *Prepare input data*
 
@@ -40,9 +40,11 @@ cd input/
 ```
 
 Within each dataset's directory you will find a README.md with instructions on how to prepare input data. 
+
 **Note: there is an assumption that you have access to the datasets used in this paper. We are not allowed to share the raw data.
 
 *Get data ready for clumping/pruning*
+
 Once the input data is formatted, we can do some pruning/clumping using both the GWAS effect sizes ('gwas') and the sibling-estimated effect sizes ('sib_betas'). In both cases, p-values used for clumping come from thefull UKB GWAS.
 
 ```
@@ -52,6 +54,7 @@ Rscript --vanilla ~/height_prediction/scripts/make_vcf.R temp sib_betas $D
 Rscript --vanilla ~/height_prediction/scripts/make_vcf.R temp gwas $D
 done
 ```
+
 *Prune/clump using different methods* 
 ```
 for D in JHS WHI pennBB_afr pennBB_eur ukb_afr ukb_eur HRS_eur HRS_afr;
@@ -61,7 +64,7 @@ do
 done
 ```
 
-*Combine these 80 sets:
+*Combine these 80 sets*
 
 ```
 for D in JHS WHI pennBB_afr pennBB_eur ukb_afr ukb_eur HRS_eur HRS_afr;
@@ -83,7 +86,8 @@ do
 done
 ```
 
-*Combine PRS results
+*Combine PRS results*
+
 Combine all PRS results per dataset:
 ```
 for D in JHS WHI pennBB_afr pennBB_eur ukb_afr ukb_eur HRS_eur HRS_afr;
@@ -95,7 +99,8 @@ done
 ```
 
 
-*Plots
+*Plots*
+
 ```
 Rscript --vanilla ~/height_prediction/sib_betas/WHI/scripts/Plots_WHI.R
 Rscript --vanilla ~/height_prediction/sib_betas/JHS/scripts/Plots_JHS.R
@@ -118,7 +123,8 @@ Rscript --vanilla ~/height_prediction/unweighted_prs/HRS_eur/scripts/Plots_HRS_e
 ```
 
 
-*Combine datasets into Fig 1, Fig S6, Fig S7:
+*Combine datasets into Fig 1, Fig S6, Fig S7*
+
 These scripts will produce plots for each pruning/clumping strategy. Throughout the paper we show the one called "phys_100000_0.0005":
 
 ```
