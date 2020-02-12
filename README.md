@@ -16,7 +16,7 @@ Height is a very polygenic trait and well-studied in humans. GWAS summary statis
 
 -unweighted_prs: analysis using an unweighted version of the PRS calculation, where effect sizes are ignored and replaced by +1 or -1 (for positive and negative effects, respectively)
 
--runSmartPCA-master:PCA analysis of UKB_afr and GWAS for height in UKB_afr_imputed (subdirectory)
+-PCA_and_GWAS:PCA analysis of UKB_afr and GWAS for height in UKB_afr_imputed (subdirectory)
 
 *output: where Rds files and such are stored, not to be pushed to repo.
 
