@@ -29,11 +29,6 @@ for(j in 1:length(PGS_UKB_afr)){
 as.character(Pheno_UKB_afr$ID)-> Pheno_UKB_afr$ID
 setkey(Pheno_UKB_afr, ID)
 
-
-#######
-#ATTENTION: NEED TO REMOVE 6007195
-######
-
 #add ancestry
 ancestry<-do.call(rbind, lapply(1:22, function(X) fread(paste0('~/height_prediction/input/ukb_afr/rfmix_anc_chr', X, '.txt'))))
 

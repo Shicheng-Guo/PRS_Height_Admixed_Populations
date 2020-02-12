@@ -1,3 +1,11 @@
+#!/bin/bash
+
+home='~/height_prediction'
+eval home=$home
+
+dtset1=$1
+dtset2=$2
+
 for i in 1000000 500000 100000 75000 50000 25000 10000 5000;
 do
 echo 'Window size is '
