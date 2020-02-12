@@ -41,7 +41,7 @@ awk '$1=='${chr}'{print $2}' sorted.txt > tmp${chr}
 grep -F -f tmp${chr} /project/mathilab/data/UKB/imputed/ukb_imp_chr${chr}_afr.bim  > ~/height_prediction/PCA_and_GWAS/UKB_AFR_imputed/out${chr}.txt
 awk '{print $2}' out${chr}.txt |sort|uniq -u > tmp_${chr}.txt #keep only bi-allelic SNPs
 grep -F -f tmp_${chr}.txt out${chr}.txt| awk 'length($5)<2'|awk 'OFS="\t"{print $2,$5}' > ref_chr${chr}.txt
-plink2 --bgen /project/mathilab/data/UKB/imputed/ukb_imp_chr${chr}_afr.bgen --sample ~/height_prediction/PCA_and_GWAS/UKB_AFR_imputed/my_samples.sample --extract tmp_${chr}.txt  --ref-allele force ~/height_prediction/runSmartpCA-master/UKB_AFR_imputed/ref_chr${chr}.txt --recode vcf --out ~/height_prediction/runSmartpCA-master/UKB_AFR_imputed/chr${chr}
+plink2 --bgen /project/mathilab/data/UKB/imputed/ukb_imp_chr${chr}_afr.bgen --sample ~/height_prediction/PCA_and_GWAS/UKB_AFR_imputed/my_samples.sample --extract tmp_${chr}.txt  --ref-allele force ~/height_prediction/PCA_and_GWAS/UKB_AFR_imputed/ref_chr${chr}.txt --recode vcf --out ~/height_prediction/PCA_and_GWAS/UKB_AFR_imputed/chr${chr}
 bgzip ~/height_prediction/PCA_and_GWAS/UKB_AFR_imputed/chr${chr}.vcf
 echo ${chr}
 echo 'done'
@@ -92,7 +92,7 @@ awk '{print $1,$2,$18}' Pheno.txt > PHENO.txt #use residual height
 
 *Convert back to plink format and keep only required columns in .fam file*
 ```
-plink --vcf ~/height_prediction/PCA_and_GWAS/UKB_AFR_imputed/chr1_22.vcf.gz --out ~/height_prediction/runSmartpCA-master/UKB_AFR_imputed/chr1_22
+plink --vcf ~/height_prediction/PCA_and_GWAS/UKB_AFR_imputed/chr1_22.vcf.gz --out ~/height_prediction/PCA_and_GWAS/UKB_AFR_imputed/chr1_22
 awk 'OFS="";{print $1, "_", $1, "\t",$2, "_", $2, "\t", $3, "\t", $4, "\t", $5, "\t", $6}' chr1_22.fam > temp
 mv temp chr1_22.fam
 ```
@@ -100,7 +100,7 @@ mv temp chr1_22.fam
 *Run GWAS and clean output file*
 
 ```
-plink2 --bfile ~/height_prediction/PCA_and_GWAS/UKB_AFR_imputed/chr1_22  --pheno PHENO.txt --allow-no-sex --covar Pheno.txt --covar-name Age2,Sex,PC1,PC2,PC3,PC4,PC5,PC6,PC7,PC8,PC9,PC10 -out ~/height_prediction/runSmartpCA-master/UKB_AFR_imputed/association_v3 --glm --adjust
+plink2 --bfile ~/height_prediction/PCA_and_GWAS/UKB_AFR_imputed/chr1_22  --pheno PHENO.txt --allow-no-sex --covar Pheno.txt --covar-name Age2,Sex,PC1,PC2,PC3,PC4,PC5,PC6,PC7,PC8,PC9,PC10 -out ~/height_prediction/PCA_and_GWAS/UKB_AFR_imputed/association_v3 --glm --adjust
 grep ADD association_v3.Res.Height.glm.linear > plink_ukb_afr_height_glm_linear.txt
 paste <(awk 'OFS="\t"{print $2,$1,$3,$4}' association_v3.Res.Height.glm.linear.adjusted|sort -k 1) <(sort -k 3 <(grep ADD association_v3.Res.Height.glm.linear)|awk 'OFS="\t"{print $3,$1,$2,$4,$5,$6,$7,$8,$9,$10,$11,$12}')|awk '$1==$5;OFS="\t"{print $1,$2,$3,$4,$7,$8,$9,$10,$12,$13,$14,$15,$16}' > tmp1
 cat <(echo -e "ID\tCHR\tUNADJ\tGC\tPOS\tREF\tALT\tA1\tOBS_CT\tBETA\tSE\tT_STAT\tP") tmp1 > ukb_afr_gwas_AA_v3_imputed.txt
