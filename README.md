@@ -6,7 +6,7 @@ Height is a very polygenic trait and well-studied in humans. GWAS summary statis
 
 *Subdirectories in this repo*
 
-WHI, JHS, etc: names of datasets
+-WHI, JHS, etc: names of datasets
 
 -gwas: analysis of predictive power of height PRS using UK Biobank GWAS summary statistics.
 
