@@ -1,6 +1,3 @@
-Date created: April 18th 2019
-Last modified: February 12th 2020
-
 **In this directory you will find all scripts to recreate analyses described in our paper**
 
 *Intro*
