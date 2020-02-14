@@ -19,17 +19,37 @@ home="/home/bbita/height_prediction/"
 dir=paste0(home,  args[2], "/", args[3],"/scripts/")
 parentdir<-gsub("/scripts", "", dir)
 if(args[2]=='sib_betas'){
-        fread(paste0(home, args[2], "/input/sib_beta_gwas_p.txt"))-> ukb_height #read in betas from sibling analyses
+	fread(paste0(home, args[2], "/input/sibestimates_50.tsv"))-> ukb_height_sib #read in betas from sibling analyses
+	ukb_height_sib<-ukb_height_sib[CHR==args[1]]
+	ukb_height_sib[,SE:= -abs(beta)/qnorm(pval/2)]
+        ukb_height_sib[, MarkerName:=SNP]
+	ukb_height_sib[,CHR:=as.integer(CHR)]
+        ukb_height_sib[,POS:=as.integer(POS)]
+	ukb_height_sib[order(CHR,POS)]-> ukb_height_sib
+	fread(paste0('zcat ', home,"gwas/input/50.assoc.tsv.gz"))-> ukb_height #read in GWAS summary statistics for height from the Uk Biobank
+        ukb_height[,c("CHR", "POS","Allele2","Allele1") := tstrsplit(variant, ":", fixed=TRUE)][,variant:=NULL]  #fix columns. In the UKB, variants are listed as CHR:POS: REF:ALT, where ALT is the effect allele. So, in order to be compatilble with my scripts (where allele 1 is effect all
+	ukb_height<-ukb_height[CHR==args[1]]
+        ukb_height[, MarkerName:=rsid][, N:=nCompleteSamples][, AC:=NULL][, b:=beta][,p:=pval]
+        ukb_height[,rsid:=NULL][,nCompleteSamples:=NULL][, beta:=NULL][, pval:=NULL][, SE:=se]
+        ukb_height[,.(MarkerName,Allele1,Allele2, b, SE, p, N, CHR, POS)]-> ukb_height
+	ukb_height[,CHR:=as.integer(CHR)]
+	ukb_height[,POS:=as.integer(POS)]
+	ukb_height[order(CHR,POS)]-> ukb_height
+	setkey(ukb_height,CHR,POS, MarkerName)
+	setkey(ukb_height_sib,CHR,POS, MarkerName)
+	ukb_height[ukb_height_sib, nomatch=0][,.(MarkerName,Allele1,Allele2,beta, SE, p, N, CHR, POS)][, b:=beta]-> ukb_height_sib
+	ukb_height_sib[!(POS %in% ukb_height_sib[which(duplicated(ukb_height_sib, by='POS')), POS])]-> ukb_height_sib #remove multi-allelic
 } else if (args[2]=='gwas'){
         fread(paste0('zcat ', home, args[2], "/input/50.assoc.tsv.gz"))-> ukb_height #read in GWAS summary statistics for height from the Uk Biobank
         ukb_height[,c("CHR", "POS","Allele2","Allele1") := tstrsplit(variant, ":", fixed=TRUE)][,variant:=NULL]  #fix columns. In the UKB, variants are listed as CHR:POS: REF:ALT, where ALT is the effect allele. So, in order to be compatilble with my scripts (where allele 1 is effect all
         ukb_height[, MarkerName:=rsid][, N:=nCompleteSamples][, AC:=NULL][, b:=beta][,p:=pval]
         ukb_height[,rsid:=NULL][,nCompleteSamples:=NULL][, beta:=NULL][, pval:=NULL][, SE:=se]
         ukb_height[,.(MarkerName,Allele1,Allele2, b, SE, p, N, CHR, POS)]-> ukb_height
+	ukb_height[,CHR:=as.integer(CHR)]
+	ukb_height[,POS:=as.integer(POS)]
+	ukb_height[order(CHR,POS)]-> ukb_height
+	ukb_height[!(POS %in% ukb_height_sib[which(duplicated(ukb_height, by='POS')), POS])]-> ukb_height #remove multi-allelic
 }
-ukb_height[,CHR:=as.integer(CHR)]
-ukb_height[,POS:=as.integer(POS)]
-ukb_height[order(CHR,POS)]-> ukb_height
 
 #*************************
 # select UKB  SNPs *

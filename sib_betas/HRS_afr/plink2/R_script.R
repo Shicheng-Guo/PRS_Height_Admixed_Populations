@@ -11,3 +11,5 @@ a<-paste0("bgzip output/chr", I, ".vcf")
 system(a)
 cat(I,"\n")
 }
+
+
