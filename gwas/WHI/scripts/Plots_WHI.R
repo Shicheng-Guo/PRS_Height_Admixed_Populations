@@ -15,7 +15,9 @@ library(boot)
 library(readr)
 #############
 #############
+library(TeachingDemos)
 
+txtStart(paste0("~/height_prediction/gwas/WHI/plots_out.txt"))
 #read in PGS scores
 readRDS('~/height_prediction/gwas/WHI/output/PGS_WHI.Rds')-> PGS_WHI
 
@@ -144,6 +146,7 @@ for (I in names(r2_WHI)){
 }
 
 ### add confidence intervals calculated with bootstrap: https://www.statmethods.net/advstats/bootstrapping.html
+
 results.WHI<-vector('list', length(PGS3_WHI))
 
 for (I in names(PGS3_WHI)){
@@ -165,7 +168,7 @@ saveRDS(PGS3_WHI, file='~/height_prediction/gwas/WHI/output/PGS3_WHI.Rds')
 saveRDS(results.WHI, file='~/height_prediction/gwas/WHI/output/results.WHI.Rds')
 
 #confidence intervals
-
+boots.ci.WHI<-lapply(results.WHI, function(Y) lapply(Y, function(X) boot.ci(X, type = c("norm", 'basic', "perc"))))
 names(boots.ci.WHI)<-names(results.WHI)
 
 for (I in names(PGS3_WHI)){
@@ -197,3 +200,4 @@ for (I in names(PGS3_WHI)){
 }
 
 saveRDS(B_WHI, file="~/height_prediction/gwas/WHI/output/B_WHI.Rds")
+txtStop()

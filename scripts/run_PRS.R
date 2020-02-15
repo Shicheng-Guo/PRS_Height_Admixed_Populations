@@ -60,18 +60,24 @@ if(!(args[3] %in% c("LD_50000_0.01_0.5", "LD_100000_0.01_0.5", "LD_250000_0.01_0
 } else{
 	cat('SOMETHING\n')
 	snp_list<- lapply(1:22, function(X) data.table(MarkerName=readRDS(paste0(home, args[1], '/', args[2], '/prunned_1kg/LD_prunned_hei_chr', X, '_',args[3], '.Rds'))[['keep']]))
-	grch37_snp = useMart(biomart="ENSEMBL_MART_SNP", host="grch37.ensembl.org", path="/biomart/martservice",dataset="hsapiens_snp")
-	ID_posgrch37<-lapply(1:22, function(X) getBM(attributes = c('refsnp_id','allele', 'chr_name','chrom_start'),filters = 'snp_filter',values = snp_list[[X]]$MarkerName,mart = grch37_snp))
-	lapply(ID_posgrch37, function(X) setDT(X))
+	betas<-fread(paste0(home, args[1], '/', args[2],"/plink2/output/betas_for_plink.txt"))
+	colnames(betas)[1]<-'MarkerName'
+	setkey(betas, MarkerName)
+	#grch37_snp = useMart(biomart="ENSEMBL_MART_SNP", host="grch37.ensembl.org", path="/biomart/martservice",dataset="hsapiens_snp")
+	#ID_posgrch37<-lapply(1:22, function(X) getBM(attributes = c('refsnp_id','allele', 'chr_name','chrom_start'),filters = 'snp_filter',values = snp_list[[X]]$MarkerName,mart = grch37_snp))
+	#lapply(ID_posgrch37, function(X) setDT(X))
 	for(CR in 1:22){
-		colnames(ID_posgrch37[[CR]])<-c('MarkerName','Allele','CHR','POS')
-		setkey(ID_posgrch37[[CR]], MarkerName, CHR, POS)
-		ID_posgrch37[[CR]][,CHR:=as.integer(CHR)]
-		ID_posgrch37[[CR]][,POS:=as.integer(POS)]
+		#colnames(ID_posgrch37[[CR]])<-c('MarkerName','Allele','CHR','POS')
+		#setkey(ID_posgrch37[[CR]], MarkerName, CHR, POS)
+		#ID_posgrch37[[CR]][,CHR:=as.integer(CHR)]
+		#ID_posgrch37[[CR]][,POS:=as.integer(POS)]
+		#setkey(ukb_height, CHR, POS)
+		#setkey(ID_posgrch37[[CR]], CHR, POS)
+		betas_chr<-merge(betas, snp_list[[CR]])
 		setkey(ukb_height, CHR, POS)
-		setkey(ID_posgrch37[[CR]], CHR, POS)
-		ukb_height[ID_posgrch37[[CR]], nomatch=0][, i.MarkerName:=NULL]-> ukb_height2
-		ukb_height2[order(CHR,POS)]-> snp_list[[CR]]
+		setkey(betas_chr, CHR, POS)
+		#ukb_height[betas_chr, nomatch=0][, i.MarkerName:=NULL]-> ukb_height2
+		betas_chr[order(CHR,POS)]-> snp_list[[CR]]
 		cat(CR, '\n')
 	}
 	names(snp_list)<-seq(1:22)
@@ -91,8 +97,10 @@ if((args[3] %in% c("LD_50000_0.01_0.5", "LD_100000_0.01_0.5", "LD_250000_0.01_0.
                 setkey(snp_list[[Z]],CHR, POS)
                 setkey(hei[[Z]], CHR, POS)
                 hei[[Z]][snp_list[[Z]], nomatch=0]-> hei[[Z]]
-		hei[[Z]][,CHR:=NULL]
+		hei[[Z]][,i.MarkerName:=NULL]
+		hei[[Z]][,b:=BETA][,BETA:=NULL]
 		cat(Z, ' done \n')
+		gc()
 	}
 
         names(hei)<-seq(1:22)

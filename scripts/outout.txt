@@ -1,0 +1,332 @@
+> results.WHI <- readRDS(paste0("~/height_prediction/", args[1], 
++ "/WHI/output/results.WHI.Rds"))
+> results.JHS <- readRDS(paste0("~/height_prediction/", args[1], 
++ "/JHS/output/results.JHS.Rds"))
+> results.UKB_afr <- readRDS(paste0("~/height_prediction/", args[1], 
++ "/ukb_afr/output/results.UKB_afr.Rds"))
+> results.HRS_eur <- readRDS(paste0("~/height_prediction/", args[1], 
++ "/HRS_eur/output/results.HRS_eur.Rds"))
+> results.HRS_afr <- readRDS(paste0("~/height_prediction/", args[1], 
++ "/HRS_afr/output/results.HRS_afr.Rds"))
+> B_WHI <- readRDS(paste0("~/height_prediction/", args[1], "/WHI/output/B_WHI.Rds"))
+> B_JHS <- readRDS(paste0("~/height_prediction/", args[1], "/JHS/output/B_JHS.Rds"))
+> B_UKB_afr <- readRDS(paste0("~/height_prediction/", args[1], 
++ "/ukb_afr/output/B_UKB_afr.Rds"))
+> B_HRS_eur <- readRDS(paste0("~/height_prediction/", args[1], 
++ "/HRS_eur/output/B_HRS_eur.Rds"))
+> B_HRS_afr <- readRDS(paste0("~/height_prediction/", args[1], 
++ "/HRS_afr/output/B_HRS_afr.Rds"))
+> PGS3_UKB_afr <- readRDS(paste0("~/height_prediction/", args[1], 
++ "/ukb_afr/output/PGS3_UKB_afr.Rds"))
+> PGS3_WHI <- readRDS(paste0("~/height_prediction/", args[1], "/WHI/output/PGS3_WHI.Rds"))
+> PGS3_JHS <- readRDS(paste0("~/height_prediction/", args[1], "/JHS/output/PGS3_JHS.Rds"))
+> PGS3_HRS_eur <- readRDS(paste0("~/height_prediction/", args[1], 
++ "/HRS_eur/output/PGS3_HRS_eur.Rds"))
+> PGS3_HRS_afr <- readRDS(paste0("~/height_prediction/", args[1], 
++ "/HRS_afr/output/PGS3_HRS_afr.Rds"))
+> for (I in names(B_JHS)) {
++ ALL <- rbind(B_JHS[[I]][1:2, ][, `:=`(Dataset, "JHS_afr")], 
++ 
++ B_WHI[[I]][1:4, ][, `:=`(Dataset, "WHI_afr")], B_UKB_afr[[I]][1:4, 
++ 
++ 
++ ][, `:=`(Dataset, "UKB_afr")], B_HRS_afr[[I]][1:2, 
++ 
++ 
++ ][, `:=`(Dataset, "HRS_afr")], B_HRS_eur[[I]])
++ ALL$Dataset <- factor(ALL$Dataset, levels = c("UKB_afr", 
++ 
++ "WHI_afr", "JHS_afr", "HRS_afr", "HRS_eur"))
++ my_plot <- ggplot(ALL, aes(x = Med_Eur_Anc, y = R_sq, colour = Dataset, 
++ 
++ shape = Dataset)) + geom_point(size = 1.5, fill = "white", 
++ 
++ alpha = 0.8) + geom_errorbar(aes(x = Med_Eur_Anc, group = Dataset, 
++ 
++ colour = Dataset, ymin = boots_perc_L, ymax = boots_perc_U), 
++ 
++ width = 0.05, size = 0.8) + geom_errorbarh(aes(x = Med_Eur_Anc, 
++ 
++ group = Dataset, colour = Dataset, xmin = HVB_L, xmax = HVB_U), 
++ 
++ width = 0.05, size = 0.5) + scale_color_manual(values = c(brewer.pal(4, 
++ 
++ "Set1"), "#101010")) + ylab(expression(paste("Partial R"^"2"))) + 
++ 
++ xlab("European Ancestry Proportion") + theme(panel.grid.major = element_blank(), 
++ 
++ panel.grid.minor = element_blank(), panel.background = element_blank(), 
++ 
++ axis.line = element_line(colour = "black"), axis.title.y = element_text(size = 15), 
++ 
++ axis.title.x = element_text(size = 15), axis.text.x = element_text(size = 12), 
++ 
++ axis.text.y = element_text(size = 12), legend.key = element_blank(), 
++ 
++ legend.background = element_blank(), legend.title = element_blank(), 
++ 
++ legend.text = element_text(size = 12))
++ print(my_plot)
++ if (args == "sib_betas") {
++ 
++ ggsave(paste0("~/height_prediction/figs/sib_error_bars_all_v2_", 
++ 
++ 
++ I, ".png"))
++ 
++ }
++ else {
++ 
++ ggsave(paste0("~/height_prediction/figs/error_bars_all_v2_", 
++ 
++ 
++ I, ".png"))
++ 
++ }
++ }
+> ALL2 <- vector("list", length(names(B_JHS)))
+> names(ALL2) <- names(B_JHS)
+> for (I in names(B_JHS)) {
++ ALL2[[I]] <- rbind(B_JHS[[I]][1:2, ][, `:=`(Dataset, "JHS_afr")], 
++ 
++ B_WHI[[I]][1:4, ][, `:=`(Dataset, "WHI_afr")], B_UKB_afr[[I]][1:4, 
++ 
++ 
++ ][, `:=`(Dataset, "UKB_afr")], B_HRS_afr[[I]][1:2, 
++ 
++ 
++ ][, `:=`(Dataset, "HRS_afr")], B_HRS_eur[[I]])
++ tmp <- 1/c(var(results.JHS[[I]][[1]]$t), var(results.JHS[[I]][[2]]$t), 
++ 
++ var(results.WHI[[I]][[1]]$t), var(results.WHI[[I]][[2]]$t), 
++ 
++ var(results.WHI[[I]][[3]]$t), var(results.WHI[[I]][[4]]$t), 
++ 
++ var(results.UKB_afr[[I]][[1]]$t), var(results.UKB_afr[[I]][[2]]$t), 
++ 
++ var(results.UKB_afr[[I]][[3]]$t), var(results.UKB_afr[[I]][[4]]$t), 
++ 
++ var(results.HRS_afr[[I]][[1]]$t), var(results.HRS_afr[[I]][[2]]$t), 
++ 
++ var(results.HRS_eur[[I]]$t))
++ ALL2[[I]] <- cbind(ALL2[[I]], W = tmp)
++ ALL2[[I]]$Dataset <- factor(ALL2[[I]]$Dataset, levels = c("UKB_afr", 
++ 
++ "WHI_afr", "JHS_afr", "HRS_afr", "HRS_eur"))
++ my_plot2 <- ggplot(ALL2[[I]], aes(x = Med_Eur_Anc, y = R_sq)) + 
++ 
++ geom_point(size = 1.5, shape = 21, fill = "white", alpha = 0.8) + 
++ 
++ stat_smooth(method = "lm", mapping = aes(weight = W), 
++ 
++ 
++ col = "black") + scale_color_manual(values = c(brewer.pal(4, 
++ 
++ "Set1"), "#101010")) + ylab(expression(paste("Partial R"^"2"))) + 
++ 
++ xlab("European Ancestry Proportion") + theme(panel.grid.major = element_blank(), 
++ 
++ panel.grid.minor = element_blank(), panel.background = element_blank(), 
++ 
++ axis.line = element_line(colour = "black"), axis.title.y = element_text(size = 15), 
++ 
++ axis.title.x = element_text(size = 15), axis.text.x = element_text(size = 12), 
++ 
++ axis.text.y = element_text(size = 12), legend.key = element_blank(), 
++ 
++ legend.background = element_blank(), legend.title = element_blank(), 
++ 
++ legend.text = element_text(size = 12))
++ print(my_plot2)
++ if (args[1] == "sib_betas") {
++ 
++ ggsave(paste0("~/height_prediction/figs/sib_error_bars_all_v3_", 
++ 
++ 
++ I, ".png"))
++ 
++ }
++ else {
++ 
++ ggsave(paste0("~/height_prediction/figs/error_bars_all_v3_", 
++ 
++ 
++ I, ".png"))
++ 
++ }
++ }
+> a <- data.table(Name = names(B_JHS), Intercept = unlist(lapply(1:80, 
++ function(I) coef(lm(R_sq ~ Med_Eur_Anc, weights = W, data = ALL2[[I]]))[[1]])), 
++ Slope = unlist(lapply(1:80, function(I) coef(lm(R_sq ~ Med_Eur_Anc, 
++ 
++ weights = W, data = ALL2[[I]]))[[2]])), R_sq = unlist(lapply(1:80, 
++ 
++ function(I) summary(lm(R_sq ~ Med_Eur_Anc, weights = W, 
++ 
++ 
++ data = ALL2[[I]]))[9])), P = unlist(lapply(1:80, 
++ 
++ function(I) summary(lm(R_sq ~ Med_Eur_Anc, weights = W, 
++ 
++ 
++ data = ALL2[[I]]))$coefficients[8])))
+> ALL2b <- vector("list", length(names(B_JHS)))
+> names(ALL2b) <- names(B_JHS)
+> for (I in names(B_JHS)) {
++ ALL2b[[I]] <- rbind(B_JHS[[I]][1:2, ][, `:=`(Dataset, "JHS_afr")], 
++ 
++ B_WHI[[I]][1:4, ][, `:=`(Dataset, "WHI_afr")], B_UKB_afr[[I]][1:4, 
++ 
++ 
++ ][, `:=`(Dataset, "UKB_afr")], B_HRS_afr[[I]][1:2, 
++ 
++ 
++ ][, `:=`(Dataset, "HRS_afr")], B_HRS_eur[[I]])
++ tmp <- 1/c(var(results.JHS[[I]][[1]]$t), var(results.JHS[[I]][[2]]$t), 
++ 
++ var(results.WHI[[I]][[1]]$t), var(results.WHI[[I]][[2]]$t), 
++ 
++ var(results.WHI[[I]][[3]]$t), var(results.WHI[[I]][[4]]$t), 
++ 
++ var(results.UKB_afr[[I]][[1]]$t), var(results.UKB_afr[[I]][[2]]$t), 
++ 
++ var(results.UKB_afr[[I]][[3]]$t), var(results.UKB_afr[[I]][[4]]$t), 
++ 
++ var(results.HRS_afr[[I]][[1]]$t), var(results.HRS_afr[[I]][[2]]$t), 
++ 
++ var(results.HRS_eur[[I]]$t))
++ ALL2b[[I]] <- cbind(ALL2b[[I]], W = tmp)
++ ALL2b[[I]]$Dataset <- factor(ALL2b[[I]]$Dataset, levels = c("UKB_afr", 
++ 
++ "WHI_afr", "JHS_afr", "HRS_afr", "HRS_eur"))
++ my_plot2 <- ggplot(ALL2b[[I]], aes(x = Med_Eur_Anc, y = R_sq)) + 
++ 
++ geom_point(size = 1.5, shape = 21, fill = "white", alpha = 0.8) + 
++ 
++ stat_smooth(method = "lm", mapping = aes(weight = W), 
++ 
++ 
++ col = "black") + scale_color_manual(values = c(brewer.pal(4, 
++ 
++ "Set1"), "#101010")) + ylab(expression(paste("Partial R"^"2"))) + 
++ 
++ xlab("European Ancestry Proportion") + theme(panel.grid.major = element_blank(), 
++ 
++ panel.grid.minor = element_blank(), panel.background = element_blank(), 
++ 
++ axis.line = element_line(colour = "black"), axis.title.y = element_text(size = 15), 
++ 
++ axis.title.x = element_text(size = 15), axis.text.x = element_text(size = 12), 
++ 
++ axis.text.y = element_text(size = 12), legend.key = element_blank(), 
++ 
++ legend.background = element_blank(), legend.title = element_blank(), 
++ 
++ legend.text = element_text(size = 12))
++ print(my_plot2)
++ if (args[1] == "sib_betas") {
++ 
++ ggsave(paste0("~/height_prediction/figs/sib_error_bars_all_v3b_", 
++ 
++ 
++ I, ".png"))
++ 
++ }
++ else {
++ 
++ ggsave(paste0("~/height_prediction/figs/error_bars_all_v3b_", 
++ 
++ 
++ I, ".png"))
++ 
++ }
++ }
+> for (I in names(B_JHS)) {
++ ALL2[[I]]$Dataset <- factor(ALL2[[I]]$Dataset, levels = c("UKB_afr", 
++ 
++ "WHI_afr", "JHS_afr", "HRS_afr", "HRS_eur"))
++ my_plot <- ggplot(ALL2[[I]], aes(x = Med_Eur_Anc, y = R_sq, 
++ 
++ colour = Dataset)) + geom_point(aes(shape = Dataset), 
++ 
++ size = 1.5, fill = "white", alpha = 0.8) + stat_smooth(data = ALL2[[I]], 
++ 
++ method = "lm", mapping = aes(weight = W), col = "black") + 
++ 
++ geom_errorbar(aes(x = Med_Eur_Anc, group = Dataset, colour = Dataset, 
++ 
++ 
++ ymin = boots_perc_L, ymax = boots_perc_U), width = 0.05, 
++ 
++ 
++ size = 0.8) + geom_errorbarh(aes(x = Med_Eur_Anc, 
++ 
++ group = Dataset, colour = Dataset, xmin = HVB_L, xmax = HVB_U), 
++ 
++ width = 0.05, size = 0.5) + scale_color_manual(values = c(brewer.pal(4, 
++ 
++ "Set1"), "#101010")) + ylab(expression(paste("Partial R"^"2"))) + 
++ 
++ xlab("European Ancestry Proportion") + theme(panel.grid.major = element_blank(), 
++ 
++ panel.grid.minor = element_blank(), panel.background = element_blank(), 
++ 
++ axis.line = element_line(colour = "black"), axis.title.y = element_text(size = 18), 
++ 
++ axis.title.x = element_text(size = 18), axis.text.x = element_text(size = 15), 
++ 
++ axis.text.y = element_text(size = 15), legend.key = element_blank(), 
++ 
++ legend.background = element_blank(), legend.title = element_blank(), 
++ 
++ legend.text = element_text(size = 15), legend.position = c(0.15, 
++ 
++ 
++ 0.85))
++ print(my_plot)
++ if (args[1] == "sib_betas") {
++ 
++ ggsave(paste0("~/height_prediction/figs/sib_error_bars_all_v4_", 
++ 
++ 
++ I, ".png"))
++ 
++ }
++ else {
++ 
++ ggsave(paste0("~/height_prediction/figs/error_bars_all_v4_", 
++ 
++ 
++ I, ".png"))
++ 
++ }
++ }
+> lm(ALL2[[63]]$R_sq ~ ALL2[[63]]$Med_Eur_Anc)
+
+Call:
+lm(formula = ALL2[[63]]$R_sq ~ ALL2[[63]]$Med_Eur_Anc)
+
+Coefficients:
+           (Intercept)  ALL2[[63]]$Med_Eur_Anc  
+               0.02013                 0.10102  
+
+> summary(lm(ALL2[[63]]$R_sq ~ ALL2[[63]]$Med_Eur_Anc))
+
+Call:
+lm(formula = ALL2[[63]]$R_sq ~ ALL2[[63]]$Med_Eur_Anc)
+
+Residuals:
+       Min         1Q     Median         3Q        Max 
+-0.0231244 -0.0027803  0.0000854  0.0060231  0.0117262 
+
+Coefficients:
+                       Estimate Std. Error t value    Pr(>|t|)    
+(Intercept)            0.020134   0.003438   5.856     0.00011 ***
+ALL2[[63]]$Med_Eur_Anc 0.101018   0.009982  10.120 0.000000656 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 0.009075 on 11 degrees of freedom
+Multiple R-squared:  0.903,	Adjusted R-squared:  0.8942 
+F-statistic: 102.4 on 1 and 11 DF,  p-value: 0.0000006561
+

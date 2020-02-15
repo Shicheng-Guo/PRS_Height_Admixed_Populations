@@ -10,13 +10,15 @@ library(tidyr)
 library(hexbin)
 library(psychometric)
 library(boot)
+library(TeachingDemos)
 
+txtStart(paste0("~/height_prediction/gwas/HRS_eur/plots_out.txt"))
 #read in PGS scores
 readRDS('~/height_prediction/gwas/HRS_eur/output/PGS_HRS_eur.Rds')-> PGS_HRS_eur
 #read in phenotype data
 fread('~/height_prediction/input/HRS_eur/HRS_EUR_phenotypes.txt')-> Pheno_HRS_eur
 ###########
-source('~/height_prediction/strat_prs/scripts/Rsq.R')
+source('~/height_prediction/strat_prs/scripts/Rsq_R2.R')
 ##############
 
 #add PGS to Pheno table in order to be able to make multiple analyses
@@ -32,28 +34,30 @@ names(PGS2_HRS_eur)<-names(PGS_HRS_eur)
 for (I in names(PGS_HRS_eur)){
         data.table(ID=names(PGS_HRS_eur[[I]]), PGS=unlist(PGS_HRS_eur[[I]]))-> PGS2_HRS_eur[[I]]
         setkey(PGS2_HRS_eur[[I]], ID)
-        PGS2_HRS_eur[[I]][Pheno_UKB_eur, nomatch=0]-> PGS2_HRS_eur[[I]]
+        PGS2_HRS_eur[[I]][Pheno_HRS_eur, nomatch=0]-> PGS2_HRS_eur[[I]]
 	PGS2_HRS_eur[[I]][, EUR_ANC:=1]
-        PGS2_HRS_eur[[I]][,age2:=Age^2]
+        PGS2_HRS_eur[[I]][,AGE2:=AGE^2]
+	PGS2_HRS_eur[[I]][,HEIGHT:=HEIGHT*100]
 	#PGS2_UKB_eur[[I]][EUR_ANC>=0.05]->PGS2_UKB_eur[[I]]
-        PGS2_HRS_eur[[I]][-which(is.na(PGS2_HRS_eur[[I]][,Height])),]-> PGS2_HRS_eur[[I]]
+	PGS2_HRS_eur[[I]]$SEX<-as.factor(PGS2_HRS_eur[[I]]$SEX)
+        #PGS2_HRS_eur[[I]][-which(is.na(PGS2_HRS_eur[[I]][,HEIGHT])),]-> PGS2_HRS_eur[[I]]
 }
 
-lapply(PGS2_HRS_eur, function(X) lm(Height~Sex, X))-> lm1_HRS_eur
-lapply(PGS2_HRS_eur, function(X) lm(Height~PGS, X))-> lm2_HRS_eur
-lapply(PGS2_HRS_eur, function(X) lm(Height~Age, X))-> lm3_HRS_eur
-lapply(PGS2_HRS_eur, function(X) lm(Height~age2, X))-> lm4_HRS_eur
-lapply(PGS2_HRS_eur, function(X) lm(Height~PGS+Age, X))-> lm5_HRS_eur
-lapply(PGS2_HRS_eur, function(X) lm(Height~PGS+age2, X))-> lm6_HRS_eur
-lapply(PGS2_HRS_eeur, function(X) lm(Height~Sex+Age+age2, X))-> lm7_HRS_eur
-lapply(PGS2_HRS_eur, function(X) lm(Height~Sex+Age+age2+PGS, X))-> lm8_HRS_eur
+lapply(PGS2_HRS_eur, function(X) lm(HEIGHT~SEX, X))-> lm1_HRS_eur
+lapply(PGS2_HRS_eur, function(X) lm(HEIGHT~PGS, X))-> lm2_HRS_eur
+lapply(PGS2_HRS_eur, function(X) lm(HEIGHT~AGE, X))-> lm3_HRS_eur
+lapply(PGS2_HRS_eur, function(X) lm(HEIGHT~AGE2, X))-> lm4_HRS_eur
+lapply(PGS2_HRS_eur, function(X) lm(HEIGHT~PGS+AGE, X))-> lm5_HRS_eur
+lapply(PGS2_HRS_eur, function(X) lm(HEIGHT~PGS+AGE2, X))-> lm6_HRS_eur
+lapply(PGS2_HRS_eur, function(X) lm(HEIGHT~SEX+AGE+AGE2, X))-> lm7_HRS_eur
+lapply(PGS2_HRS_eur, function(X) lm(HEIGHT~SEX+AGE+AGE2+PGS, X))-> lm8_HRS_eur
 
-partial.R2(lm7_HRS_eur[[63]],lm8_HRS_eur[[63]]) #
+partial.R2(lm7_HRS_eur[[63]],lm8_HRS_eur[[63]]) #12%
 
-partial_r2_HRS_eur<-lapply(1:length(PGS2_HRS_eur), function(X) partial.R2(lm7_HRS_eur[[X]], lm8_HRS_eur[[X]])) #
+partial_r2_HRS_eur<-lapply(1:length(PGS2_HRS_eur), function(X) partial.R2(lm7_HRS_eur[[X]], lm8_HRS_eur[[X]])) #min 7.9% max 14.8%
 names(partial_r2_HRS_eur)<-names(PGS2_HRS_eur)
-
-Nr_SNPs<-rep(NA, length(PGS2_GRS_eur))
+which.max(unlist(partial_r2_HRS_eur)) #71, genet_0.3_0.0005
+Nr_SNPs<-rep(NA, length(PGS2_HRS_eur))
 names(Nr_SNPs)<- names(PGS2_HRS_eur)
 
 for(I in names(Nr_SNPs)){
@@ -65,11 +69,11 @@ for(I in names(Nr_SNPs)){
 }
 
 data.table(Nr=unlist(Nr_SNPs), Name=names(Nr_SNPs), Part_R2=unlist(partial_r2_HRS_eur))-> A_table
-saveRDS(A_table, file='~/height_prediction/gwas/HRS_eur/output/Nr_SNPs_UKB.Rds')
+saveRDS(A_table, file='~/height_prediction/gwas/HRS_eur/output/Nr_SNPs_HRS.Rds')
 
 
-cor.test(unlist(Nr_SNPs), unlist(partial_r2_HRS_eur)) #
-summary(lm(Part_R2~Nr,data=A_table))$r.squared #
+cor.test(unlist(Nr_SNPs), unlist(partial_r2_HRS_eur)) #43%
+summary(lm(Part_R2~Nr,data=A_table))$r.squared #18%
 #
 
 #this weird negative corrrelation os due to the LD pruned sets: this is ebcause the LD blocks have few SNPs and explain A LOT and the LD_kb sets have a lot of SNPs and explain very little. 
@@ -78,7 +82,7 @@ summary(lm(Part_R2~Nr,data=A_table))$r.squared #
 
 
 for(I in 1:length(PGS2_HRS_eur)){
-        A<-ggpairs(PGS2_HRS_eur[[I]][,.(Height, Sex, PGS, Age, age2,EUR_ANC)])
+        A<-ggpairs(PGS2_HRS_eur[[I]][,.(HEIGHT, SEX, PGS, AGE, AGE2)])
         png(filename=paste0('~/height_prediction/gwas/HRS_eur/figs/UKB_eur_ggpairs_', names(PGS2_HRS_eur)[I], '.png'))
         print(A)
         cat(names(PGS2_HRS_eur)[I])
@@ -86,38 +90,39 @@ for(I in 1:length(PGS2_HRS_eur)){
         dev.off()
 }
 
-lapply(PGS2_HRS_eur, function(X) X[, Quantile:= cut(EUR_ANC,
-                                breaks=quantile(EUR_ANC, probs=seq(0,1, by=0.25), na.rm=TRUE),
-                                include.lowest=TRUE)])-> PGS3_HRS_eur
+#lapply(PGS2_HRS_eur, function(X) X[, Quantile:= cut(EUR_ANC,
+#                                breaks=quantile(EUR_ANC, probs=seq(0,1, by=0.25), na.rm=TRUE),
+#                                include.lowest=TRUE)])-> PGS3_HRS_eur
 
-names(PGS3_HRS_eur)<-names(PGS2_HRS_eur)
+#names(PGS3_HRS_eur)<-names(PGS2_HRS_eur)
 
-lapply(1:length(PGS3_HRS__eur), function(X) PGS3_HRS_eur[[X]][,Med_Eur_Anc:=median(EUR_ANC),by=Quantile])
+#lapply(1:length(PGS3_HRS_eur), function(X) PGS3_HRS_eur[[X]][,Med_Eur_Anc:=median(EUR_ANC),by=Quantile])
 
-lapply(1:length(PGS3_HRS_eur), function(X) as.character(unique((PGS3_HRS_eur[[X]]$Quantile))))-> a
+#lapply(1:length(PGS3_HRS_eur), function(X) as.character(unique((PGS3_HRS_eur[[X]]$Quantile))))-> a
 
-lapply(a, function(X) c(X[4],X[1], X[2], X[3]))-> a1 #check
+#lapply(a, function(X) c(X[4],X[1], X[2], X[3]))-> a1 #check
 
-names(a1)<-names(PGS3_HRS_eur)
+#names(a1)<-names(PGS3_HRS_eur)
 
-r2_HRS_eur<-vector('list', length(PGS3_HRS_eur))
-names(r2_HRS_eur)<-names(PGS3_HRS_eur)
+lapply(PGS2_HRS_eur, function(X) X[, Quantile:='total'][,Med_Eur_Anc:=1])-> PGS3_HRS_eur
+#r2_HRS_eur<-vector('list', length(PGS3_HRS_eur))
+#names(r2_HRS_eur)<-names(PGS3_HRS_eur)
 
-for(I in names(r2_HRS_eur)){
-        r2_HRS_eur[[I]]<-vector('list', length(a1[[I]]))
-        names(r2_HRS_eur[[I]])<-a1[[I]]
-        for(i in a1[[I]]){
-        r2_HRS_eur[[I]][[i]]<-partial.R2(lm(Height~Sex+Age+age2, PGS3_HRS_eur[[I]][Quantile==i]),lm(Height~Sex+Age+age2+PGS, PGS3_HRS_eur[[I]][Quantile==i]))
-        }
-}
+#for(I in names(r2_HRS_eur)){
+#        r2_HRS_eur[[I]]<-vector('list', length(a1[[I]]))
+#        names(r2_HRS_eur[[I]])<-a1[[I]]
+#        for(i in a1[[I]]){
+#        r2_HRS_eur[[I]][[i]]<-partial.R2(lm(Height~Sex+Age+age2, PGS3_HRS_eur[[I]][Quantile==i]),lm(Height~Sex+Age+age2+PGS, PGS3_HRS_eur[[I]][Quantile==i]))
+#        }
+#}
 
 
-B_HRS_eur<-vector('list', length(r2_HRS_eur))
-names(B_HRS_eur)<-names(r2_HRS_eur)
+B_HRS_eur<-vector('list', length(PGS3_HRS_eur))
+names(B_HRS_eur)<-names(PGS3_HRS_eur)
 
-for (I in names(r2_HRS_eur)){
-        B_HRS_eur[[I]]<-data.table(Quant=c(a1[[I]], "total"),R_sq=c(unlist(r2_HRS_eur[[I]]), partial_r2_HRS_eur[[I]]),Med_Eur_Anc=c(unique(PGS3_HRS_eur[[I]][Quantile==a1[[I]][1]][,Med_Eur_Anc]), unique(PGS3_HRS_eur[[I]][Quantile==a1[[I]][2]][,Med_Eur_Anc]),unique(PGS3_HRS_eur[[I]][Quantile==a1[[I]][3]][,Med_Eur_Anc]),unique(PGS3_HRS_eur[[I]][Quantile==a1[[I]][4]][,Med_Eur_Anc]), median(PGS3_HRS_eur[[I]][, EUR_ANC])))
-        B_HRS_eur[[I]][,N:=c(nrow(PGS3_HRS_eur[[I]][Quantile==a1[[I]][1]]), nrow(PGS3_HRS_eur[[I]][Quantile==a1[[I]][2]]), nrow(PGS3_HRS_eur[[I]][Quantile==a1[[I]][3]]), nrow(PGS3_HRS_eur[[I]][Quantile==a1[[I]][4]]),nrow(PGS3_HRS_eur[[I]]))]
+for (I in names(PGS3_HRS_eur)){
+        B_HRS_eur[[I]]<-data.table(Quant="total",R_sq=partial_r2_HRS_eur[[I]],Med_Eur_Anc=1)
+        B_HRS_eur[[I]][,N:=nrow(PGS3_HRS_eur[[I]])]
         B_HRS_eur[[I]][, K:=1] #number of predictors. Need to check later if this is correct.
         B_HRS_eur[[I]][, LCL:=CI.Rsq(R_sq, k=K, n=N)[3]]
         B_HRS_eur[[I]][, UCL:=CI.Rsq(R_sq, k=K, n=N)[4]]
@@ -127,63 +132,42 @@ for (I in names(r2_HRS_eur)){
 results.HRS_eur<-vector('list', length(PGS3_HRS_eur))
 names(results.HRS_eur)<-names(PGS3_HRS_eur)
 
-for (I in names(PGS3_HRS_eur)){
-        results.HRS_eur[[I]]<-vector('list', length(a1[[I]])+1)
-        names(results.HRS_eur[[I]])<-c(a1[[I]], "total")
-        lapply(a1[[I]], function(i) boot(data=PGS3_HRS_eur[[I]][Quantile==i], statistic=rsq.R2,R=999, formula1=Height~Sex+Age+age2, formula2=Height~Sex+Age+age2+PGS))-> results.HRS_eur[[I]]
-        cat(I)
-        cat(' done\n')
-}
+#for (I in names(PGS3_HRS_eur)){
+#        results.HRS_eur[[I]]<-vector('list', length(a1[[I]])+1)
+#        names(results.HRS_eur[[I]])<-c(a1[[I]], "total")
+#       lapply(a1[[I]], function(i) boot(data=PGS3_HRS_eur[[I]][Quantile==i], statistic=rsq.R2,R=999, formula1=Height~Sex+Age+age2, formula2=Height~Sex+Age+age2+PGS))-> results.HRS_eur[[I]]
+#        cat(I)
+#        cat(' done\n')
+#}
 
 for (I in names(PGS3_HRS_eur)){
-        tp <- boot(data=PGS2_HRS_eur[[I]], statistic=rsq.R2, R=999, formula1=Height~Sex+Age+age2, formula2=Height~Sex+Age+age2+PGS)
-        list.append(results.HRS_eur[[I]], tp)-> results.HRS_eur[[I]]
-        names(results.HRS_eur[[I]])<-c(a1[[I]], "total")
+        results.HRS_eur[[I]]<- boot(data=PGS2_HRS_eur[[I]], statistic=rsq.R2, R=999, formula1=HEIGHT~SEX+AGE+AGE2, formula2=HEIGHT~SEX+AGE+AGE2+PGS)
+        results.HRS_eur[[I]]
+        #names(results.HRS_eur[[I]])<-c(a1[[I]], "total")
         cat(I, ' done\n')
 }
 
 #95% confidence intervals.
-saveRDS(results.HRS_eur, file='results.HRS_eur.Rds')
+saveRDS(results.HRS_eur, file='~/height_prediction/gwas/HRS_eur/output/results.HRS_eur.Rds')
+saveRDS(PGS3_HRS_eur, file='~/height_prediction/gwas/HRS_eur/output/PGS3_HRS_eur.Rds')
 
 
-boots.ci.HRS_eur<-lapply(results.HRS_eur, function(Y) lapply(Y, function(X) boot.ci(X, type = c("norm", 'basic', "perc"))))
+boots.ci.HRS_eur<-lapply(results.HRS_eur, function(X)  boot.ci(X, type = c("norm", 'basic', "perc")))
 names(boots.ci.HRS_eur)<-names(results.HRS_eur)
 
 for (I in names(PGS3_HRS_eur)){
-        B_HRS_eur[[I]][1:4,]-> a
-        B_HRS_eur[[I]][5,]-> b
-        a[,HVB_L:=sapply(a$Quant, function(X) as.numeric(gsub("\\]","",gsub("\\(","",gsub("\\[","",strsplit(X,",")[[1]])))))[1,]]
-        a[,HVB_U:=sapply(a$Quant, function(X) as.numeric(gsub("\\]","",gsub("\\(","",gsub("\\[","",strsplit(X,",")[[1]])))))[2,]]
-        b[,HVB_L:=1]
-        b[,HVB_U:=1]
-        rbind(a,b)->B_HRS_eur[[I]]
-        B_HRS_eur[[I]][, Dataset:='HRS_EUR']
-        B_HRS_eur[[I]][, boots_norm_L:=sapply(1:5, function(X) boots.ci.HRS_eur[[I]][[X]]$normal[2])]
-        B_HRS_eur[[I]][, boots_norm_U:=sapply(1:5, function(X) boots.ci.HRS_eur[[I]][[X]]$normal[3])]
-        B_HRS_eur[[I]][, boots_perc_L:=sapply(1:5, function(X) boots.ci.HRS_eur[[I]][[X]]$perc[4])]
-        B_HRS_eur[[I]][, boots_perc_U:=sapply(1:5, function(X) boots.ci.HRS_eur[[I]][[X]]$perc[5])]
-        B_HRS_eur[[I]][, boots_basic_L:=sapply(1:5, function(X) boots.ci.HRS_eur[[I]][[X]]$basic[4])]
-        B_HRS_eur[[I]][, boots_basic_U:=sapply(1:5, function(X) boots.ci.HRS_eur[[I]][[X]]$basic[5])]
+        B_HRS_eur[[I]][,HVB_L:=1]
+        B_HRS_eur[[I]][,HVB_U:=1]
+        B_HRS_eur[[I]][, Dataset:='HRS_eur']
+        B_HRS_eur[[I]][, boots_norm_L:=boots.ci.HRS_eur[[I]]$normal[2]]
+        B_HRS_eur[[I]][, boots_norm_U:=boots.ci.HRS_eur[[I]]$normal[3]]
+        B_HRS_eur[[I]][, boots_perc_L:=boots.ci.HRS_eur[[I]]$perc[4]]
+        B_HRS_eur[[I]][, boots_perc_U:=boots.ci.HRS_eur[[I]]$perc[5]]
+        B_HRS_eur[[I]][, boots_basic_L:=boots.ci.HRS_eur[[I]]$basic[4]]
+        B_HRS_eur[[I]][, boots_basic_U:=boots.ci.HRS_eur[[I]]$basic[5]]
 }
 
-for (I in names(PGS3_HRS_eur)){
-        myp<-ggplot(B_HRS_eur[[I]][1:4,], aes(x=Med_Eur_Anc, y=R_sq)) +
-        geom_point(size=1.5, shape=21, fill="white") +
-        geom_errorbar(aes(x=Med_Eur_Anc, ymin=boots_perc_L, ymax=boots_perc_U), width=0.05, size=0.8, color="cornflowerblue") +
-        geom_line(color='lightgray')+
-        geom_errorbarh(aes(x=Med_Eur_Anc, xmin=HVB_L, xmax=HVB_U), width=0.05, size=0.5, color="cornflowerblue") +
-        labs(title = "HRS_EUR") + ylab("R-squared") + xlab("European Ancestry Proportion")
-        print(myp)
-}
-saveRDS(B_HRS_eur, file="~/height_prediction/gwas/output/B_HRS_eur.Rds")
-
-
-for (I in names(PGS3_HRS_eur)){
-	B_HRS_eur[[I]][5,]-> B_HRS_eur[[I]]
-}
-
-saveRDS(B_HRS_eur, file="B_HRS_eur_v2.Rds")
-
+saveRDS(B_HRS_eur, file="~/height_prediction/gwas/HRS_eur/output/B_HRS_eur.Rds")
 
 
 A_table[grep("phys", Name),]->dt_phys
@@ -237,4 +221,4 @@ A_table$Method[which(is.na(A_table$Method))]<-"LD"
 ggplot(A_table, aes(x=Nr, y=Part_R2, colour=Method, group=Window)) + geom_point(size=2) + geom_line()+ geom_text(A_table[Name=='phys_100000_0.0005'], aes(label=Name)) +
 theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15),  axis.text.x=element_text(size=9), axis.text.y=element_text(size=9))
 ggsave('~/height_prediction/gwas/HRS_eur/figs/ashg_like.png')
-
+txtStop()

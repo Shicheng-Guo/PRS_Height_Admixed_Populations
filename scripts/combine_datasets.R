@@ -22,7 +22,7 @@ options(scipen=999)
 library(TeachingDemos)
 args<-'sib_betas'
 
-txtStart("~/height_prediction/sib_betas/outout_sib.txt")
+txtStart(paste0("~/height_prediction/", args, "/outout.txt"))
 # Your code
 ##############################################################
 #combine all
@@ -102,6 +102,7 @@ a<-data.table(Name=names(B_JHS), Intercept=unlist(lapply(1:80, function(I) coef(
 
 #fwrite(a, file=paste0("~/height_prediction/figs_for_paper/figs/SM_Table1_", args[1], ".txt", sep=","))
 ALL2b<-vector('list', length(names(B_JHS)))
+#add ancestry
 names(ALL2b)<-names(B_JHS)
 
 for(I in names(B_JHS)){
@@ -145,8 +146,8 @@ for(I in names(B_JHS)){
 	}
 }
 #
-lm( ALL2[[63]]$R_sq ~ ALL2[[63]]$Med_Eur_Anc)
-summary(lm( ALL2[[63]]$R_sq ~ ALL2[[63]]$Med_Eur_Anc, weights=ALL2[[63]]$W)) #p-value: 0.001586, adj-r2=0.5762
+lm(ALL2[[63]]$R_sq ~ ALL2[[63]]$Med_Eur_Anc, weights=ALL2[[63]]$W)
+summary(lm( ALL2[[63]]$R_sq ~ ALL2[[63]]$Med_Eur_Anc, weights=ALL2[[63]]$W)) #p-value: 0.006, adj-r2=0.466 for sibs;0.00000004523, adj-r2=0.93 for gwas
 txtStop()
 #stop here 04/09/2019
 ALL3<-vector('list', length(names(B_JHS)))
@@ -227,7 +228,7 @@ data.table(Set=unique(ALL4$Set), Nr_SNPs=unique(ALL4$Nr_SNPs_UKB))->A1
 ALL4[grep("phys",  ALL4$Set),][,.(Set,Intercept,Slope, Slope_Intercept, R_sq, Med_Eur_Anc)][Med_Eur_Anc==1][, Med_Eur_Anc:=NULL]->dt_phys
 ALL4[grep("genet", ALL4$Set),][,.(Set,Intercept,Slope,Slope_Intercept, R_sq, Med_Eur_Anc)][Med_Eur_Anc==1][, Med_Eur_Anc:=NULL]->dt_genet
 ALL4[grep("LD",    ALL4$Set),][,.(Set,Intercept,Slope, Slope_Intercept, R_sq, Med_Eur_Anc)][Med_Eur_Anc==1][, Med_Eur_Anc:=NULL]->dt_LD
-dt_LD %>% group_by(Set) %>% dplyr::mutate(R_sq=min(R_sq)) %>% as.data.table-> dt_LD #remove ukb_eur
+dt_LD %>% group_by(et) %>% dplyr::mutate(R_sq=min(R_sq)) %>% as.data.table-> dt_LD #remove ukb_eur
 dt_phys %>% group_by(Set) %>% dplyr::mutate(R_sq=min(R_sq)) %>% as.data.table-> dt_phys
 dt_genet %>% group_by(Set) %>% dplyr::mutate(R_sq=min(R_sq)) %>% as.data.table-> dt_genet
 

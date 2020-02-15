@@ -23,7 +23,7 @@ PolScore2<- function(panel='sib_betas', panel2='WHI', tag='phys_100000_0.0005', 
 	if(panel=='sib_betas'){
         	samps<-colnames(hei2)[9:(ncol(hei2)-6)]
 		} else if (panel=='gwas'){
-	        samps<-colnames(hei2)[9:(ncol(hei2)-8)] 
+	        samps<-colnames(hei2)[9:(ncol(hei2)-7)] 
 	}
         hei2[ALT==Allele1]-> temp1
         hei2[REF==Allele1]-> temp2 #im ignoring the other two rows for now
@@ -89,13 +89,13 @@ PolScore2<- function(panel='sib_betas', panel2='WHI', tag='phys_100000_0.0005', 
 
 #1000 Genomes
 
-PolScore_1000G<-function(POP='CEU', superpop=F, CHR=CR){
+PolScore_1000G<-function(POP='CEU', superpop=F, CHR=CR, my_dt=args[1]){
 	if(superpop==F){
         	samps<- samples[pop==POP][,sample]
         } else if (superpop==T){
         	samps<- samples[super_pop==POP][,sample]
         }
-	dt<-readRDS('~/height_prediction/gwas/ukb_eur/output/hei_phys_100000_0.0005_1000g.Rds')[[CHR]]
+	dt<-readRDS(paste0('~/height_prediction/gwas/ukb_eur/output/hei_', my_dt, '_1000g.Rds'))[[CHR]]
         dt2<-cbind(dt[,c(1:5)], dt[, samps, with=F], dt[, (ncol(dt)-7):ncol(dt),with=F])
         dt2[ALT==Allele1]-> temp1
         dt2[REF==Allele1]-> temp2 #im ignoring the other two rows for now
@@ -162,6 +162,73 @@ PolScore_1000G<-function(POP='CEU', superpop=F, CHR=CR){
 #                }
         return(res)
 }
+
+PolScore_random<- function(panel='sib_betas', panel2='WHI', tag='phys_100000_0.0005', CHR=22){
+        hei[[CHR]]-> hei2
+        if(panel=='sib_betas'){
+                samps<-colnames(hei2)[9:(ncol(hei2)-6)]
+                } else if (panel=='gwas'){
+                samps<-colnames(hei2)[9:(ncol(hei2)-8)]
+        }
+        hei2[ALT==Allele1]-> temp1
+        hei2[REF==Allele1]-> temp2 #im ignoring the other two rows for now
+        vector('list', length(samps))-> temp_list
+        names(temp_list)<-samps
+        cat('Number of samples is', length(samps), '\n')
+        if(nrow(temp1)>0 & nrow(temp2)>0){
+                matrix(nrow=nrow(temp1)+nrow(temp2), ncol=length(samps))-> my_matrix
+                colnames(my_matrix)<-samps
+                rownames(my_matrix)<-c(temp1[,MarkerName],temp2[,MarkerName])
+                #b1<-temp1[,b]
+                #b2<-temp2[,b]
+                counter<-0
+                for(i  in samps){
+                        my_matrix[which(temp1[,i, with=F]=="0/0"),i]<-0
+                        my_matrix[which(temp1[,i, with=F]=="1/1"),i]<-2
+                        my_matrix[which(temp1[,i, with=F]=="1/0"),i]<-1
+                        my_matrix[which(temp1[,i, with=F]=="0/1"),i]<-1
+
+                        my_matrix[nrow(temp1)+which(temp2[,i, with=F]=="0/0"),i]<-2
+             		my_matrix[nrow(temp1)+which(temp2[,i, with=F]=="1/1"),i]<-0
+                        my_matrix[nrow(temp1)+which(temp2[,i, with=F]=="1/0"),i]<-1
+                        my_matrix[nrow(temp1)+which(temp2[,i, with=F]=="0/1"),i]<-1
+                        counter<-counter+1
+                        cat(counter,'\r')
+                }
+                apply(my_matrix, 2, sum, na.rm=T)-> res
+                cat('Finished first for loop\n')
+                } else if (nrow(temp1)>0){
+                matrix(nrow=nrow(temp1), ncol=length(samps))-> my_matrix
+                colnames(my_matrix)<-samps
+                rownames(my_matrix)<-temp1[,MarkerName]
+                b1<-temp1[,b]
+                counter<-0
+                for(i in samps){
+                        my_matrix[which(temp1[,i, with=F]=="0/0"),i]<-0
+                        my_matrix[which(temp1[,i, with=F]=="1/1"),i]<-2
+                        my_matrix[which(temp1[,i, with=F]=="1/0"),i]<-1
+                        my_matrix[which(temp1[,i, with=F]=="0/1"),i]<-1
+                }
+                 apply(my_matrix, 2, sum, na.rm=T)-> res
+        cat('Finished second  for loop\n')
+        } else if (nrow(temp2)>0){
+               matrix(nrow=nrow(temp2), ncol=length(samps))-> my_matrix
+                colnames(my_matrix)<-samps
+                rownames(my_matrix)<-temp2[,MarkerName]
+                #b2<-temp2[,b]
+                for(i in samps){
+                        my_matrix[which(temp2[,i, with=F]=="0/0"),i]<-2
+                        my_matrix[which(temp2[,i, with=F]=="1/1"),i]<-0
+                        my_matrix[which(temp2[,i, with=F]=="1/0"),i]<-1
+                        my_matrix[which(temp2[,i, with=F]=="0/1"),i]<-1
+        }
+         apply(my_matrix, 2, sum, na.rm=T)-> res
+        }
+        cat('Finished third  for loop\n')
+#acollect sample names for this population from 1000G data.
+        return(res)
+}
+
 #*******
 #* END *
 #*******
