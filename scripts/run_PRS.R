@@ -7,6 +7,7 @@ source('~/height_prediction/scripts/PolygenicScore_v2.R')
 library("optparse")
 library(data.table)
 library(dplyr)
+
 library(biomaRt)
 library(parallel)
 #args<-c("LD_prun","LD_250000_0.01_0.5")
@@ -15,22 +16,43 @@ options(digits=10)
 home='~/height_prediction/'
 
 if(args[1]=='sib_betas'){
-        fread(paste0(home, args[1], "/input/sib_beta_gwas_p.txt"))-> ukb_height #read in betas from sibling analyses
-} else if (args[1]=='gwas'){
-        fread(paste0('zcat ', home, args[1], "/input/50.assoc.tsv.gz"))-> ukb_height #read in GWAS summary statistics for height from the Uk Biobank
+         #read in betas from sibling analyses
+	fread(paste0(home, args[1], "/input/sibestimates_50.tsv"))->ukb_height_sib
+        ukb_height_sib[,SE:= -abs(beta)/qnorm(pval/2)]
+        ukb_height_sib[, MarkerName:=SNP]
+        ukb_height_sib[,CHR:=as.integer(CHR)]
+        ukb_height_sib[,POS:=as.integer(POS)]
+        ukb_height_sib[order(CHR,POS)]-> ukb_height_sib
+        fread(paste0('zcat ', home,"gwas/input/50_raw_filtered.txt.gz"))-> ukb_height #read in GWAS summary statistics for height from the Uk Biobank
         ukb_height[,c("CHR", "POS","Allele2","Allele1") := tstrsplit(variant, ":", fixed=TRUE)][,variant:=NULL]  #fix columns. In the UKB, variants are listed as CHR:POS: REF:ALT, where ALT is the effect allele. So, in order to be compatilble with my scripts (where allele 1 is effect all
-        ukb_height[, MarkerName:=rsid][, N:=nCompleteSamples][, AC:=NULL][, b:=beta][,p:=pval]
-        ukb_height[,rsid:=NULL][,nCompleteSamples:=NULL][, beta:=NULL][, pval:=NULL][, SE:=se]
-        ukb_height[,.(MarkerName,Allele1,Allele2, b, SE, p, N, CHR, POS)]-> ukb_height
+	na.omit(ukb_height)-> ukb_height
+	ukb_height[, N:=n_complete_samples][, AC:=NULL][, b:=beta][,p:=pval]
+        ukb_height[,n_complete_samples:=NULL][, beta:=NULL][, pval:=NULL][, SE:=se]
+        ukb_height[,.(Allele1,Allele2,SE, p, N, CHR, POS)]-> ukb_height
+	ukb_height[,POS:=as.integer(POS)]
+        ukb_height[order(CHR,POS)]-> ukb_height
+	setkey(ukb_heigth,CHR, POS)
+	setkey(ukb_heigth_sib,CHR, POS)
+        ukb_height[ukb_height_sib, nomatch=0][,.(Allele1,Allele2,beta, SE, p, N, CHR, POS)][, b:=beta]-> ukb_height_sib
+	ukb_height[!(POS %in% ukb_height[which(duplicated(ukb_height, by='POS')), POS])]-> ukb_height
+} else if (args[1]=='gwas'){
+      	fread(paste0('zcat ', home,"gwas/input/50_raw_filtered.txt.gz"))-> ukb_height #read in GWAS summary statistics for height from the Uk Biobank
+        ukb_height[,c("CHR", "POS","Allele2","Allele1") := tstrsplit(variant, ":", fixed=TRUE)][,variant:=NULL]  #fix columns. In the UKB, variants are listed as CHR:POS: REF:ALT, where ALT is the effect allele. So, in order to be compatilble with my scripts (where allele 1 is effect all
+        na.omit(ukb_height)-> ukb_height
+        ukb_height[, N:=n_complete_samples][, AC:=NULL][, b:=beta][,p:=pval]
+        ukb_height[,n_complete_samples:=NULL][, beta:=NULL][, pval:=NULL][, SE:=se]
+        ukb_height[,.(Allele1,Allele2, b, SE, p, N, CHR, POS)]-> ukb_height
+	ukb_height[CHR %in% seq(1:22)]-> ukb_height
+        ukb_height[,POS:=as.integer(POS)]
+	ukb_height[,CHR:=as.integer(CHR)]
+        ukb_height[order(CHR,POS)]-> ukb_height
+	ukb_height[!(POS %in% ukb_height[which(duplicated(ukb_height, by='POS')), POS])]-> ukb_height
 }
-ukb_height[,CHR:=as.integer(CHR)]
-ukb_height[,POS:=as.integer(POS)]
-ukb_height[order(CHR,POS)]-> ukb_height
 
 cat('checkpoint\n')
 
 if(!(args[3] %in% c("LD_50000_0.01_0.5", "LD_100000_0.01_0.5", "LD_250000_0.01_0.5"))){
-	readRDS(paste0(home, args[1], '/', args[2], '/output/hei_',args[3], '.Rds'))-> snp_list #prunend based on 1KG
+	readRDS(paste0(home, args[1], '/', args[2], '/output/hei_',args[3], '.Rds'))-> snp_list #prunend based on UKB
 	lapply(snp_list, function(X) X[, CHR:=CHROM][, CHROM:=NULL])-> snp_list
 	lapply(snp_list, function(X) setkey(X, CHR, POS))
 	setkey(ukb_height, CHR, POS)
@@ -46,9 +68,9 @@ if(!(args[3] %in% c("LD_50000_0.01_0.5", "LD_100000_0.01_0.5", "LD_250000_0.01_0
 		setkey(ID_posgrch37[[CR]], MarkerName, CHR, POS)
 		ID_posgrch37[[CR]][,CHR:=as.integer(CHR)]
 		ID_posgrch37[[CR]][,POS:=as.integer(POS)]
-		setkey(ukb_height, MarkerName, CHR, POS)
-		setkey(ID_posgrch37[[CR]], MarkerName, CHR, POS)
-		ukb_height[ID_posgrch37[[CR]], nomatch=0]-> ukb_height2
+		setkey(ukb_height, CHR, POS)
+		setkey(ID_posgrch37[[CR]], CHR, POS)
+		ukb_height[ID_posgrch37[[CR]], nomatch=0][, i.MarkerName:=NULL]-> ukb_height2
 		ukb_height2[order(CHR,POS)]-> snp_list[[CR]]
 		cat(CR, '\n')
 	}
@@ -87,14 +109,22 @@ PGS<-vector('list',22)
 names(PGS)<-c(1:22)
 #chose those that have no snps:
 skip_me<-which(unlist(lapply(1:22, function(X) nrow(hei[[X]])))==0)
+if(length(skip_me)>=1){
 for (CR in seq(1:22)[-skip_me]){
 	print(paste0("Chromosome is ", CR))
         PolScore2(CHR=CR, panel=args[1], panel2=args[2], tag=args[3])-> PGS[[CR]]
         cat(paste0(CR, '  done\n'))
 }
-
+}else if(length(skip_me)==0){
+	for (CR in seq(1:22)){
+        print(paste0("Chromosome is ", CR))
+        PolScore2(CHR=CR, panel=args[1], panel2=args[2], tag=args[3])-> PGS[[CR]]
+        cat(paste0(CR, '  done\n'))
+}
+}
 samps<-names(PGS[[1]]) #sum PGS across chromosomes.
 PGS2<-vector('list', length(samps))
+names(PGS2)<-samps
 if(length(skip_me)==1){
         PGS[[skip_me]]<-rep(NA, length(samps))
         names(PGS[[skip_me]])<-samps

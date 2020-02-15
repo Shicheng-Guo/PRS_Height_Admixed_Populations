@@ -1,4 +1,9 @@
-#BB comments:
+RUN A GWAS ON INDIVIDUALS WITH SOME LEVEL OF AFRICAN ANCESTRY
+
+*WHI, ukb_afr datasets
+*use plink to run gwas
+*goal it to compare estimated 'African' betas with those we estimated with the local ancestry analyses
+
 
 #WHI
 awk '{b="0_"$2;print b,"AA"}' ../WHI/WHI_b37_strand_include.fam > panel_file.txt

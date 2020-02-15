@@ -7,8 +7,8 @@ library(dplyr)
 ##add P from gwas to sib file
 ###
 #UKB
-fread('zcat ~/height_prediction/gwas/input/50.assoc.tsv.gz')-> ukb_height #read in GWAS summary statistics for height from the Uk Biobank
-ukb_height[,c("CHR", "POS","Allele2","Allele1") := tstrsplit(variant, ":", fixed=TRUE)][,variant:=NULL]
+fread('zcat ~/height_prediction/gwas/input/50_raw_filtered.txt.gz')-> ukb_height #read in GWAS summary statistics for height from the Uk Biobank
+ukb_height[,c("CHR", "POS","REF","ALT") := tstrsplit(variant, ":", fixed=TRUE)][,variant:=NULL]
 ukb_height[, MarkerName:=rsid][, N:=nCompleteSamples][, AC:=NULL][, b_u:=beta][,p_u:=pval][, SE:=se]
 ukb_height[,.(MarkerName,Allele1,Allele2, SE, p_u, N, CHR, POS)]-> ukb_height
 ukb_height[,CHR:=as.integer(CHR)]
