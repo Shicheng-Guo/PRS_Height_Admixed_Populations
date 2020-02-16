@@ -87,7 +87,7 @@ names(all_prs)<-c('HRS_afr', 'HRS_eur')
 all_prs[['HRS_afr']]<-vector('list',22)
 all_prs[['HRS_eur']]<-vector('list',22)
 
-for(chr in 1:22){
+for(chr in 22:1){
 	betas<-vec_all[[chr]]
 	vcf<-fread(paste0('zcat ~/height_prediction/imputed/output/HRS_afr_', W, '_',P, '_chr_', chr, '.vcf.gz'), fill=T)
 	colnames(vcf)[1]<-"CHR"
