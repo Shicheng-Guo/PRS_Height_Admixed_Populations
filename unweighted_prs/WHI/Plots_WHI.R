@@ -15,7 +15,9 @@ library(boot)
 library(readr)
 #############
 #############
+library(TeachingDemos)
 
+txtStart(paste0("~/height_prediction/unweighted_prs/WHI/plots_out.txt"))
 #read in PGS scores
 readRDS('~/height_prediction/unweighted_prs/output/PGS_WHI.Rds')-> PGS_WHI
 
@@ -197,3 +199,4 @@ for (I in names(PGS3_WHI)){
 }
 
 saveRDS(B_WHI, file="~/height_prediction/unweighted_prs/output/B_WHI.Rds")
+txtStop()

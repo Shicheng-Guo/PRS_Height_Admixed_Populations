@@ -10,7 +10,9 @@ library(tidyr)
 library(hexbin)
 library(psychometric)
 library(boot)
+library(TeachingDemos)
 
+txtStart(paste0("~/height_prediction/unweighted_prs/HRS_eur/plots_out.txt"))
 #read in PGS scores
 readRDS('~/height_prediction/unweighted_prs/output/PGS_HRS_eur.Rds')-> PGS_HRS_eur
 #read in phenotype data
@@ -218,4 +220,4 @@ A_table$Method[which(is.na(A_table$Method))]<-"LD"
 ggplot(A_table, aes(x=Nr, y=Part_R2, colour=Method, group=Window)) + geom_point(size=2) + geom_line()+ geom_text(A_table[Name=='phys_100000_0.0005'], aes(label=Name)) +
 theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15),  axis.text.x=element_text(size=9), axis.text.y=element_text(size=9))
 ggsave('~/height_prediction/unweighted_prs/figs/ashg_like.png')
-
+txtStop()

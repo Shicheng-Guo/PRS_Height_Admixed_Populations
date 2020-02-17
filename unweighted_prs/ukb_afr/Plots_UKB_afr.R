@@ -11,6 +11,9 @@ library(tidyr)
 library(hexbin)
 library(psychometric)
 library(boot)
+library(TeachingDemos)
+
+txtStart(paste0("~/height_prediction/unweighted_prs/ukb_afr/plots_out.txt"))
 
 #read in PGS scores
 readRDS('~/height_prediction/unweighted_prs/output/PGS_ukb_afr.Rds')-> PGS_UKB_afr
@@ -190,3 +193,4 @@ for (I in names(PGS3_UKB_afr)){
 }
 
 saveRDS(B_UKB_afr, file="~/height_prediction/unweighted_prs/output/B_UKB_afr.Rds")
+txtStop()

@@ -56,8 +56,11 @@ bcftools concat chr5.vcf.gz chr6.vcf.gz -Oz -o chr5_6.vcf.gz
 bcftools concat chr7.vcf.gz chr8.vcf.gz -Oz -o chr7_8.vcf.gz
 bcftools concat chr9.vcf.gz chr10.vcf.gz -Oz -o chr9_10.vcf.gz
 bcftools concat chr11.vcf.gz chr12.vcf.gz -Oz -o chr11_12.vcf.gz
-bcftools concat chr13.vcf.gz chr14.vcf.gz chr15.vcf.gz chr16.vcf.gz chr17.vcf.gz chr18.vcf.gz chr19.vcf.gz chr20.vcf.gz chr21.vcf.gz chr22.vcf.gz -Oz -o chr13_22.vcf.gz
-bcftools concat chr1_2.vcf.gz chr3_4.vcf.gz chr5_6.vcf.gz chr7_8.vcf.gz chr9_10.vcf.gz chr11_12.vcf.gz chr13_22.vcf.gz  -Oz -o chr1_22.vcf.gz
+
+bcftools concat chr13.vcf.gz chr14.vcf.gz chr15.vcf.gz chr16.vcf.gz chr17.vcf.gz chr18.vcf.gz -Oz -o chr13_18.vcf.gz
+bcftools concat chr1_2.vcf.gz chr3_4.vcf.gz chr5_6.vcf.gz chr7_8.vcf.gz chr9_10.vcf.gz chr11_12.vcf.gz -Oz -o chr1_12.vcf.gz
+bcftools concat chr19.vcf.gz chr20.vcf.gz chr21.vcf.gz chr22.vcf.gz -Oz -o chr19_22.vcf.gz
+bcftools concat chr1_12.vcf.gz chr13_18.vcf.gz chr19_22.vcf.gz  -Oz -o chr1_22.vcf.gz
 tabix -p vcf chr1_22.vcf.gz
 ```
 
@@ -67,7 +70,7 @@ for chr in {1..22};
 do
 rm chr${chr}.vcf.gz
 done
-rm chr1_2.vcf.gz chr3_4.vcf.gz chr5_6.vcf.gz chr7_8.vcf.gz chr9_10.vcf.gz chr11_12.vcf.gz chr13_122.vcf.gz
+rm chr1_2.vcf.gz chr3_4.vcf.gz chr5_6.vcf.gz chr7_8.vcf.gz chr9_10.vcf.gz chr11_12.vcf.gz chr1_12.vcf.gz chr19_22.vcf.gz chr13_18.vcf.gz chr13_22.vcf.gz
 ```
 
 *Get SNP IDs and clean up temp files*
@@ -79,9 +82,12 @@ rm tmp*
 *Set up phenotype file and copy header and PCA files*
 
 ```
-awk '{print $2,$1,$3,$4}' ~/height_prediction/input/ukb_afr/UKB_AFR_pheno.txt > My_Pheno.txt
-cp ~/height_prediction/PCA_and_GWAS/UKB_AFR/header.txt .
+awk '{print $2,$1,$3,$4}' ~/height_prediction/input/ukb_afr/UKB_AFR_pheno.txt|grep -v 6007195 > My_Pheno.txt
 cp ~/height_prediction/PCA_and_GWAS/UKB_AFR/UKB_AFR.bas.evec .
+head -1 UKB_AFR.bas.evec > header.txt
+sed -i "1d" UKB_AFR.bas.evec 
+sort UKB_AFR.bas.evec > tp
+mv tp UKB_AFR.bas.evec
 sort -nms My_Pheno.txt > MyPheno.txt
 echo "SUBJID PC1 PC2 PC3 PC4 PC5 PC6 PC7 PC8 PC9 PC10 POP" > tmp
 cat UKB_AFR.bas.evec >> tmp

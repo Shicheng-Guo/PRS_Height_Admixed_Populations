@@ -11,6 +11,9 @@ library(tidyr)
 library(hexbin)
 library(psychometric)
 library(boot)
+library(TeachingDemos)
+
+txtStart(paste0("~/height_prediction/unweighted_prs/ukb_eur/plots_out.txt"))
 
 #read in PGS scores
 readRDS('~/height_prediction/unweighted_prs/output/PGS_ukb_eur.Rds')-> PGS_UKB_eur
@@ -50,7 +53,7 @@ lapply(PGS2_UKB_eur, function(X) lm(Height~PGS+age2, X))-> lm6_UKB_eur
 lapply(PGS2_UKB_eur, function(X) lm(Height~Sex+Age+age2+EUR_ANC, X))-> lm7_UKB_eur
 lapply(PGS2_UKB_eur, function(X) lm(Height~Sex+Age+age2+EUR_ANC+PGS, X))-> lm8_UKB_eur
 
-partial.R2(lm7_UKB_eur[[35]],lm8_UKB_eur[[35]]) ##
+partial.R2(lm7_UKB_eur[[35]],lm8_UKB_eur[[35]]) ##0.2119167
 
 partial_r2_UKB_eur<-lapply(1:length(PGS2_UKB_eur), function(X) partial.R2(lm7_UKB_eur[[X]], lm8_UKB_eur[[X]])) #
 names(partial_r2_UKB_eur)<-names(PGS2_UKB_eur)
@@ -70,8 +73,8 @@ data.table(Nr=unlist(Nr_SNPs), Name=names(Nr_SNPs), Part_R2=unlist(partial_r2_UK
 saveRDS(A_table, file='~/height_prediction/unweighted_prs/output/Nr_SNPs_UKB_eur.Rds')
 
 #
-cor.test(unlist(Nr_SNPs), unlist(partial_r2_UKB_eur))# 
-summary(lm(Part_R2~Nr,data=A_table))$r.squared #
+cor.test(unlist(Nr_SNPs), unlist(partial_r2_UKB_eur))# 0.21
+summary(lm(Part_R2~Nr,data=A_table))$r.squared #0.04641226
 
 for(I in 1:length(PGS2_UKB_eur)){
         A<-ggpairs(PGS2_UKB_eur[[I]][,.(Height, Sex, PGS, Age, age2)])
@@ -158,3 +161,4 @@ for (I in names(PGS3_UKB_eur)){
 }
 
 saveRDS(B_UKB_eur, file="~/height_prediction/unweighted_prs/output/B_UKB_eur.Rds")
+txtStop()

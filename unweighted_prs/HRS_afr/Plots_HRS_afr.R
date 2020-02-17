@@ -11,6 +11,9 @@ library(tidyr)
 library(hexbin)
 library(psychometric)
 library(boot)
+library(TeachingDemos)
+
+txtStart(paste0("~/height_prediction/unweighted_prs/HRS_afr/plots_out.txt"))
 
 #read in PGS scores
 readRDS('~/height_prediction/unweighted_prs/output/PGS_HRS_afr.Rds')-> PGS_HRS_afr
@@ -67,7 +70,7 @@ lapply(PGS2_HRS_afr, function(X) lm(HEIGHT~SEX+AGE+AGE2+EUR_ANC+PGS, X))-> lm8_H
 partial_r2_HRS_afr<-lapply(1:length(PGS2_HRS_afr), function(X) partial.R2(lm7_HRS_afr[[X]], lm8_HRS_afr[[X]])) #
 names(partial_r2_HRS_afr)<-names(PGS2_HRS_afr)
 
-partial.R2(lm7_HRS_afr[[35]],lm8_HRS_afr[[35]]) 
+partial.R2(lm7_HRS_afr[[35]],lm8_HRS_afr[[35]])  #0.02024011
 
 Nr_SNPs<-rep(NA, length(PGS2_HRS_afr))
 names(Nr_SNPs)<- names(PGS2_HRS_afr)
@@ -190,3 +193,4 @@ for (I in names(PGS3_HRS_afr)){
 }
 
 saveRDS(B_HRS_afr, file="~/height_prediction/unweighted_prs/output/B_HRS_afr.Rds")
+txtStop()
