@@ -28,11 +28,12 @@ for i in 5000 10000 25000 50000 75000 100000 500000 1000000;
 do
 for j in 0.0005 0.00005 0.000005 0.0000005 0.00000005;
 do
-bsub -M 90000 -e ~/height_prediction/imputed/logs/prs_${i}_${j} -o ~/height_prediction/imputed/logs/prs_${i}_${j} Rscript --vanilla ~/height_prediction/imputed/scripts/run_PRS.R ${i} ${j}
-bsub -M 90000 -e ~/height_prediction/imputed/logs/UKB_prs_${i}_${j} -o ~/height_prediction/imputed/logs/UKB_prs_${i}_${j} Rscript --vanilla ~/height_prediction/imputed/scripts/run_PRS_UKB.R ${i} ${j}
+bsub -M 100000 -e ~/height_prediction/imputed/logs/prs_${i}_${j} -o ~/height_prediction/imputed/logs/prs_${i}_${j} Rscript --vanilla ~/height_prediction/imputed/scripts/run_PRS.R ${i} ${j}
+bsub -M 100000 -e ~/height_prediction/imputed/logs/UKB_prs_${i}_${j} -o ~/height_prediction/imputed/logs/UKB_prs_${i}_${j} Rscript --vanilla ~/height_prediction/imputed/scripts/run_PRS_UKB.R ${i} ${j}
 done
 done
 
 
-Rscript --vanilla pheno_pred.R
+Rscript --vanilla scripts/pheno_pred.R
+Rscript --vanilla scripts/pheno_pred_UKB.R
 ```

@@ -14,11 +14,11 @@ source('~/height_prediction/scripts/mclapply2.R')
 
 
 cat('checkpoint number 1\n')
-plink<-fread('~/height_prediction/runSmartpCA-master/UKB_AFR_imputed/association_v3.Res.Height.glm.linear.adjusted', header=T, fill=T)
+plink<-fread('~/height_prediction/PCA_and_GWAS//UKB_AFR_imputed/association_v3.Res.Height.glm.linear.adjusted', header=T, fill=T)
 colnames(plink)[2]<-'MarkerName'
 colnames(plink)[1]<-'CHR'
 
-plink2<-fread('~/height_prediction/runSmartpCA-master/UKB_AFR_imputed/plink_ukb_afr_height_glm_linear.txt', fill=T)
+plink2<-fread('~/height_prediction/PCA_and_GWAS/UKB_AFR_imputed/plink_ukb_afr_height_glm_linear.txt', fill=T)
 colnames(plink2)<-c("CHR","POS", "MarkerName","REF","ALT","Effect_Allele_plink","TEST","OBS_CT","PLINK", "SE_plink","T_STAT", "UNADJ") #plink is BETA
 plink2<-select(plink2, -c("REF", "ALT"))
 gc()
@@ -29,11 +29,15 @@ final_plink$POS<-as.numeric(final_plink$POS)
 gc()
 final_plink$CHR<-as.numeric(final_plink$CHR)
 gc()
-final_plink<-na.omit(final_plink) #3382050
+final_plink<-na.omit(final_plink) 
+nrow(final_plink) #3897450
 arrange(final_plink, CHR, POS) %>% as.data.table-> final_plink
 gc()
 
-final_plink[, PLINK:=scale(PLINK, scale=14.5447)] #scaling to that b and PLINK have same variance.
+#final_plink[, PLINK:=scale(PLINK, scale=14.5447)] #scaling to that b and PLINK have same variance.
 saveRDS(final_plink, file='~/height_prediction/loc_anc_analysis/output/final_plink.Rds')
+final_plink[, PLINK:=scale(PLINK, scale=14.5447)]
+final_plink[, SE_plink:=scale(SE_plink, scale=14.5447)]
+saveRDS(final_plink, file='~/height_prediction/loc_anc_analysis/output/final_plink_v2.Rds')
 new <- Sys.time() - old # calculate difference
 print(new) # print in nice format

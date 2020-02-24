@@ -77,14 +77,8 @@ Now we are ready to calculate polygenic risk scores for each set of SNPs (gwas, 
 ```
 for D in JHS WHI pennBB_afr pennBB_eur ukb_afr ukb_eur HRS_eur HRS_afr;
 do
-rm ~/height_prediction/gwas/${D}/test2.txt;
-rm ~/height_prediction/sib_betas/${D}/test2.txt;
-rm ~/height_prediction/gwas/${D}/run_this_PGS.sh;
-rm ~/height_prediction/sib_betas/${D}/run_this_PGS.sh;
 ~/height_prediction/scripts/calc_PGS.sh sib_betas $D
 ~/height_prediction/scripts/calc_PGS.sh gwas $D;
-rm ~/height_prediction/unweighted_prs/${D}/run_this_PGS.sh;
-rm ~/height_prediction/unweighted_prs/${D}/test2.txt; 
 ~/height_prediction/unweighted_prs/calc_PGS.sh gwas $D
 done
 ```
@@ -95,6 +89,12 @@ Combine all PRS results per dataset:
 ```
 for D in JHS WHI pennBB_afr pennBB_eur ukb_afr ukb_eur HRS_eur HRS_afr;
 do
+rm ~/height_prediction/gwas/${D}/scripts/test2.txt;
+rm ~/height_prediction/sib_betas/${D}/scripts/test2.txt;
+rm ~/height_prediction/gwas/${D}/scripts/run_this_PGS.sh;
+rm ~/height_prediction/sib_betas/${D}/scripts/run_this_PGS.sh;
+rm ~/height_prediction/unweighted_prs/${D}/run_this_PGS.sh;
+rm ~/height_prediction/unweighted_prs/${D}/test2.txt;
 ~/height_prediction/scripts/combine_Rds_PGS.sh sib_betas $D
 ~/height_prediction/scripts/combine_Rds_PGS.sh gwas $D
 ~/height_prediction/unweighted_prs/combine_Rds_PGS.sh unweighted_prs $D

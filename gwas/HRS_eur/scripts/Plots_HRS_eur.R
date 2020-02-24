@@ -72,8 +72,8 @@ data.table(Nr=unlist(Nr_SNPs), Name=names(Nr_SNPs), Part_R2=unlist(partial_r2_HR
 saveRDS(A_table, file='~/height_prediction/gwas/HRS_eur/output/Nr_SNPs_HRS.Rds')
 
 
-cor.test(unlist(Nr_SNPs), unlist(partial_r2_HRS_eur)) #43%
-summary(lm(Part_R2~Nr,data=A_table))$r.squared #18%
+cor.test(unlist(Nr_SNPs), unlist(partial_r2_HRS_eur)) #0.4235654
+summary(lm(Part_R2~Nr,data=A_table))$r.squared #0.1794076
 #
 
 #this weird negative corrrelation os due to the LD pruned sets: this is ebcause the LD blocks have few SNPs and explain A LOT and the LD_kb sets have a lot of SNPs and explain very little. 

@@ -62,7 +62,6 @@ for(I in names(B_JHS)){ #JHS lacks the LD prunning methods
 #
 ALL2<-vector('list', length(names(B_JHS)))
 names(ALL2)<-names(B_JHS)
-
 for(I in names(B_JHS)){
 #	if(args[1]=='sib_betas'){
 #		ALL2[[I]]<-rbind(B_JHS[[I]][1:2,][, Dataset:='JHS_afr'], B_WHI[[I]][1:4,][, Dataset:='WHI_afr'], B_UKB_afr[[I]][1:4,][,Dataset:='UKB_afr'],B_HRS_afr[[I]][1:2,][, Dataset:='HRS_afr'],  B_HRS_eur[[I]], B_UKB_eur[[I]])
@@ -83,9 +82,9 @@ for(I in names(B_JHS)){
 	ggsave(paste0('~/height_prediction/unweighted_prs/figs/error_bars_all_v3_', I, '.png'))
 }
 
-a<-data.table(Name=names(B_JHS), Intercept=unlist(lapply(1:40, function(I) coef(lm(R_sq~Med_Eur_Anc, weights= W, data=ALL2[[I]]))[[1]])), Slope=unlist(lapply(1:40, function(I) coef(lm(R_sq~Med_Eur_Anc, weights= W, data=ALL2[[I]]))[[2]])), R_sq=unlist(lapply(1:40, function(I) summary(lm(R_sq~Med_Eur_Anc, weights= W, data=ALL2[[I]]))[9])), P=unlist(lapply(1:40, function(I) summary(lm(R_sq~Med_Eur_Anc, weights= W, data=ALL2[[I]]))$coefficients[8])))
+a<-data.table(Name=names(B_JHS), Intercept=unlist(lapply(1:75, function(I) coef(lm(R_sq~Med_Eur_Anc, weights= W, data=ALL2[[I]]))[[1]])), Slope=unlist(lapply(1:75, function(I) coef(lm(R_sq~Med_Eur_Anc, weights= W, data=ALL2[[I]]))[[2]])), R_sq=unlist(lapply(1:75, function(I) summary(lm(R_sq~Med_Eur_Anc, weights= W, data=ALL2[[I]]))[9])), P=unlist(lapply(1:75, function(I) summary(lm(R_sq~Med_Eur_Anc, weights= W, data=ALL2[[I]]))$coefficients[8])))
 
-fwrite(a, file="/~/height_prediction/unweighted_prs/figs/SM_Table1.txt", sep=",")
+fwrite(a, file="~/height_prediction/unweighted_prs/figs/SM_Table1.txt", sep=",")
 ALL2b<-vector('list', length(names(B_JHS)))
 names(ALL2b)<-names(B_JHS)
 
@@ -138,10 +137,10 @@ for (I in names(B_JHS)){
 #	}
 	#rbind(ALL3[[I]][!(Dataset %in% c('UKB_EUR', 'pennBB_EA'))], ALL3[[I]][Dataset %in% c('UKB_EUR', 'pennBB_EA')][, Med_Eur_Anc:=1])-> ALL3[[I]]
 	ALL3[[I]][,Set:=I]
-	readRDS(paste0('~/height_prediction/gwas/WHI/output/Nr_SNPs_WHI.Rds'))[Name==I][, Nr]->a
-	readRDS(paste0('~/height_prediction/gwas/ukb_afr/output/Nr_SNPs_UKB_afr.Rds'))[Name==I][, Nr]->b
-	readRDS(paste0('~/height_prediction/gwas/JHS/output/Nr_SNPs_JHS.Rds'))[Name==I][, Nr]->d
-	readRDS(paste0('~/height_prediction/gwas/HRS_eur/output/Nr_SNPs_HRS.Rds'))[Name==I][, Nr]->f
+	readRDS(paste0('~/height_prediction/unweighted_prs/output/Nr_SNPs_WHI.Rds'))[Name==I][, Nr]->a
+	readRDS(paste0('~/height_prediction/unweighted_prs/output/Nr_SNPs_UKB_afr.Rds'))[Name==I][, Nr]->b
+	readRDS(paste0('~/height_prediction/unweighted_prs/output/Nr_SNPs_JHS.Rds'))[Name==I][, Nr]->d
+	readRDS(paste0('~/height_prediction/unweighted_prs/output/Nr_SNPs_HRS.Rds'))[Name==I][, Nr]->f
 	#readRDS('Nr_SNPs_pennBB_afr.Rds')[Name==I][, Nr]->f
 	#readRDS('Nr_SNPs_pennBB_eur.Rds')[Name==I][, Nr]->g
 	ALL3[[I]][,Intercept:=coef(tmp)[[1]]][,Slope:=coef(tmp)[[2]]]
@@ -166,10 +165,10 @@ for (I in names(PGS3_JHS)){
 	PGS3_HRS_eur[[I]][,SUBJ_ID:=ID][, age:=AGE][, age2:=AGE2][, HEIGHTX:=HEIGHT][, sex:=SEX][,.(SUBJ_ID,age, age2, HEIGHTX,PGS, sex, EUR_ANC)][,Dataset:='HRS_eur'][, Res.Height:=resid(lm(HEIGHTX~sex+age+age2))],
 	PGS3_UKB_afr[[I]][, sex:=Sex][, HEIGHTX:=Height][,SUBJ_ID:=ID][,.(SUBJ_ID, Age, age2, HEIGHTX, PGS, sex, EUR_ANC)][, age:=Age][, Age:=NULL][,Dataset:='UKB_afr'][, Res.Height:=resid(lm(HEIGHTX~sex+age+age2))],
 	PGS3_JHS[[I]][,.(SUBJID, age, age2, HEIGHTX, PGS, sex, EUR_ANC)][,SUBJ_ID:=SUBJID][, SUBJID:=NULL][,Dataset:='JHS_afr'][, Res.Height:=resid(lm(HEIGHTX~sex+age+age2))])[,Prun_Set:=I][,Nr_SNPs:=0]-> combo[[I]]
-	readRDS(paste0('~/height_prediction/gwas/WHI/output/Nr_SNPs_WHI.Rds'))[Name==I][, Nr]->a
-        readRDS(paste0('~/height_prediction/gwas/ukb_afr/output/Nr_SNPs_UKB_afr.Rds'))[Name==I][, Nr]->b
-        readRDS(paste0('~/height_prediction/gwas/JHS/output/Nr_SNPs_JHS.Rds'))[Name==I][, Nr]->d
-        readRDS(paste0('~/height_prediction/gwas/HRS_eur/output/Nr_SNPs_HRS.Rds'))[Name==I][, Nr]->f
+	readRDS(paste0('~/height_prediction/unweighted_prs/output/Nr_SNPs_WHI.Rds'))[Name==I][, Nr]->a
+        readRDS(paste0('~/height_prediction/unweighted_prs/output/Nr_SNPs_UKB_afr.Rds'))[Name==I][, Nr]->b
+        readRDS(paste0('~/height_prediction/unweighted_prs/output/Nr_SNPs_JHS.Rds'))[Name==I][, Nr]->d
+        readRDS(paste0('~/height_prediction/unweighted_prs/output/Nr_SNPs_HRS.Rds'))[Name==I][, Nr]->f
 	combo[[I]][Dataset=='WHI_afr']$Nr_SNPs<-a
 	combo[[I]][Dataset=='JHS_afr']$Nr_SNPs<-d
 	combo[[I]][Dataset=='UKB_afr']$Nr_SNPs<-b

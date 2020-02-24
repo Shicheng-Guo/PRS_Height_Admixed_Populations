@@ -25,18 +25,17 @@ dir<-paste0(home, args[2], "/", args[3], "/")
 	setDT(vcf)
 	colnames(vcf)[3]<-'MarkerName'
 	setkey(vcf, MarkerName)
+	gc()
 	readRDS(paste0(dir, 'prunned_1kg/LD_prunned_hei_chr', X, '_',args[1], '.Rds'))[['keep']]-> bla
 	data.table(MarkerName=bla)-> test[[X]]
 	colnames(test[[X]])<-'MarkerName'
 	setkey(test[[X]], MarkerName)
+	gc()
 	vcf[test[[X]], nomatch=0]-> test[[X]]
 	remove(vcf);remove(bla)
 	gc()
 	cat(X,' done\n')
 	}
-	#do.call(rbind, test)-> testB
 	print(paste0(args[1], ' done'))
-
-
 saveRDS(test,paste0(dir, 'output/hei_', args[1], '.Rds'))
 #End

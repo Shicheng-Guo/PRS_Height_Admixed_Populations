@@ -15,9 +15,14 @@ cat(args[2], '\n')
 #read in summ stats file
 ukb<-fread('zcat ~/height_prediction/gwas/input/50_raw_filtered.txt.gz', fill=T)
 ukb[,c("CHR", "POS","Allele2","Allele1") := tstrsplit(variant, ":", fixed=TRUE)][,variant:=NULL]  #fix columns. In the UKB, variants are listed as CHR:POS: REF:ALT, where ALT is the effect allele. So, in order to be compatilble with my scripts (where allele 1 is effect all
-ukb[, MarkerName:=rsid][, N:=nCompleteSamples][, AC:=NULL][, b:=beta][,p:=pval]
-ukb[,rsid:=NULL][,nCompleteSamples:=NULL][, beta:=NULL][, pval:=NULL][, SE:=se]
-ukb[,.(MarkerName,Allele1,Allele2, b, SE, p, N, CHR, POS)]-> ukb
+ukb[, N:=n_complete_samples][, AC:=NULL][, b:=beta][,p:=pval]
+ukb[,n_complete_samples:=NULL][, beta:=NULL][, pval:=NULL][, SE:=se]
+ukb[,.(Allele1,Allele2, b, SE, p, N, CHR, POS)]-> ukb
+na.omit(ukb)-> ukb
+ukb[CHR %in% 1:22]-> ukb
+ukb[,CHR:=as.integer(CHR)]
+ukb[,POS:=as.integer(POS)]
+ukb[order(CHR,POS)]-> ukb
 gc()
 #prune
 p_thresh<-as.numeric(args[2])

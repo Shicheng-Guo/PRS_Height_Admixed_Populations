@@ -15,12 +15,13 @@ library(asbio)
 library(GGally)
 library(tidyr)
 library(hexbin)
+library(cowplot)
 library(psychometric)
 library(boot)
 library(RColorBrewer)
 options(scipen=999)
 library(TeachingDemos)
-args<-'sib_betas'
+args<-'gwas'
 
 txtStart(paste0("~/height_prediction/", args, "/outout.txt"))
 # Your code
@@ -99,6 +100,7 @@ for(I in names(B_JHS)){
 }
 
 a<-data.table(Name=names(B_JHS), Intercept=unlist(lapply(1:80, function(I) coef(lm(R_sq~Med_Eur_Anc, weights= W, data=ALL2[[I]]))[[1]])), Slope=unlist(lapply(1:80, function(I) coef(lm(R_sq~Med_Eur_Anc, weights= W, data=ALL2[[I]]))[[2]])), R_sq=unlist(lapply(1:80, function(I) summary(lm(R_sq~Med_Eur_Anc, weights= W, data=ALL2[[I]]))[9])), P=unlist(lapply(1:80, function(I) summary(lm(R_sq~Med_Eur_Anc, weights= W, data=ALL2[[I]]))$coefficients[8])))
+a[Name=='phys_100000_0.0005']
 
 #fwrite(a, file=paste0("~/height_prediction/figs_for_paper/figs/SM_Table1_", args[1], ".txt", sep=","))
 ALL2b<-vector('list', length(names(B_JHS)))
@@ -555,7 +557,6 @@ for(I in names(AA)){
 
 WOW2<-vector('list', length(B_WHI));test2<-vector('list', length(B_WHI))
 names(WOW2)<-names(B_WHI);names(test2)<-names(B_WHI)
-
 for(I in names(AA)){
         a<-combo[[I]][Dataset=='WHI_afr'][,Quantile:= cut(EUR_ANC,breaks=quantile(EUR_ANC, probs=seq(0,1, by=0.25), na.rm=TRUE),include.lowest=TRUE)]
         b<-combo[[I]][Dataset=='HRS_afr'][,Quantile:= cut(EUR_ANC,breaks=quantile(EUR_ANC, probs=seq(0,1, by=0.5), na.rm=TRUE),include.lowest=TRUE)]
@@ -674,8 +675,6 @@ for(I in names(AA)){
 for(I in names(AA)){
 OR_table[[I]]<-rbind(OR_table[[I]][Quantile!='all'],OR_table[[I]][Quantile=='all'][, Quantile:=EUR_ANC])
 }
-
-#stopped here on Aug 13
 OR2_table<-vector('list', length(combo))
 names(OR2_table)<-names(AA)
 for(I in names(AA)){
