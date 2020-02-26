@@ -2,16 +2,15 @@
 ############################
 library(data.table)
 
-
-
 ##read in a pruned set of SNPs and retain CHR and POS and write it into a file
-
+library(TeachingDemos)
+txtStart(paste0("~/height_prediction/figs_for_paper/gen_phen_varianct.txt"))
 dtsets<-vector("list", 6)
 names(dtsets)<-c("WHI","JHS", "ukb_afr", "HRS_afr", "ukb_eur", "HRS_eur")
 
 for(I in names(dtsets)){
 	readRDS(paste0('~/height_prediction/gwas/', I, '/output/hei_phys_100000_0.0005_v2.Rds'))-> betas
-	betas<-lapply(betas, function(X) X[,.(CHR,POS, MarkerName, i.MarkerName, REF, ALT, Allele1, Allele2, b, SE, p, N)])
+	betas<-lapply(betas, function(X) X[,.(CHR,POS, MarkerName, REF, ALT, Allele1, Allele2, b, SE, p, N)])
 	betas<-do.call(rbind, betas)
 	colnames(betas)[3]<-"SNP"
 	res2<-vector("list",22)
@@ -62,11 +61,17 @@ colnames(ceu)[2]<-'i.MarkerName'
 readRDS('~/height_prediction/output/tmp_dtsets_WHI.Rds')-> whi
 setkey(whi, CHR,i.MarkerName)
 setkey(ceu, CHR, i.MarkerName)
- whi[ceu, nomatch=0]-> final
+whi[ceu, nomatch=0]-> final
 final[,pq:=ALT_FREQS* (1-ALT_FREQS)]
 final[, value2:=(b^2)*pq]
 
-lapply(1:6, function(X) sum(dtsets[[X]]$value, na.rm=T))
-unlist(lapply(1:2, function(X) sum(dtsets[[X]]$value, na.rm=T)))/sum(final$value2)
+readRDS('~/height_prediction/output/tmp_dtsets_JHS.Rds')-> jhs
+setkey(jhs, CHR, i.MarkerName)
+setkey(ceu, CHR, i.MarkerName)
+jhs[ceu, nomatch=0]-> final2
+final2[,pq:=ALT_FREQS* (1-ALT_FREQS)]
+final2[, value2:=(b^2)*pq]
 
-##
+lapply(1:6, function(X) sum(dtsets[[X]]$value, na.rm=T))
+unlist(lapply(1:2, function(X) sum(dtsets[[X]]$value, na.rm=T)))/c(sum(final$value2), sum(final2$value2))
+txtStop()

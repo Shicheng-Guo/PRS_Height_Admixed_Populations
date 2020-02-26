@@ -72,7 +72,6 @@ lines(x, mn-sd.diff, col="orange", lwd=2)
 lines(x, mn+pd.diff, col="blue", lwd=2)
 lines(x, mn-pd.diff, col="blue", lwd=2)
 
-
 legend("topright", c("Mean height", "Expected +/- 1 SD",  "Fitted +/- 1 SD"), col=c("red", "blue", "orange"), lwd=2, bty="n")
 dev.off()
 

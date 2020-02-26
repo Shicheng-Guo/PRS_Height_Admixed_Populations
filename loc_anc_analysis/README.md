@@ -75,11 +75,8 @@ do
 bsub -M 60000 -o ~/height_prediction/loc_anc_analysis/split_chr${chr} -e ~/height_prediction/loc_anc_analysis/split_chr${chr} Rscript --vanilla ~/height_prediction/loc_anc_analysis/run_PRS_v3_UKB_afr.R phys_100000_0.0005 ${chr} 0
 done
 
-
-
-```
 #Plots:
-#Rscript --vanilla ~/height_prediction/loc_anc_analysis/run_partial_r2_v3.r #makes partial-r2vsEUR_ANC plots using LA PRS using only EUR segments
-#Rscript --vanilla ~/height_prediction/loc_anc_analysis/run_partial_r2_v2.R
+Rscript --vanilla ~/height_prediction/loc_anc_analysis/run_partial_r2_v3.r #makes partial-r2vsEUR_ANC plots using LA PRS using only EUR segments
+Rscript --vanilla ~/height_prediction/loc_anc_analysis/run_partial_r2_v2.R
 
 ```

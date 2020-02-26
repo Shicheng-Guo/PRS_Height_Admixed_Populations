@@ -8,44 +8,44 @@ options(scipen=999)
 readRDS('/home/bbita/height_prediction/gwas/WHI/output/Nr_SNPs_WHI.Rds')[, Dataset:='WHI_afr']-> WHI
 readRDS('/home/bbita/height_prediction/gwas/JHS/output/Nr_SNPs_JHS.Rds')[, Dataset:='JHS_afr']-> JHS
 readRDS('/home/bbita/height_prediction/gwas/ukb_afr/output/Nr_SNPs_UKB_afr.Rds')[, Dataset:='UKB_afr']-> UKB_AFR
-readRDS('/project/mathilab/bbita/gwas_admix/new_height/Nr_SNPs_UKB.Rds')[, Dataset:='UKB_eur']-> UKB_EUR
+#readRDS('/project/mathilab/bbita/gwas_admix/new_height/Nr_SNPs_UKB.Rds')[, Dataset:='UKB_eur']-> UKB_EUR
 readRDS('/home/bbita/height_prediction/gwas/HRS_afr/output/Nr_SNPs_HRS_afr.Rds')[, Dataset:='HRS_afr']-> HRS_afr
 readRDS('/home/bbita/height_prediction/gwas/HRS_eur/output/Nr_SNPs_HRS.Rds')[, Dataset:='HRS_eur']-> HRS_eur
 
 readRDS('/home/bbita/height_prediction/sib_betas/WHI/output/Nr_SNPs_WHI.Rds')[, Dataset:='WHI_afr(sib)']-> WHI_sib
 readRDS('/home/bbita/height_prediction/sib_betas/JHS/output/Nr_SNPs_JHS.Rds')[, Dataset:='JHS_afr(sib)']-> JHS_sib
 readRDS('/home/bbita/height_prediction/sib_betas/ukb_afr/output/Nr_SNPs_UKB_afr.Rds')[, Dataset:='UKB_afr(sib)']-> UKB_AFR_sib
-readRDS('/home/bbita/height_prediction/sib_betas/ukb_eur/output/Nr_SNPs_UKB_eur.Rds')[, Dataset:='UKB_eur(sib)']-> UKB_EUR_sib
+#readRDS('/home/bbita/height_prediction/sib_betas/ukb_eur/output/Nr_SNPs_UKB_eur.Rds')[, Dataset:='UKB_eur(sib)']-> UKB_EUR_sib
 readRDS('/home/bbita/height_prediction/sib_betas/HRS_afr/output/Nr_SNPs_HRS_afr.Rds')[, Dataset:='HRS_afr(sib)']-> HRS_afr_sib
 readRDS('/home/bbita/height_prediction/sib_betas/HRS_eur/output/Nr_SNPs_HRS.Rds')[, Dataset:='HRS_eur(sib)']-> HRS_eur_sib
 
 #Table S1
 write.xlsx(x = WHI, file = "/home/bbita/height_prediction/figs_for_paper/tables/Table_S1.xlsx",
-        sheetName = "WHI_afr", row.names = FALSE)
+        sheetName = "1", row.names = FALSE)
 write.xlsx(x = JHS, file = "/home/bbita/height_prediction/figs_for_paper/tables/Table_S1.xlsx",
-        sheetName = "JHS_afr", row.names = FALSE, append=T)
+        sheetName = "2", row.names = FALSE, append=T)
 write.xlsx(x =UKB_AFR, file = "/home/bbita/height_prediction/figs_for_paper/tables/Table_S1.xlsx",
-        sheetName = "UKB_afr", row.names = FALSE, append=T)
-write.xlsx(x = UKB_EUR, file = "/home/bbita/height_prediction/figs_for_paper/tables/Table_S1.xlsx",
-        sheetName = "UKB_eur", row.names = FALSE, append=T)
+        sheetName = "3", row.names = FALSE, append=T)
+#write.xlsx(x = UKB_EUR, file = "/home/bbita/height_prediction/figs_for_paper/tables/Table_S1.xlsx",
+#        sheetName = "4", row.names = FALSE, append=T)
 write.xlsx(x = HRS_afr, file = "/home/bbita/height_prediction/figs_for_paper/tables/Table_S1.xlsx",
-        sheetName = "HRS_afr", row.names = FALSE, append=T)
+        sheetName = "4", row.names = FALSE, append=T)
 write.xlsx(x = HRS_eur, file = "/home/bbita/height_prediction/figs_for_paper/tables/Table_S1.xlsx",
-        sheetName = "HRS_eur", row.names = FALSE, append=T)
+        sheetName = "5", row.names = FALSE, append=T)
 
 #Table S2
-write.xlsx(x = WHI_sib, file = "/home/bbita/height_prediction/figs_for_paper/tables/Table_S3.xlsx",
-        sheetName = "WHI_afr", row.names = FALSE)
-write.xlsx(x = JHS_sib, file = "/home/bbita/height_prediction/figs_for_paper/tables/Table_S3.xlsx",
-        sheetName = "JHS_afr", row.names = FALSE, append=T)
-write.xlsx(x =UKB_AFR_sib, file = "/home/bbita/height_prediction/figs_for_paper/tables/Table_S3.xlsx",
-        sheetName = "UKB_afr", row.names = FALSE, append=T)
-write.xlsx(x = UKB_EUR_sib, file = "/home/bbita/height_prediction/figs_for_paper/tables/Table_S3.xlsx",
-        sheetName = "UKB_eur", row.names = FALSE, append=T)
-write.xlsx(x = HRS_afr_sib, file = "/home/bbita/height_prediction/figs_for_paper/tables/Table_S3.xlsx",
-        sheetName = "HRS_afr", row.names = FALSE, append=T)
-write.xlsx(x = HRS_eur_sib, file = "/home/bbita/height_prediction/figs_for_paper/tables/Table_S3.xlsx",
-        sheetName = "HRS_eur", row.names = FALSE, append=T)
+write.xlsx(x = WHI_sib, file = "/home/bbita/height_prediction/figs_for_paper/tables/Table_S1.xlsx",
+        sheetName = "6", row.names = FALSE, append=T)
+write.xlsx(x = JHS_sib, file = "/home/bbita/height_prediction/figs_for_paper/tables/Table_S1.xlsx",
+        sheetName = "7", row.names = FALSE, append=T)
+write.xlsx(x =UKB_AFR_sib, file = "/home/bbita/height_prediction/figs_for_paper/tables/Table_S1.xlsx",
+        sheetName = "8", row.names = FALSE, append=T)
+#write.xlsx(x = UKB_EUR_sib, file = "/home/bbita/height_prediction/figs_for_paper/tables/Table_S1.xlsx",
+#        sheetName = "10", row.names = FALSE, append=T)
+write.xlsx(x = HRS_afr_sib, file = "/home/bbita/height_prediction/figs_for_paper/tables/Table_S1.xlsx",
+        sheetName = "9", row.names = FALSE, append=T)
+write.xlsx(x = HRS_eur_sib, file = "/home/bbita/height_prediction/figs_for_paper/tables/Table_S1.xlsx",
+        sheetName = "10", row.names = FALSE, append=T)
 
 ###Imputed
 
@@ -65,8 +65,8 @@ imputed<-data.table(Set=paste0("phys_",names_imp), UKB=unlist(imp[['UKB']]), HRS
 imputed[, Name:=Set][,Nr_SNPs_UKB:=UKB][,Nr_SNPs_HRS:=HRS][, UKB:=NULL][,HRS:=NULL][,Set:=NULL]
 merge(imputed,select(readRDS('~/height_prediction/imputed/output/comparison.Rds'), HRS_afr_imp, HRS_eur_imp, Name), by="Name")-> imputed
 imputed<-merge(imputed, select(readRDS('~/height_prediction/imputed/output/comparison_ukb.Rds'), UKB_eur, UKB_afr, Name))
-write.xlsx(x = imputed, file = "/home/bbita/height_prediction/figs_for_paper/tables/Table_S4.xlsx",
-        sheetName = "HRS_and_UKB", row.names = FALSE)
+write.xlsx(x = imputed, file = "/home/bbita/height_prediction/figs_for_paper/tables/Table_S1.xlsx",
+        sheetName = "11", row.names = FALSE, append=T)
 
 
 #fwrite(data.table(Set=names_imp, UKB=unlist(imp[['UKB']]), HRS=unlist(imp[['HRS']])), "~/height_prediction/figs_for_paper/figs/imputed.txt")
@@ -86,18 +86,18 @@ select(readRDS('/home/bbita/height_prediction/unweighted_prs/output/Nr_SNPs_HRS_
 select(readRDS('/home/bbita/height_prediction/unweighted_prs/output/Nr_SNPs_HRS.Rds')[, Dataset:='HRS_eur'], Name, Nr, Part_R2)-> HRS_eur_unw
 
 
-write.xlsx(x = WHI_unw, file = "/home/bbita/height_prediction/figs_for_paper/tables/Table_S2.xlsx",
-        sheetName = "WHI_afr", row.names = FALSE)
-write.xlsx(x = JHS_unw, file = "/home/bbita/height_prediction/figs_for_paper/tables/Table_S2.xlsx",
-        sheetName = "JHS_afr", row.names = FALSE, append=T)
-write.xlsx(x = UKB_AFR_unw, file = "/home/bbita/height_prediction/figs_for_paper/tables/Table_S2.xlsx",
-        sheetName = "UKB_afr", row.names = FALSE,append=T)
-write.xlsx(x = HRS_afr_unw, file = "/home/bbita/height_prediction/figs_for_paper/tables/Table_S2.xlsx",
-        sheetName = "HRS_afr", row.names = FALSE,append=T)
-write.xlsx(x = HRS_eur_unw, file = "/home/bbita/height_prediction/figs_for_paper/tables/Table_S2.xlsx",
-        sheetName = "HRS_eur", row.names = FALSE,append=T)
-write.xlsx(x = UKB_EUR_unw, file = "/home/bbita/height_prediction/figs_for_paper/tables/Table_S2.xlsx",
-        sheetName = "UKB_eur", row.names = FALSE,append=T)
+write.xlsx(x = WHI_unw, file = "/home/bbita/height_prediction/figs_for_paper/tables/Table_S1.xlsx",
+        sheetName = "12", row.names = FALSE, append=T)
+write.xlsx(x = JHS_unw, file = "/home/bbita/height_prediction/figs_for_paper/tables/Table_S1.xlsx",
+        sheetName = "13", row.names = FALSE, append=T)
+write.xlsx(x = UKB_AFR_unw, file = "/home/bbita/height_prediction/figs_for_paper/tables/Table_S1.xlsx",
+        sheetName = "14", row.names = FALSE,append=T)
+write.xlsx(x = HRS_afr_unw, file = "/home/bbita/height_prediction/figs_for_paper/tables/Table_S1.xlsx",
+        sheetName = "15", row.names = FALSE,append=T)
+write.xlsx(x = HRS_eur_unw, file = "/home/bbita/height_prediction/figs_for_paper/tables/Table_S1.xlsx",
+        sheetName = "16", row.names = FALSE,append=T)
+write.xlsx(x = UKB_EUR_unw, file = "/home/bbita/height_prediction/figs_for_paper/tables/Table_S1.xlsx",
+        sheetName = "17", row.names = FALSE,append=T)
 
 
 

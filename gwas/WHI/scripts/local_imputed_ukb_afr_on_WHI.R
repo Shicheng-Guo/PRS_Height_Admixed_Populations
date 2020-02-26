@@ -10,6 +10,9 @@ library(parallel)
 source('~/height_prediction/strat_prs/scripts/Rsq_R2.R')
 source('~/height_prediction/gwas/WHI/scripts/PolygenicScore_v3.R')
 source('~/height_prediction/gwas/WHI/scripts/short_fun_imputed.R')
+library(TeachingDemos)
+
+txtStart(paste0("~/height_prediction/gwas/WHI/local_imputed_out.txt"))
 ########################
 cat('checkpoint number 1\n')
 final_plink<-readRDS('~/height_prediction/loc_anc_analysis/output/final_plink.Rds')
@@ -24,8 +27,9 @@ for(I in 1:22){
 	cat('Chr ', I, ' done\n')
 }
 
-saveRDS(res_all, file="~/height_prediction/imputed/output/all_prs.Rds")
 
+saveRDS(res_all, file="~/height_prediction/imputed/output/all_prs.Rds")
+cat('checkpoint number X\n')
 
 res_all_HRS<-vector('list', 22)
 for(I in 1:22){
@@ -136,15 +140,17 @@ final2_HRS_JHS[,AGE2:=AGE^2][, PRS_eur_afr_plink:=(mean(EUR_ANC)*(PRS_EUR))+(mea
 fwrite(final2, file="~/height_prediction/imputed/all_prs_whi.txt", sep="\t")
 fwrite(final2_HRS_JHS, file="~/height_prediction/imputed/output/all_prs_hrs_jsh.txt", sep="\t")
 
-partial.R2(lm(HEIGHTX~AGE+AGE2+EUR_ANC, data=final2), lm(HEIGHTX~AGE+AGE2+EUR_ANC+PRS_EUR, data=final2))*100 #4.1%
-partial.R2(lm(HEIGHTX~AGE+AGE2+EUR_ANC, data=final2), lm(HEIGHTX~AGE+AGE2+EUR_ANC+PRS_plink, data=final2))*100 #1.66
-partial.R2(lm(HEIGHTX~AGE+AGE2+EUR_ANC, data=final2), lm(HEIGHTX~AGE+AGE2+EUR_ANC+PRS_plink_tstat_1, data=final2))*100 #1.41%
-partial.R2(lm(HEIGHTX~AGE+AGE2+EUR_ANC, data=final2), lm(HEIGHTX~AGE+AGE2+EUR_ANC+PRS_eur_afr_plink, data=final2))*100 # #2.49%
+partial.R2(lm(HEIGHTX~AGE+AGE2+EUR_ANC, data=final2), lm(HEIGHTX~AGE+AGE2+EUR_ANC+PRS_EUR, data=final2))*100 #4.12%
+partial.R2(lm(HEIGHTX~AGE+AGE2+EUR_ANC, data=final2), lm(HEIGHTX~AGE+AGE2+EUR_ANC+PRS_plink, data=final2))*100 #1.68
+partial.R2(lm(HEIGHTX~AGE+AGE2+EUR_ANC, data=final2), lm(HEIGHTX~AGE+AGE2+EUR_ANC+PRS_plink_tstat_1, data=final2))*100 #1.55%
+partial.R2(lm(HEIGHTX~AGE+AGE2+EUR_ANC, data=final2), lm(HEIGHTX~AGE+AGE2+EUR_ANC+PRS_eur_afr_plink, data=final2))*100 # #4.47%
 partial.R2(lm(HEIGHTX~AGE+AGE2+EUR_ANC+PRS_EUR, data=final2),lm(HEIGHTX~AGE+AGE2+EUR_ANC+PRS_EUR+PRS_eur_afr_plink, data=final2))*100 #0.40
 partial.R2(lm(HEIGHTX~AGE+AGE2+EUR_ANC+PRS_EUR, data=final2),lm(HEIGHTX~AGE+AGE2+EUR_ANC+PRS_EUR+PRS_plink, data=final2))*100 #0.40
 #
-partial.R2(lm(HEIGHTX~SEX+AGE+AGE2+Dt+EUR_ANC, data=final2_HRS_JHS), lm(HEIGHTX~SEX+AGE+AGE2+Dt+EUR_ANC+PRS_EUR, data=final2_HRS_JHS))*100 #2.93
-partial.R2(lm(HEIGHTX~SEX+AGE+AGE2+Dt+EUR_ANC, data=final2_HRS_JHS), lm(HEIGHTX~SEX+AGE+AGE2+Dt+EUR_ANC+PRS_plink, data=final2_HRS_JHS))*100 #0.99%
+partial.R2(lm(HEIGHTX~SEX+AGE+AGE2+Dt+EUR_ANC, data=final2_HRS_JHS), lm(HEIGHTX~SEX+AGE+AGE2+Dt+EUR_ANC+PRS_EUR, data=final2_HRS_JHS))*100 #2.97%
+partial.R2(lm(HEIGHTX~SEX+AGE+AGE2+Dt+EUR_ANC, data=final2_HRS_JHS), lm(HEIGHTX~SEX+AGE+AGE2+Dt+EUR_ANC+PRS_plink, data=final2_HRS_JHS))*100 #1.05%
+partial.R2(lm(HEIGHTX~AGE+AGE2+EUR_ANC, data=final2_HRS_JHS), lm(HEIGHTX~AGE+AGE2+EUR_ANC+PRS_eur_afr_plink, data=final2_HRS_JHS))*100 #2.41
+partial.R2(lm(HEIGHTX~AGE+AGE2+EUR_ANC+PRS_EUR, data=final2_HRS_JHS),lm(HEIGHTX~AGE+AGE2+EUR_ANC+PRS_EUR+PRS_eur_afr_plink, data=final2_HRS_JHS))*100 #0.07%
 
 ###################
 ##################a
@@ -175,8 +181,8 @@ geom_hline(yintercept=optimize(my_alpha_v2, interval=c(0,1), maximum=T, tol = 0.
 geom_hline(yintercept=optimize(my_alpha_conc_v2, interval=c(0,1), maximum=T, tol = 0.0001)$objective, col='red', lty=2) +
 coord_cartesian(ylim = c(0, 0.048), xlim=c(0,0.6))
 ggsave('~/height_prediction/imputed/figs/alfa_plink.pdf')
-optimize(my_alpha_v2, interval=c(0,1), maximum=T, tol = 0.0001) #one liner for max 0.2126699 //0.04487896
-optimize(my_alpha_conc_v2, interval=c(0,1), maximum=T, tol = 0.0001) #one liner for max  0.1705468//  0.03094285
+optimize(my_alpha_v2, interval=c(0,1), maximum=T, tol = 0.0001) #one liner for max 0.7094478 //0.04503568
+optimize(my_alpha_conc_v2, interval=c(0,1), maximum=T, tol = 0.0001) #one liner for max  0.6716053//  0.03176889
 
 ##################
 a_vec2<-seq(from=0, to=1, by=0.001)
@@ -199,8 +205,8 @@ max_alpha_conc_v2<-function(alpha, dt='final2_HRS_JHS'){
 all_prs_v2<-lapply(a_vec, function(X) max_alpha_v2(alpha=X))
 all_prs_conc_v2<-lapply(a_vec, function(X) max_alpha_conc_v2(alpha=X))
 
-optimize(max_alpha_v2, interval=c(0,1), maximum=T, tol = 0.0001) # 0.2841475//0.04508872
-optimize(max_alpha_conc_v2, interval=c(0,1), maximum=T, tol = 0.0001) #  0.2058523 // 0.03087291
+optimize(max_alpha_v2, interval=c(0,1), maximum=T, tol = 0.0001) # 0.7749016//0.04514398
+optimize(max_alpha_conc_v2, interval=c(0,1), maximum=T, tol = 0.0001) #  0.6501442 // 0.03099347
 
 temp_dt_v2<-rbind(data.table(part_R2=unlist(all_prs_v2), alfa=a_vec, Dataset='WHI'), data.table(part_R2=unlist(all_prs_conc_v2), alfa=a_vec, Dataset='JHS+HRS'))
 
@@ -263,8 +269,10 @@ test4[,Dataset:=NULL]
 melt(test4,id=c('Dataset', 'alpha'))-> test5
 
 
-test5[, Dataset2:=ifelse(Dataset=='WHI', "Women's Health Initiative", "Jackson Heart Study + \nHealth and Retirement Study")]
+#test5[, Dataset2:=ifelse(Dataset=='WHI', "Women's Health Initiative", "Jackson Heart Study + \nHealth and Retirement Study")]
 ggplot(test5, aes(x=alpha, y=value,colour=variable))  + facet_wrap(~Dataset2) + 
 geom_line(size=1.2) + coord_cartesian(xlim=c(0,0.5), ylim=c(0.02, 0.048)) + scale_color_manual(values=c("darkseagreen4", "darkslateblue", "deeppink4", "gray7")) +
-theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.title.y = element_text(size = 18), axis.title.x=element_text(size=18),axis.text.x=element_text(size=15), axis.text.y=element_text(size=15), legend.key=element_blank(), legend.background=element_blank(),legend.title=element_blank(), legend.text=element_text(size=18)) + labs(x=expression(alpha), y=expression(Partial~R^2))
+theme(strip.text.x = element_text(size=12), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.title.y = element_text(size = 18), axis.title.x=element_text(size=18),axis.text.x=element_text(size=15), axis.text.y=element_text(size=15), legend.key=element_blank(), legend.background=element_blank(),legend.title=element_blank(), legend.text=element_text(size=18)) + labs(x=expression(alpha), y=expression(Partial~R^2))
 ggsave('~/height_prediction/loc_anc_analysis/figs/multi_prs.pdf')
+
+txtStop()

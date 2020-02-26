@@ -1,3 +1,4 @@
+#!/usr/bin/env Rscript
 library(data.table)
 library(reshape)
 library(ggplot2)

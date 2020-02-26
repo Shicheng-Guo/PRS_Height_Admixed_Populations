@@ -30,7 +30,7 @@ final_plink<-as.data.table(readRDS('~/height_prediction/loc_anc_analysis/output/
 final_plink[, ALT:=Effect_Allele_plink] #adding this col because I know that the effect allele from plink is the ALT allele
 ###read in PRS SNPs for WHI
 hei<-readRDS(paste0('~/height_prediction/gwas/WHI/output/hei_', args[1], '_v2.Rds'))[[chr]]
-select(hei, -c(i.MarkerName, QUAL, FILTER,INFO, FORMAT, N, SE))-> hei #remove some useless columns
+select(hei, -c(QUAL, FILTER,INFO, FORMAT, N, SE))-> hei #remove some useless columns
 gc()
 colnames(hei)[3:4]<-c('REF_hei', 'ALT_hei') #these are not true ref/alt columns. They are called this way because of the plink to vcf conversion which does not always preserve ref/alt states.
 ##for each chromosome, read in .phgeno, .phsnp, .phind, and local ancestry files:
@@ -41,7 +41,7 @@ gc()
 ancestry <- read_fwf(paste0(what, "_rfmix_out.0.Viterbi.txt"), fwf_empty(paste0(what, "_rfmix_out.0.Viterbi.txt")))
 gc()
 snp<-fread(paste0('/project/mathilab/data/WHI/data/phased/hapi-ur/WHI_b37_strand_include_kgCY_chr', chr,  ".phsnp"))
-colnames(snp)<-c('i.MarkerName', 'CHR', 'V3', 'POS',  'REF_snp', 'ALT_snp') #these are not true ref/alt columns.
+colnames(snp)<-c('MarkerName', 'CHR', 'V3', 'POS',  'REF_snp', 'ALT_snp') #these are not true ref/alt columns.
 gc()
 #Remove reference samples from snp and geno files
 samples.to.include <- ind[,3]=="Case"
@@ -62,9 +62,9 @@ snp1<-snp[which(snp$POS %in% hei$POS),] #not all SNPs from the pruned sets are p
 geno1<-geno[which(snp$POS %in% hei$POS),]
 anc1<-ancestry[which(snp$POS %in% hei$POS),]
 #
-colnames(hei)[2]<-'i.MarkerName'
+colnames(hei)[2]<-'MarkerName'
 hei %>% select(-contains("0_")) %>% as.data.table-> hei #Allele1 is always the ALT allele. If we check hei[ALT_hei==Allele1] we will see that that's not the case for all positions, showing that ref_hei/alt_hei are not reliable for ref/alt info.
-merge(snp1, hei, by=c('CHR', 'POS', 'i.MarkerName'), sort=F)->hei1 #another test here: hei1[REF_snp==ALT_hei] all lines are true
+merge(snp1, hei, by=c('CHR', 'POS', 'MarkerName'), sort=F)->hei1 #another test here: hei1[REF_snp==ALT_hei] all lines are true
 gc()
 cat('checkpoint number 2\n')
 merge(final_plink, hei1, by=c('CHR', 'POS'), sort=F)-> plink_prun #plink_prun[Effect_Allele_plink==Allele1] for all lines. So the effect alleles are the same for plink and ukb. However, their REF/ALT status needs to be checked.(below)
@@ -101,7 +101,7 @@ system.time(RES<-lapply(1:ncol(geno2), function(I) LA_PRS(X2=I))) ###
 names(RES)<-colnames(geno)
 lapply(seq(from=1, to=length(RES), by=2), function(I) (RES[[I]]+RES[[I+1]]))-> RES2  #combine two chr from each individual
 names(RES2)<-unique(gsub("_A", "", gsub("_B", "", colnames(geno2))))
-saveRDS(RES2, file=paste0('~/height_prediction/loc_anc_analysis/output/chr', chr,'_', args[3], '_prs_EuR.Rds'))
+saveRDS(RES2, file=paste0('~/height_prediction/loc_anc_analysis/output/chr', chr,'_', args[3], '_prs_WHI_EuR.Rds'))
 # print elapsed time
 new <- Sys.time() - old # calculate difference
 print(new) # print in nice format
