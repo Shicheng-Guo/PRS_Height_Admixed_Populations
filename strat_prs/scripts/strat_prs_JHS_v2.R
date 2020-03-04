@@ -9,7 +9,7 @@ library(data.table)
 library(dplyr)
 library(asbio)
 library(boot)
-options(scopen=999)
+options(scipen=999)
 ########################################
 home<-"/home/bbita"
 dir<-"height_prediction/strat_prs/scripts"
@@ -24,7 +24,7 @@ source(paste0(home, "/", dir,'/Rsq_R2.R'))
 rate.dist<-as.numeric(args[1])
 w_map<-args[2]
 PRS<-vector('list', 22)
-jhs<-do.call(rbind, readRDS(paste0('~/height_prediction/', args[3],'/JHS/output/hei_phys_100000_0.0005_v2.Rds')))[,.(CHR,POS,MarkerName,i.MarkerName,REF,ALT,Allele1,Allele2,b,p)]
+jhs<-do.call(rbind, readRDS(paste0('~/height_prediction/', args[3],'/JHS/output/hei_phys_100000_0.0005_v2.Rds')))[,.(CHR,POS,MarkerName,REF,ALT,Allele1,Allele2,b,p)]
 lapply(1:22, function(chr) fread(paste0('zcat /project/mathilab/data/maps/hm2/hm2/genetic_map_GRCh37_chr', chr,'.txt.gz'))[,CHR:=gsub("chr","",Chromosome)][, Chromosome:=NULL])-> rec #need to fix this path
 for(chr in 1:22){colnames(rec[[chr]])<-c('POS', 'RATE_cM_Mb', 'MAP_cM', 'CHR')}
 lapply(1:22, function(chr) fread(paste0('zcat /project/mathilab/data/maps_b37/maps_chr.', chr, '.gz')))-> maps #need to fix this path
@@ -105,7 +105,7 @@ remove(prs)
 saveRDS(PRS,file=paste0("~/height_prediction/strat_prs/output/prs_JHS_",args[3], '_', rate.dist, "_", w_map, "_v2.Rds")) #store results.
 obj<-c(nrow(hei_q1), nrow(hei_q2), nrow(hei_q3), nrow(hei_q4))
 saveRDS(obj, file=paste0("~/height_prediction/strat_prs/output/Nr_SNPs_JHS_", args[3], '_', rate.dist, "_", w_map, "_v2.Rds")) #store results.
-
+saveRDS(jhs, file=paste0("~/height_prediction/strat_prs/output/rec_quant_JHS_",args[3], '_',rate.dist, "_", w_map, "_v2.Rds")) #store results
 #Make a list
 PRS2<-vector('list', length(PRS[['q1']]))
 names(PRS2)<-names(PRS[['q1']])

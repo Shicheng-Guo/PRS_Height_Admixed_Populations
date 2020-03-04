@@ -155,30 +155,35 @@ I<-names(AA)[63]
 #png(paste0('~/height_prediction/figs_for_paper/figs/OR_WHI_', I,  ".png"))
 plotA<-ggplot(AA[[I]], aes(x=Quantile, y=F3_X.F)) +
 geom_point(size=2) + labs(title="WHI_afr", y="OR") + geom_hline(yintercept=1, linetype="dashed", color = "orange") +
-theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15), axis.text.x=element_text(size=12), axis.text.y=element_text(size=12), legend.text=element_text(size=12))
+theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15), axis.text.x=element_text(size=12), axis.text.y=element_text(size=12), legend.text=element_text(size=12),legend.title = element_blank(),panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(), axis.line = element_line(colour = "black"))
 #dev.off()
 #png(paste0('~/height_prediction/figs_for_paper/figs/OR_JHS_', I,  ".png"))
 plotB<-ggplot(AJ[[I]], aes(x=Quantile, y=F3_X.F)) +
 geom_point(size=2)  + labs(title="JHS_afr", y="OR")+geom_hline(yintercept=1, linetype="dashed", color = "orange") +
-theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15), axis.text.x=element_text(size=12), axis.text.y=element_text(size=12), legend.text=element_text(size=12))
+theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15), axis.text.x=element_text(size=12), axis.text.y=element_text(size=12), legend.text=element_text(size=12),legend.title = element_blank(),panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(), axis.line = element_line(colour = "black"))
 #dev.off()
 
 #png(paste0('~/height_prediction/figs_for_paper/figs/OR_UKB_afr_', I,  ".png"))
 plotC<-ggplot(AU[[I]], aes(x=Quantile, y=F3_X.F)) +
 geom_point(size=2) + labs(title="UKB_afr", y="OR") + geom_hline(yintercept=1, linetype="dashed", color = "orange") +
-theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15), axis.text.x=element_text(size=12), axis.text.y=element_text(size=12), legend.text=element_text(size=12))
+theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15), axis.text.x=element_text(size=12), axis.text.y=element_text(size=12), legend.text=element_text(size=12),legend.title = element_blank(),panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(), axis.line = element_line(colour = "black"))
 #dev.off()
 
 #png(paste0('~/height_prediction/figs_for_paper/figs/OR_HRS_afr_', I,  ".png"))
 plotD<-ggplot(APE[[I]], aes(x=Quantile, y=F3_X.F)) +
 geom_point(size=2) + labs(title="HRS_afr", y="OR") + geom_hline(yintercept=1, linetype="dashed", color = "orange") +
-theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15), axis.text.x=element_text(size=12), axis.text.y=element_text(size=12), legend.text=element_text(size=12))
+theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15), axis.text.x=element_text(size=12), axis.text.y=element_text(size=12), legend.text=element_text(size=12),legend.title = element_blank(),panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(), axis.line = element_line(colour = "black"))
 #dev.off()
 
 
 plotE<-ggplot(AP[[I]], aes(x=Quantile, y=F3_X.F)) +
 geom_point(size=2) + labs(title="HRS_eur", y="OR") + geom_hline(yintercept=1, linetype="dashed", color = "orange") +
-theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15), axis.text.x=element_text(size=12), axis.text.y=element_text(size=12), legend.text=element_text(size=12))
+theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15), axis.text.x=element_text(size=12), axis.text.y=element_text(size=12), legend.text=element_text(size=12),legend.title = element_blank(),panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(), axis.line = element_line(colour = "black"))
 
 ###################################
 #expectation
@@ -212,9 +217,12 @@ data.table(Name=c(rep("Rho_12.5",50), rep("Rho_2.5",50), rep("Rho_3.8",50) , rep
 
 plotF<-ggplot(dt, aes(x=Quantile, y=Bivariate_OR, colour=Name)) + geom_line() +
 labs(title="Expectation", y="Expected OR") +  geom_hline(yintercept=1, linetype="dashed", color = "orange") +
-theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15), axis.text.x=element_text(size=12), axis.text.y=element_text(size=12), legend.text=element_text(size=12),legend.position=c(.1,.75), legend.title=element_blank()) + coord_cartesian(ylim = c(1,8))
+theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15), axis.text.x=element_text(size=12), axis.text.y=element_text(size=12), legend.text=element_text(size=12),legend.position=c(.5,.75), legend.title=element_blank(),legend.title = element_blank(),panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(), axis.line = element_line(colour = "black")) + 
+coord_cartesian(ylim = c(1,8))
 #ggsave('~/height_prediction/figs_for_paper/figs/OR_expected.pdf')
 
+png('~/height_prediction/figs_for_paper/figs/OR_panel1.png', unit="in", res=300, height=12, width=7)
 plot_grid(plotA, plotB,plotC, plotD, plotE, plotF,  labels = c("A", "B", "C","D", "E", "F"), nrow=3, align="v")
-
+dev.off()
 ggsave(paste0('~/height_prediction/figs_for_paper/figs/OR_panel1.pdf'))

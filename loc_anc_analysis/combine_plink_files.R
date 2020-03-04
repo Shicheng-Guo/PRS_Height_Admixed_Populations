@@ -22,7 +22,7 @@ plink2<-fread('~/height_prediction/PCA_and_GWAS/UKB_AFR_imputed/plink_ukb_afr_he
 colnames(plink2)<-c("CHR","POS", "MarkerName","REF","ALT","Effect_Allele_plink","TEST","OBS_CT","PLINK", "SE_plink","T_STAT", "UNADJ") #plink is BETA
 plink2<-select(plink2, -c("REF", "ALT"))
 gc()
-select(merge(plink, plink2, by=c("CHR", "MarkerName")), CHR, MarkerName, POS, Effect_Allele_plink, PLINK, SE_plink, T_STAT)-> final_plink #3388119
+select(merge(plink, plink2, by=c("CHR", "MarkerName")), CHR, MarkerName, POS, Effect_Allele_plink, PLINK, SE_plink, T_STAT)-> final_plink #3897451
 remove(plink, plink2)
 gc()
 final_plink$POS<-as.numeric(final_plink$POS)
@@ -36,8 +36,8 @@ gc()
 
 #final_plink[, PLINK:=scale(PLINK, scale=14.5447)] #scaling to that b and PLINK have same variance.
 saveRDS(final_plink, file='~/height_prediction/loc_anc_analysis/output/final_plink.Rds')
-final_plink[, PLINK:=scale(PLINK, scale=14.5447)]
-final_plink[, SE_plink:=scale(SE_plink, scale=14.5447)]
-saveRDS(final_plink, file='~/height_prediction/loc_anc_analysis/output/final_plink_v2.Rds')
+#final_plink[, PLINK:=scale(PLINK, scale=14.5447)]
+#final_plink[, SE_plink:=scale(SE_plink, scale=14.5447)]
+#saveRDS(final_plink, file='~/height_prediction/loc_anc_analysis/output/final_plink_v2.Rds')
 new <- Sys.time() - old # calculate difference
 print(new) # print in nice format

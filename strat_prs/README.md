@@ -29,9 +29,15 @@ for i in strat_prs_ukb_afr_v2.R strat_prs_JHS_v2.R strat_prs_WHI_v2.R strat_prs_
 do
 for k in 3000 6000 10000 20000 40000 100000;
 do
-Rscript --vanilla ~/height_prediction/strat_prs/scripts/${i} ${k} AA gwas
-Rscript --vanilla ~/height_prediction/strat_prs/scripts/${i} ${k} CEU gwas
+bsub -M 90000 Rscript --vanilla ~/height_prediction/strat_prs/scripts/${i} ${k} AA gwas
+bsub -M 90000 Rscript --vanilla ~/height_prediction/strat_prs/scripts/${i} ${k} CEU gwas
+done
 done
 ```
+Plot:
 
+```
+cd scripts/
+Rscript --vanilla Plots_v2.R
+```
 

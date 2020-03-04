@@ -1,9 +1,9 @@
 #!/usr/bin/env Rscript
 ############################
-args = commandArgs(trailingOnly=TRUE)
-if (length(args)==0) {
-  stop("At least one argument must be supplied (a name for this run).n", call.=FALSE)
-}
+#args = commandArgs(trailingOnly=TRUE)
+#if (length(args)==0) {
+#  stop("At least one argument must be supplied (a name for this run).n", call.=FALSE)
+#}
 library(data.table)
 library(dplyr)
 library(ggplot2)
@@ -11,7 +11,7 @@ library(EnvStats)
 library(ggpubr)
 library(RColorBrewer)
 library(cowplot)
-args<-c(5000)
+args<-c(6000)
 options(scipen=999)
 W<-as.numeric(args[1])#window size
 
@@ -48,7 +48,7 @@ geom_errorbar(aes(x=Med_Eur_Anc, group=Dataset, colour=Dataset,ymin=boots_perc_L
 geom_errorbarh(aes(x=Med_Eur_Anc, group=Dataset, colour=Dataset, xmin=HVB_L, xmax=HVB_U), width=0.05, size=0.5) +
 scale_color_manual(values=my_colrs) +
 ylab(expression(paste("Partial R"^"2"))) + xlab("European Ancestry Proportion") +
-theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.title.y = element_text(size = 17), axis.title.x=element_text(size=17),axis.text.x=element_text(size=14), axis.text.y=element_text(size=14), legend.key=element_blank(), legend.background=element_blank(), legend.title=element_blank(), legend.text=element_text(size=12),legend.position = c(0,0.89))
+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.title.y = element_text(size = 17), axis.title.x=element_text(size=17),axis.text.x=element_text(size=14), axis.text.y=element_text(size=14), legend.key=element_blank(), legend.background=element_blank(), legend.title=element_blank(), legend.text=element_text(size=12),legend.position = c(0.13,0.86))
 ############################
 ############################
 ############################
@@ -118,4 +118,4 @@ theme(axis.text.x=element_text(size=14), axis.text.y=element_text(size=14), pane
 
 
 plot_grid(plotA, plotB,labels = c("A", "B"), nrow=1)
-ggsave('~/height_prediction/figs_for_paper/figs/Fig5.png', height=4, width=10)
+ggsave('~/height_prediction/figs_for_paper/figs/Fig5.png', height=5, width=10)

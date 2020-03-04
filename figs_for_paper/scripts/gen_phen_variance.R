@@ -49,29 +49,36 @@ for(I in names(dtsets)){
 	system("rm ~/height_prediction/tmp/*") #clear everything
 	cat(I, " done\n")
 }
-
+lapply(1:6, function(X) dtsets[[X]][, value2:=2*value])
 saveRDS(dtsets, file="~/height_prediction/output/dtsets.Rds")
 
 
 lapply(dtsets, function(X) sum(X$value, na.rm=T))
 
 fread('/project/mathilab/data/WHI/data/1kg/1kg_affy6_all_CEU.afreq')-> ceu
+fread('/project/mathilab/data/WHI/data/1kg/1kg_affy6_all_CEU.bim')[,V3:=NULL]-> ceu_bim
+colnames(ceu_bim)<-c('CHR', 'MarkerName','POS','Al1', 'Al2')
 colnames(ceu)[1]<-'CHR'
-colnames(ceu)[2]<-'i.MarkerName'
+colnames(ceu)[2]<-'MarkerName'
+merge(ceu, ceu_bim)-> ceu2
 readRDS('~/height_prediction/output/tmp_dtsets_WHI.Rds')-> whi
-setkey(whi, CHR,i.MarkerName)
-setkey(ceu, CHR, i.MarkerName)
-whi[ceu, nomatch=0]-> final
+whi[, value2:=2*value]
+setkey(whi, CHR,POS)
+setkey(ceu2, CHR, POS)
+whi[ceu2, nomatch=0]-> final
 final[,pq:=ALT_FREQS* (1-ALT_FREQS)]
-final[, value2:=(b^2)*pq]
+final[, value3:=(b^2)*pq]
+final[, value4:=2*value3]
 
 readRDS('~/height_prediction/output/tmp_dtsets_JHS.Rds')-> jhs
-setkey(jhs, CHR, i.MarkerName)
-setkey(ceu, CHR, i.MarkerName)
-jhs[ceu, nomatch=0]-> final2
+jhs[, value2:=2*value]
+setkey(jhs, CHR, POS)
+setkey(ceu2, CHR, POS)
+jhs[ceu2, nomatch=0]-> final2
 final2[,pq:=ALT_FREQS* (1-ALT_FREQS)]
-final2[, value2:=(b^2)*pq]
+final2[, value3:=(b^2)*pq]
+final2[, value4:=2*value3]
 
 lapply(1:6, function(X) sum(dtsets[[X]]$value, na.rm=T))
-unlist(lapply(1:2, function(X) sum(dtsets[[X]]$value, na.rm=T)))/c(sum(final$value2), sum(final2$value2))
+unlist(lapply(1:2, function(X) sum(dtsets[[X]]$value2, na.rm=T)))/c(sum(final$value4, na.rm=T), sum(final2$value4))
 txtStop()

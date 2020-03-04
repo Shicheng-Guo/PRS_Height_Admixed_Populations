@@ -45,24 +45,26 @@ readRDS(paste0('~/height_prediction/',args[1],'/JHS/output/PGS3_JHS.Rds'))-> PGS
 readRDS(paste0('~/height_prediction/',args[1],'/HRS_eur/output/PGS3_HRS_eur.Rds'))-> PGS3_HRS_eur
 readRDS(paste0('~/height_prediction/',args[1],'/HRS_afr/output/PGS3_HRS_afr.Rds'))-> PGS3_HRS_afr
 
-#if(args[1]=='sib_betas'){
-#	readRDS(paste0('~/height_prediction/', args[1], '/ukb_eur/output/results.UKB_eur.Rds'))-> results.UKB_eur
-#	readRDS(paste0('~/height_prediction/', args[1], '/ukb_eur/output/B_UKB_eur.Rds'))-> B_UKB_eur
-#	readRDS(paste0('~/height_prediction/', args[1], '/ukb_eur/output/PGS3_UKB_eur.Rds'))-> PGS3_UKB_eur
-#}
+if(args[1]=='sib_betas'){
+	readRDS(paste0('~/height_prediction/', args[1], '/ukb_eur/output/results.UKB_eur.Rds'))-> results.UKB_eur
+	readRDS(paste0('~/height_prediction/', args[1], '/ukb_eur/output/B_UKB_eur.Rds'))-> B_UKB_eur
+	readRDS(paste0('~/height_prediction/', args[1], '/ukb_eur/output/PGS3_UKB_eur.Rds'))-> PGS3_UKB_eur
+	lapply(B_UKB_eur, function(X) X[,Dataset:="UKB_eur"])
+}
 for(I in names(B_JHS)){ #JHS lacks the LD prunning methods
-#	if(args[1]=='sib_betas'){
-#		ALL<-rbind(B_JHS[[I]][1:2,][, Dataset:='JHS_afr'], B_WHI[[I]][1:4,][, Dataset:='WHI_afr'], B_UKB_afr[[I]][1:4,][,Dataset:='UKB_afr'],B_HRS_afr[[I]][1:2,][, Dataset:='HRS_afr'],  B_HRS_eur[[I]], B_UKB_eur[[I]])
-#	} else{
+	if(args[1]=='sib_betas'){
+		ALL<-rbind(B_JHS[[I]][1:2,][, Dataset:='JHS_afr'], B_WHI[[I]][1:4,][, Dataset:='WHI_afr'], B_UKB_afr[[I]][1:4,][,Dataset:='UKB_afr'],B_HRS_afr[[I]][1:2,][, Dataset:='HRS_afr'], B_UKB_eur[[I]], B_HRS_eur[[I]])
+		ALL$Dataset<-factor(ALL$Dataset, levels=c("UKB_afr", "WHI_afr", "JHS_afr", "HRS_afr",  "UKB_eur", "HRS_eur"))
+		my_colrs<-c(brewer.pal(5, 'Set1'),"#101010")
+	} else{
 	ALL<-rbind(B_JHS[[I]][1:2,][, Dataset:='JHS_afr'], B_WHI[[I]][1:4,][, Dataset:='WHI_afr'], B_UKB_afr[[I]][1:4,][,Dataset:='UKB_afr'],B_HRS_afr[[I]][1:2,][, Dataset:='HRS_afr'],  B_HRS_eur[[I]])
 	ALL$Dataset<-factor(ALL$Dataset, levels=c("UKB_afr", "WHI_afr", "JHS_afr", "HRS_afr",  "HRS_eur"))
-#	}
-	#rbind(ALL[!(Dataset %in% c('UKB_EUR', 'pennBB_EA'))], ALL[Dataset %in% c('UKB_EUR', 'pennBB_EA')][, Med_Eur_Anc:=1])-> ALL
+	my_colrs<-c(brewer.pal(4, 'Set1'),"#101010")
+	}
 	my_plot<-ggplot(ALL, aes(x=Med_Eur_Anc, y=R_sq, colour=Dataset, shape=Dataset)) +
 	geom_point(size=1.5, fill="white", alpha=0.8) +
 	geom_errorbar(aes(x=Med_Eur_Anc, group=Dataset, colour=Dataset,ymin=boots_perc_L, ymax=boots_perc_U), width=0.05, size=0.8) +
-	#geom_line(color='lightgray')+
-	geom_errorbarh(aes(x=Med_Eur_Anc, group=Dataset, colour=Dataset, xmin=HVB_L, xmax=HVB_U), width=0.05, size=0.5) +  scale_color_manual(values=c(brewer.pal(4, 'Set1'),"#101010")) +
+	geom_errorbarh(aes(x=Med_Eur_Anc, group=Dataset, colour=Dataset, xmin=HVB_L, xmax=HVB_U), width=0.05, size=0.5) +  scale_color_manual(values=my_colrs) +
 	ylab(expression(paste("Partial R"^"2"))) + xlab("European Ancestry Proportion") +
 	theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15),axis.text.x=element_text(size=12), axis.text.y=element_text(size=12),legend.key=element_blank(),legend.background=element_blank(),legend.title=element_blank(), legend.text=element_text(size=12))
 	print(my_plot)
@@ -76,20 +78,23 @@ for(I in names(B_JHS)){ #JHS lacks the LD prunning methods
 ALL2<-vector('list', length(names(B_JHS)))
 names(ALL2)<-names(B_JHS)
 for(I in names(B_JHS)){
-#	if(args[1]=='sib_betas'){
-#		ALL2[[I]]<-rbind(B_JHS[[I]][1:2,][, Dataset:='JHS_afr'], B_WHI[[I]][1:4,][, Dataset:='WHI_afr'], B_UKB_afr[[I]][1:4,][,Dataset:='UKB_afr'],B_HRS_afr[[I]][1:2,][, Dataset:='HRS_afr'],  B_HRS_eur[[I]], B_UKB_eur[[I]])
-#		tmp<-1/c(var(results.JHS[[I]][[1]]$t), var(results.JHS[[I]][[2]]$t), var(results.WHI[[I]][[1]]$t), var(results.WHI[[I]][[2]]$t), var(results.WHI[[I]][[3]]$t), var(results.WHI[[I]][[4]]$t), var(results.UKB_afr[[I]][[1]]$t),var(results.UKB_afr[[I]][[2]]$t), var(results.UKB_afr[[I]][[3]]$t), var(results.UKB_afr[[I]][[4]]$t), var(results.HRS_afr[[I]][[1]]$t), var(results.HRS_afr[[I]][[2]]$t), var(results.HRS_eur[[I]]$t), var(results.UKB_eur[[I]]$t))
-#	} else{
+	if(args[1]=='sib_betas'){
+		ALL2[[I]]<-rbind(B_JHS[[I]][1:2,][, Dataset:='JHS_afr'], B_WHI[[I]][1:4,][, Dataset:='WHI_afr'], B_UKB_afr[[I]][1:4,][,Dataset:='UKB_afr'],B_HRS_afr[[I]][1:2,][, Dataset:='HRS_afr'],  B_UKB_eur[[I]], B_HRS_eur[[I]])
+		tmp<-1/c(var(results.JHS[[I]][[1]]$t), var(results.JHS[[I]][[2]]$t), var(results.WHI[[I]][[1]]$t), var(results.WHI[[I]][[2]]$t), var(results.WHI[[I]][[3]]$t), var(results.WHI[[I]][[4]]$t), var(results.UKB_afr[[I]][[1]]$t),var(results.UKB_afr[[I]][[2]]$t), var(results.UKB_afr[[I]][[3]]$t), var(results.UKB_afr[[I]][[4]]$t), var(results.HRS_afr[[I]][[1]]$t), var(results.HRS_afr[[I]][[2]]$t), var(results.UKB_eur[[I]]$t),var(results.HRS_eur[[I]]$t))
+		my_colrs<-c(brewer.pal(5, 'Set1'),"#101010")
+		ALL2[[I]]$Dataset<-factor(ALL2[[I]]$Dataset, levels=c("UKB_afr", "WHI_afr", "JHS_afr", "HRS_afr",  "UKB_eur","HRS_eur"))
+	} else{
 		ALL2[[I]]<-rbind(B_JHS[[I]][1:2,][, Dataset:='JHS_afr'], B_WHI[[I]][1:4,][, Dataset:='WHI_afr'], B_UKB_afr[[I]][1:4,][,Dataset:='UKB_afr'],B_HRS_afr[[I]][1:2,][, Dataset:='HRS_afr'],  B_HRS_eur[[I]])
-	#rbind(ALL2[[I]][!(Dataset %in% c('UKB_EUR', 'pennBB_EA'))], ALL2[[I]][Dataset %in% c('UKB_EUR', 'pennBB_EA')][, Med_Eur_Anc:=1])-> ALL2[[I]]
 		tmp<-1/c(var(results.JHS[[I]][[1]]$t), var(results.JHS[[I]][[2]]$t), var(results.WHI[[I]][[1]]$t), var(results.WHI[[I]][[2]]$t), var(results.WHI[[I]][[3]]$t), var(results.WHI[[I]][[4]]$t), var(results.UKB_afr[[I]][[1]]$t),var(results.UKB_afr[[I]][[2]]$t), var(results.UKB_afr[[I]][[3]]$t), var(results.UKB_afr[[I]][[4]]$t), var(results.HRS_afr[[I]][[1]]$t), var(results.HRS_afr[[I]][[2]]$t), var(results.HRS_eur[[I]]$t))  #weighing lm by boostrap replicates.
-#	}
+		my_colrs<-c(brewer.pal(4, 'Set1'),"#101010")
+		ALL2[[I]]$Dataset<-factor(ALL2[[I]]$Dataset, levels=c("UKB_afr", "WHI_afr", "JHS_afr", "HRS_afr",  "HRS_eur"))
+	}
 	cbind(ALL2[[I]], W=tmp)-> ALL2[[I]]
-	ALL2[[I]]$Dataset<-factor(ALL2[[I]]$Dataset, levels=c("UKB_afr", "WHI_afr", "JHS_afr", "HRS_afr",  "HRS_eur"))
 	my_plot2<-ggplot(ALL2[[I]], aes(x=Med_Eur_Anc, y=R_sq)) +
 	geom_point(size=1.5, shape=21, fill="white", alpha=0.8) + stat_smooth(method = "lm", mapping = aes(weight = W), col='black') +
-	scale_color_manual(values=c(brewer.pal(4, 'Set1'),"#101010")) +
+	scale_color_manual(values=my_colrs) +
 	ylab(expression(paste("Partial R"^"2"))) + xlab("European Ancestry Proportion") +
+
 	theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15),axis.text.x=element_text(size=12), axis.text.y=element_text(size=12), legend.key=element_blank(), legend.background=element_blank(),legend.title=element_blank(), legend.text=element_text(size=12))
 	print(my_plot2)
 	if(args[1]=='sib_betas'){
@@ -108,18 +113,21 @@ ALL2b<-vector('list', length(names(B_JHS)))
 names(ALL2b)<-names(B_JHS)
 
 for(I in names(B_JHS)){
-#	if(args[1]=='sib_betas'){
- #       	ALL2b[[I]]<-rbind(B_JHS[[I]][1:2,][, Dataset:='JHS_afr'], B_WHI[[I]][1:4,][, Dataset:='WHI_afr'], B_UKB_afr[[I]][1:4,][,Dataset:='UKB_afr'],B_HRS_afr[[I]][1:2,][, Dataset:='HRS_afr'],  B_HRS_eur[[I]], B_UKB_eur[[I]])
- #              tmp<-1/c(var(results.JHS[[I]][[1]]$t), var(results.JHS[[I]][[2]]$t), var(results.WHI[[I]][[1]]$t), var(results.WHI[[I]][[2]]$t), var(results.WHI[[I]][[3]]$t), var(results.WHI[[I]][[4]]$t), var(results.UKB_afr[[I]][[1]]$t),var(results.UKB_afr[[I]][[2]]$t), var(results.UKB_afr[[I]][[3]]$t), var(results.UKB_afr[[I]][[4]]$t), var(results.HRS_afr[[I]][[1]]$t), var(results.HRS_afr[[I]][[2]]$t), var(results.HRS_eur[[I]]$t), var(results.UKB_eur[[I]]$t))
-#	} else{
+	if(args[1]=='sib_betas'){
+       	ALL2b[[I]]<-rbind(B_JHS[[I]][1:2,][, Dataset:='JHS_afr'], B_WHI[[I]][1:4,][, Dataset:='WHI_afr'], B_UKB_afr[[I]][1:4,][,Dataset:='UKB_afr'],B_HRS_afr[[I]][1:2,][, Dataset:='HRS_afr'],  B_UKB_eur[[I]],B_HRS_eur[[I]])
+              tmp<-1/c(var(results.JHS[[I]][[1]]$t), var(results.JHS[[I]][[2]]$t), var(results.WHI[[I]][[1]]$t), var(results.WHI[[I]][[2]]$t), var(results.WHI[[I]][[3]]$t), var(results.WHI[[I]][[4]]$t), var(results.UKB_afr[[I]][[1]]$t),var(results.UKB_afr[[I]][[2]]$t), var(results.UKB_afr[[I]][[3]]$t), var(results.UKB_afr[[I]][[4]]$t), var(results.HRS_afr[[I]][[1]]$t), var(results.HRS_afr[[I]][[2]]$t),  var(results.UKB_eur[[I]]$t),var(results.HRS_eur[[I]]$t))
+		ALL2b[[I]]$Dataset<-factor(ALL2b[[I]]$Dataset, levels=c("UKB_afr", "WHI_afr", "JHS_afr", "HRS_afr", "UKB_eur", "HRS_eur"))
+		my_colrs<-c(brewer.pal(5, 'Set1'),"#101010")
+	} else{
         	ALL2b[[I]]<-rbind(B_JHS[[I]][1:2,][, Dataset:='JHS_afr'], B_WHI[[I]][1:4,][, Dataset:='WHI_afr'], B_UKB_afr[[I]][1:4,][,Dataset:='UKB_afr'],B_HRS_afr[[I]][1:2,][, Dataset:='HRS_afr'],  B_HRS_eur[[I]])
                 tmp<-1/c(var(results.JHS[[I]][[1]]$t), var(results.JHS[[I]][[2]]$t), var(results.WHI[[I]][[1]]$t), var(results.WHI[[I]][[2]]$t), var(results.WHI[[I]][[3]]$t), var(results.WHI[[I]][[4]]$t), var(results.UKB_afr[[I]][[1]]$t),var(results.UKB_afr[[I]][[2]]$t), var(results.UKB_afr[[I]][[3]]$t), var(results.UKB_afr[[I]][[4]]$t), var(results.HRS_afr[[I]][[1]]$t), var(results.HRS_afr[[I]][[2]]$t), var(results.HRS_eur[[I]]$t))  #weighing lm by boostrap replicates.
-#        }
+		ALL2b[[I]]$Dataset<-factor(ALL2b[[I]]$Dataset, levels=c("UKB_afr", "WHI_afr", "JHS_afr", "HRS_afr",  "HRS_eur"))
+		my_colrs<-c(brewer.pal(4, 'Set1'),"#101010")
+        }
         cbind(ALL2b[[I]], W=tmp)-> ALL2b[[I]]
-	ALL2b[[I]]$Dataset<-factor(ALL2b[[I]]$Dataset, levels=c("UKB_afr", "WHI_afr", "JHS_afr", "HRS_afr",  "HRS_eur"))
 	my_plot2<-ggplot(ALL2b[[I]], aes(x=Med_Eur_Anc, y=R_sq)) +
                 geom_point(size=1.5, shape=21, fill="white", alpha=0.8) + stat_smooth(method = "lm", mapping = aes(weight = W), col='black') +
-                scale_color_manual(values=c(brewer.pal(4, 'Set1'),"#101010")) +
+                scale_color_manual(values=my_colrs) +
 		ylab(expression(paste("Partial R"^"2"))) + xlab("European Ancestry Proportion") +
 		theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15),axis.text.x=element_text(size=12), axis.text.y=element_text(size=12), legend.key=element_blank(), legend.background=element_blank(),legend.title=element_blank(), legend.text=element_text(size=12))
         print(my_plot2)
@@ -131,13 +139,19 @@ for(I in names(B_JHS)){
 }
 
 for(I in names(B_JHS)){
+	if(args[1]=='sib_betas'){
+	ALL2[[I]]$Dataset<-factor(ALL2[[I]]$Dataset, levels=c("UKB_afr", "WHI_afr", "JHS_afr", "HRS_afr",  "UKB_eur","HRS_eur"))
+	my_colrs<-c(brewer.pal(5, 'Set1'),"#101010")
+	} else{
 	ALL2[[I]]$Dataset<-factor(ALL2[[I]]$Dataset, levels=c("UKB_afr", "WHI_afr", "JHS_afr", "HRS_afr",  "HRS_eur"))
+	my_colrs<-c(brewer.pal(4, 'Set1'),"#101010")
+	}
         my_plot<-ggplot(ALL2[[I]], aes(x=Med_Eur_Anc, y=R_sq,colour=Dataset)) +
         geom_point(aes(shape=Dataset), size=1.5, fill="white", alpha=0.8) + stat_smooth(data=ALL2[[I]],method = "lm", mapping = aes(weight = W), col='black') +
         geom_errorbar(aes(x=Med_Eur_Anc, group=Dataset, colour=Dataset,ymin=boots_perc_L, ymax=boots_perc_U), width=0.05, size=0.8) +
         #geom_line(color='lightgray')+
         geom_errorbarh(aes(x=Med_Eur_Anc, group=Dataset, colour=Dataset, xmin=HVB_L, xmax=HVB_U), width=0.05, size=0.5) + 
-	scale_color_manual(values=c(brewer.pal(4, 'Set1'),"#101010")) + 
+	scale_color_manual(values=my_colrs) + 
         ylab(expression(paste("Partial R"^"2"))) + xlab("European Ancestry Proportion") +
   	theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.title.y = element_text(size = 18), axis.title.x=element_text(size=18),axis.text.x=element_text(size=15), axis.text.y=element_text(size=15), legend.key=element_blank(), legend.background=element_blank(), legend.title=element_blank(), legend.text=element_text(size=15),legend.position = c(0.15,0.85)) 
 	print(my_plot)
@@ -149,23 +163,22 @@ for(I in names(B_JHS)){
 }
 #
 lm(ALL2[[63]]$R_sq ~ ALL2[[63]]$Med_Eur_Anc, weights=ALL2[[63]]$W)
-summary(lm( ALL2[[63]]$R_sq ~ ALL2[[63]]$Med_Eur_Anc, weights=ALL2[[63]]$W)) #p-value: 0.006, adj-r2=0.466 for sibs;0.00000004523, adj-r2=0.93 for gwas
+summary(lm( ALL2[[63]]$R_sq ~ ALL2[[63]]$Med_Eur_Anc, weights=ALL2[[63]]$W)) #p-value: 0.006, adj-r2=0.466 for sibs;0.0000001534, adj-r2=0.92 for gwas
 txtStop()
 #stop here 04/09/2019
 ALL3<-vector('list', length(names(B_JHS)))
 names(ALL3)<- names(B_JHS)
 
 for (I in names(B_JHS)){
-#	if(args[1]=='sib_betas'){
-#		ALL3[[I]]<-rbind(B_JHS[[I]][1:2,][, Dataset:='JHS_afr'], B_WHI[[I]][1:4,][, Dataset:='WHI_afr'], B_UKB_afr[[I]][1:4,][,Dataset:='UKB_afr'],B_HRS_afr[[I]][1:2,][, Dataset:='HRS_afr'],  B_HRS_eur[[I]], B_UKB_eur[[I]])
-#	 tmp<-lm(R_sq~Med_Eur_Anc,weights=1/
-#        c(var(results.JHS[[I]][[1]]$t), var(results.JHS[[I]][[2]]$t), var(results.WHI[[I]][[1]]$t), var(results.WHI[[I]][[2]]$t), var(results.WHI[[I]][[3]]$t), var(results.WHI[[I]][[4]]$t), var(results.UKB_afr[[I]][[1]]$t),var(results.UKB_afr[[I]][[2]]$t), var(results.UKB_afr[[I]][[3]]$t), var(results.UKB_afr[[I]][[4]]$t), var(results.HRS_afr[[I]][[1]]$t), var(results.HRS_afr[[I]][[2]]$t),var(results.HRS_eur[[I]]$t), var(results.UKB_eur[[I]])), data=ALL3[[I]])
-#	} else{
+	if(args[1]=='sib_betas'){
+		ALL3[[I]]<-rbind(B_JHS[[I]][1:2,][, Dataset:='JHS_afr'], B_WHI[[I]][1:4,][, Dataset:='WHI_afr'], B_UKB_afr[[I]][1:4,][,Dataset:='UKB_afr'],B_HRS_afr[[I]][1:2,][, Dataset:='HRS_afr'],  B_HRS_eur[[I]], B_UKB_eur[[I]])
+	 tmp<-lm(R_sq~Med_Eur_Anc,weights=1/
+        c(var(results.JHS[[I]][[1]]$t), var(results.JHS[[I]][[2]]$t), var(results.WHI[[I]][[1]]$t), var(results.WHI[[I]][[2]]$t), var(results.WHI[[I]][[3]]$t), var(results.WHI[[I]][[4]]$t), var(results.UKB_afr[[I]][[1]]$t),var(results.UKB_afr[[I]][[2]]$t), var(results.UKB_afr[[I]][[3]]$t), var(results.UKB_afr[[I]][[4]]$t), var(results.HRS_afr[[I]][[1]]$t), var(results.HRS_afr[[I]][[2]]$t),var(results.UKB_eur[[I]]$t),var(results.HRS_eur[[I]]$t)), data=ALL3[[I]])
+	} else{
                 ALL3[[I]]<-rbind(B_JHS[[I]][1:2,][, Dataset:='JHS_afr'], B_WHI[[I]][1:4,][, Dataset:='WHI_afr'], B_UKB_afr[[I]][1:4,][,Dataset:='UKB_afr'],B_HRS_afr[[I]][1:2,][, Dataset:='HRS_afr'],  B_HRS_eur[[I]])
 	        tmp<-lm(R_sq~Med_Eur_Anc,weights=1/
         c(var(results.JHS[[I]][[1]]$t), var(results.JHS[[I]][[2]]$t), var(results.WHI[[I]][[1]]$t), var(results.WHI[[I]][[2]]$t), var(results.WHI[[I]][[3]]$t), var(results.WHI[[I]][[4]]$t), var(results.UKB_afr[[I]][[1]]$t),var(results.UKB_afr[[I]][[2]]$t), var(results.UKB_afr[[I]][[3]]$t), var(results.UKB_afr[[I]][[4]]$t), var(results.HRS_afr[[I]][[1]]$t), var(results.HRS_afr[[I]][[2]]$t),var(results.HRS_eur[[I]]$t)), data=ALL3[[I]])
-#	}
-	#rbind(ALL3[[I]][!(Dataset %in% c('UKB_EUR', 'pennBB_EA'))], ALL3[[I]][Dataset %in% c('UKB_EUR', 'pennBB_EA')][, Med_Eur_Anc:=1])-> ALL3[[I]]
+	}
 	ALL3[[I]][,Set:=I]
 	readRDS(paste0('~/height_prediction/', args[1],'/WHI/output/Nr_SNPs_WHI.Rds'))[Name==I][, Nr]->a
 	readRDS(paste0('~/height_prediction/', args[1],'/ukb_afr/output/Nr_SNPs_UKB_afr.Rds'))[Name==I][, Nr]->b
@@ -182,7 +195,7 @@ for (I in names(B_JHS)){
 	ALL3[[I]][, Nr_SNPs_HRS_afr:=f]
 	cat(I, ' \n')
 }
-
+if(args[1]=='gwas'){
 do.call(rbind,ALL3)[,.(Set,Intercept,Slope_Intercept, Slope, Nr_SNPs_WHI, Nr_SNPs_UKB, R_sq, Med_Eur_Anc)]->ALL4
 #add nr of snps
 
@@ -230,9 +243,9 @@ data.table(Set=unique(ALL4$Set), Nr_SNPs=unique(ALL4$Nr_SNPs_UKB))->A1
 ALL4[grep("phys",  ALL4$Set),][,.(Set,Intercept,Slope, Slope_Intercept, R_sq, Med_Eur_Anc)][Med_Eur_Anc==1][, Med_Eur_Anc:=NULL]->dt_phys
 ALL4[grep("genet", ALL4$Set),][,.(Set,Intercept,Slope,Slope_Intercept, R_sq, Med_Eur_Anc)][Med_Eur_Anc==1][, Med_Eur_Anc:=NULL]->dt_genet
 ALL4[grep("LD",    ALL4$Set),][,.(Set,Intercept,Slope, Slope_Intercept, R_sq, Med_Eur_Anc)][Med_Eur_Anc==1][, Med_Eur_Anc:=NULL]->dt_LD
-dt_LD %>% group_by(et) %>% dplyr::mutate(R_sq=min(R_sq)) %>% as.data.table-> dt_LD #remove ukb_eur
-dt_phys %>% group_by(Set) %>% dplyr::mutate(R_sq=min(R_sq)) %>% as.data.table-> dt_phys
-dt_genet %>% group_by(Set) %>% dplyr::mutate(R_sq=min(R_sq)) %>% as.data.table-> dt_genet
+dt_LD %>% dplyr::group_by(Set) %>% dplyr::mutate(R_sq=min(R_sq)) %>% as.data.table-> dt_LD #remove ukb_eur
+dt_phys %>% dplyr::group_by(Set) %>% dplyr::mutate(R_sq=min(R_sq)) %>% as.data.table-> dt_phys
+dt_genet %>% dplyr::group_by(Set) %>% dplyr::mutate(R_sq=min(R_sq)) %>% as.data.table-> dt_genet
 
 #factor(dt$Set)-> dt$Setp
 factor(dt_phys$Set)-> dt_phys$Set
@@ -276,25 +289,30 @@ gsub("Slope_Intercept", "Slope+Intercept",dt_phys$variable)-> dt_phys$variable
 gsub("R_sq", "Partial R-squared",dt_phys$variable)-> dt_phys$variable
 dt_phys[variable!="Slope"]-> dt_phys
 plotA<-ggplot() + geom_point(data=dt_phys,aes(x=Nr_SNPs, y=value, colour=window, shape=variable), size=1.5, alpha = 0.7) + 
-theme(axis.title.y = element_text(size = 12), axis.title.x=element_text(size=12), axis.text.x=element_text(size=10), axis.text.y=element_text(size=10), legend.text=element_text(size=4), legend.title = element_blank()) + 
-guides(shape=FALSE,color=guide_legend(override.aes=list(shape=15))) + ylab(expression(Partial~R^2))
+theme(axis.title.y = element_text(size = 12), axis.title.x=element_text(size=12), axis.text.x=element_text(size=10), axis.text.y=element_text(size=10), legend.text=element_text(size=9), legend.title = element_blank(),panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(), axis.line = element_line(colour = "black")) + 
+guides(shape=FALSE,color=guide_legend(override.aes=list(shape=15))) + ylab("Value")
 #ggsave('~/height_prediction/figs/reg_rsq_eur_anc_phys_v2.png')
 gsub("Slope_Intercept", "Slope+Intercept",dt_genet$variable)-> dt_genet$variable
 gsub("R_sq", "Partial R-squared",dt_genet$variable)-> dt_genet$variable
 dt_genet[variable!="Slope"]-> dt_genet
 plotB<-ggplot() + geom_point(data=dt_genet,aes(x=Nr_SNPs, y=value, colour=window, shape=variable), size=1.5, alpha = 0.7) + 
-theme(axis.title.y = element_text(size = 12), axis.title.x=element_text(size=12), axis.text.x=element_text(size=10), axis.text.y=element_text(size=10), legend.text=element_text(size=4), legend.title = element_blank()) + guides(color=guide_legend(override.aes=list(shape=15))) + ylab(expression(Partial~R^2))
+theme(axis.title.y = element_text(size = 12), axis.title.x=element_text(size=12), axis.text.x=element_text(size=10), axis.text.y=element_text(size=10), legend.text=element_text(size=9), legend.title = element_blank(),panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(), axis.line = element_line(colour = "black")) + 
+guides(color=guide_legend(override.aes=list(shape=15))) + ylab("Value")
 #ggsave('~/height_prediction/figs/reg_rsq_eur_anc_genet_v2.png')
 gsub("Slope_Intercept", "Slope+Intercept",dt_LD$variable)-> dt_LD$variable
 gsub("R_sq", "Partial R-squared",dt_LD$variable)-> dt_LD$variable
 dt_LD[variable!="Slope"]-> dt_LD
 plotC<-ggplot() + geom_point(data=dt_LD,aes(x=Nr_SNPs, y=value, colour=Set, shape=variable), size=1.5, alpha = 0.7) + 
-theme(axis.title.y = element_text(size = 12), axis.title.x=element_text(size=12), axis.text.x=element_text(size=10), axis.text.y=element_text(size=10), legend.text=element_text(size=4), legend.title = element_blank()) + guides(shape=FALSE,color=guide_legend(override.aes=list(shape=15))) + ylab(expression(Partial~R^2))
+theme(axis.title.y = element_text(size = 12), axis.title.x=element_text(size=12), axis.text.x=element_text(size=10), axis.text.y=element_text(size=10), legend.text=element_text(size=9), legend.title = element_blank(),panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(), axis.line = element_line(colour = "black")) + guides(shape=FALSE,color=guide_legend(override.aes=list(shape=15)))  + ylab("Value")
 #ggsave('~/height_prediction/figs/reg_rsq_eur_anc_LD_v2.png')
 
+png('~/height_prediction/figs/panel_Nr_snps.png', units="in", height=11, width=7, res=600)
 plot_grid(plotC, plotB,plotA,  labels = c("A", "B", "C"), nrow=3, align="v")
+dev.off()
 
-ggsave('~/height_prediction/figs/panel_Nr_snps.pdf')
 #try to use just one plot
 dt_LD[, p:=0.01]
 dt_LD[, .(Set, variable, value, method, window,p, Nr_SNPs)]-> dt_LD
@@ -439,7 +457,7 @@ names(AAPE)<-names(B_JHS)
 
 I<-names(AA)[63]
 
-png(paste0('~/height_prediction/igs/OR_WHI_', I,  ".png"))
+png(paste0('~/height_prediction/figs/OR_WHI_', I,  ".png"))
 ggplot(AA[[I]], aes(x=Quantile, y=F3_X.F)) +
 geom_point(size=2) + labs(title="Odds ratio of P(>=Xth HEIGHT quantile|>=Xth PRS quantile)", y="OR") + geom_hline(yintercept=1, linetype="dashed", color = "orange") +
 theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15), axis.text.x=element_text(size=12), axis.text.y=element_text(size=12), legend.text=element_text(size=12))
@@ -779,4 +797,5 @@ melt(tmp[,.(PGS, Std.PRS, HEIGHTX, Res.Height, Dataset)])-> me
 ggplot(me, aes(x=value, group=Dataset, color=Dataset))+ geom_density() + facet_wrap(~variable, nrow=4, scales='free') + 
 theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15),  axis.text.x=element_text(size=12), axis.text.y=element_text(size=12), legend.text=element_text(size=12))
 ggsave('figs/test_density.png')
+} #end of if(args[1]=='gwas')
 
