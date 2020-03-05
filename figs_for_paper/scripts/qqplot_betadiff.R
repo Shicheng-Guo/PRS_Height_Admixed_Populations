@@ -53,6 +53,7 @@ setkey(ukb_height, CHR, POS)
 gc()
 cat('checkpoint number 3\n')
 beta2<-ukb_height[beta1, nomatch=0]
+summary(beta2[PLINK<3 & PLINK>-3]) #this gives b and PLINK similar distributions.
 Store(beta1, ukb_height)
 gc()
 beta2[,Beta_Diff:=b-PLINK]
@@ -106,6 +107,7 @@ setkey(whi, CHR, POS)
 gc()
 cat('checkpoint number 6\n')
 beta3<-beta2[whi, nomatch=0][,i.Beta_Diff:=NULL][,i.Beta_Diff_Chisq:=NULL]
+summary(beta3[,.(PLINK, b)]) #here we can see that for PRS SNPs the distributions are pretty similar. 
 
 png('~/height_prediction/figs_for_paper/figs/beta_cor_all.png')
 
