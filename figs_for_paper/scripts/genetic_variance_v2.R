@@ -4,9 +4,8 @@ library(ggplot2)
 
 data <- fread('~/height_prediction/output/WHI_JHS_UKB_HRS_summ.txt')
 
-#data <- data[!is.na(data$HEIGHTX),][Prun_Set=='phys_100000_0.0005'][Dataset!='HRS_eur']
 data <- data[!is.na(data$HEIGHTX),][Prun_Set=='phys_100000_0.0005']
-data<-data[Dataset!='HRS_eur']
+#data<-data[Dataset!='HRS_eur']
 data[,":="(sex=ifelse(sex==1, "Male", sex))]
 data[,":="(sex=ifelse(sex==2, "Female", sex))]
 data[,":="(sex=ifelse(sex=="FEMALE", "Female", sex))]

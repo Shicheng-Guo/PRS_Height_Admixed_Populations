@@ -217,7 +217,7 @@ data.table(Name=c(rep("Rho_12.5",50), rep("Rho_2.5",50), rep("Rho_3.8",50) , rep
 
 plotF<-ggplot(dt, aes(x=Quantile, y=Bivariate_OR, colour=Name)) + geom_line() +
 labs(title="Expectation", y="Expected OR") +  geom_hline(yintercept=1, linetype="dashed", color = "orange") +
-theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15), axis.text.x=element_text(size=12), axis.text.y=element_text(size=12), legend.text=element_text(size=12),legend.position=c(.5,.75), legend.title=element_blank(),legend.title = element_blank(),panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15), axis.text.x=element_text(size=12), axis.text.y=element_text(size=12), legend.text=element_text(size=12),legend.position=c(.5,.75), legend.title=element_blank(),panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
 panel.background = element_blank(), axis.line = element_line(colour = "black")) + 
 coord_cartesian(ylim = c(1,8))
 #ggsave('~/height_prediction/figs_for_paper/figs/OR_expected.pdf')

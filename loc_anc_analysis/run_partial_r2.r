@@ -17,41 +17,37 @@ library(ggplot2)
 #options(scipen=999)
 source('~/height_prediction/scripts/mclapply2.R')
 
-
 #read in the prss and add them
-prs<-vector('list',22)
-for(chr in 1:22){
-	prs[[chr]]<-readRDS(paste0('~/height_prediction/loc_anc_analysis/output/chr', chr,'_0.20_prs.Rds'))
-}
-
-
-a<-seq(from=1, to=length(prs[[1]]), by=2)
-
-prs2<-vector('list', 22)
-
-for(chr in 1:22){
-	prs2[[chr]]<-vector('list', length(a))
-	names(prs2[[chr]])<-a
-}
-
-for(chr in 1:22){
-	for(i in a){
-		prs2[[chr]][[i]]<-prs[[chr]][[i]]+prs[[chr]][[i+1]]
+prs<-vector('list', 6)
+names(prs)<-c("0","0.2","0.3", "0.5","0.7","1")
+for (A in names(prs)){
+	prs[[A]]<-vector('list',22)
+		for(chr in 1:22){
+		prs[[A]][[chr]]<-readRDS(paste0('~/height_prediction/loc_anc_analysis/output/chr', chr,'_',A, '_prs.Rds'))
 	}
-	prs2[[chr]]<-unlist(prs2[[chr]])
+}
+samp_names<-names(prs[[1]][[1]])
+dt<-data.table(SUBJID=samp_names, PRS_0=NA,PRS_0.2=NA, PRS_0.3=NA,PRS_0.5=NA,PRS_0.7=NA, PRS_1=NA)
+
+prs2<-vector('list', 6)
+names(prs2)<-c("0","0.2","0.3", "0.5","0.7","1")
+for (A in names(prs2)){
+	prs2[[A]]<-vector('list', length(prs[[1]][[1]]))
+	names(prs2[[A]])<-gsub("_0", "",samp_names)
 }
 
-prs3<-vector('list', length(prs2[[1]]))
-
-for(S in 1:length(prs2[[1]])){
-	prs3[[S]]<-sum(prs2[[1]][[S]],prs2[[2]][[S]],prs2[[3]][[S]],prs2[[4]][[S]],prs2[[5]][[S]]+prs2[[6]][[S]], prs2[[7]][[S]], prs2[[8]][[S]], prs2[[9]][[S]], prs2[[10]][[S]],prs2[[11]][[S]], prs2[[12]][[S]], prs2[[13]][[S]],prs2[[14]][[S]], prs2[[15]][[S]], prs2[[16]][[S]], prs2[[17]][[S]], prs2[[18]][[S]], prs2[[19]][[S]], prs2[[20]][[S]], prs2[[21]][[S]],prs2[[22]][[S]], na.rm=T)
+for (A in names(prs2)){
+	for (S in names(prs2[[A]])){
+	prs2[[A]][[S]]<-sum(prs[[A]][[1]][[S]],prs[[A]][[2]][[S]],prs[[A]][[3]][[S]],prs[[A]][[4]][[S]],prs[[A]][[5]][[S]],prs[[A]][[6]][[S]], prs[[A]][[7]][[S]], prs[[A]][[8]][[S]], prs[[A]][[9]][[S]], prs[[A]][[10]][[S]],prs[[A]][[11]][[S]], prs[[A]][[12]][[S]], prs[[A]][[13]][[S]],prs[[A]][[14]][[S]], prs[[A]][[15]][[S]], prs[[A]][[16]][[S]], prs[[A]][[17]][[S]], prs[[A]][[18]][[S]], prs[[A]][[19]][[S]], prs[[A]][[20]][[S]], prs[[A]][[21]][[S]],prs[[A]][[22]][[S]], na.rm=T)
+	}
 }
 
-ind<-read.table(paste0('/project/mathilab/data/WHI/data/phased/hapi-ur/WHI_b37_strand_include_kgCY_chr', chr, ".phind"), as.is=TRUE)
-samples.to.include <- ind[,3]=="Case"
-ind <- ind[samples.to.include,]
-names(prs3)<-unique(gsub("_[A-B]", "", gsub("0:","0_",ind[,1])))
-
+dt[, PRS_0:=unlist(prs2[[1]])]
+dt[,PRS_0.2:=unlist(prs2[[2]])]
+dt[,PRS_0.3:=unlist(prs2[[3]])]
+dt[, PRS_0.5:=unlist(prs2[[4]])]
+dt[,PRS_0.7:=unlist(prs2[[5]])]
+dt[, PRS_1:=unlist(prs2[[6]])]
 #phenotype
 fread('~/height_prediction/input/WHI/WHI_phenotypes.txt')-> Pheno_WHI
 
@@ -62,24 +58,31 @@ ancestry<-do.call(rbind, lapply(1:22, function(X) fread(paste0('~/height_predict
 anc_WHI<-ancestry %>% group_by(SUBJID) %>% summarise(AFR_ANC=mean(AFR_ANC), EUR_ANC=1-mean(AFR_ANC)) %>% as.data.table #mean across chromosomes for each individual
 setkey(anc_WHI, SUBJID)
 ##
-a<-data.table(SUBJID=names(prs3), PRS_LocAnc=unlist(prs3))
 
 PRS_EUR<-data.table(PRS_EUR=unlist(readRDS('~/height_prediction/gwas/WHI/output/PGS_WHI_phys_100000_0.0005.Rds')),SUBJID=names(unlist(readRDS('~/height_prediction/gwas/WHI/output/PGS_WHI_phys_100000_0.0005.Rds'))))
-a<-merge(a, PRS_EUR, by="SUBJID")
+a<-merge(dt, PRS_EUR, by="SUBJID")
 setkey(a, SUBJID)
 setkey(Pheno_WHI, SUBJID)
 a[Pheno_WHI][anc_WHI]-> final
-final[,c("SUBJID", "PRS_LocAnc","PRS_EUR", "SEX", "HEIGHTX", "EUR_ANC","AFR_ANC","AGE")]-> final2
-final2[,PRS_LocAnc:=scale(PRS_LocAnc)]
+final[,c("SUBJID", "PRS_0","PRS_0.2","PRS_0.3","PRS_0.5","PRS_0.7","PRS_1","PRS_EUR", "SEX", "HEIGHTX", "EUR_ANC","AFR_ANC","AGE")]-> final2
+final2[, PRS_0:=scale(PRS_0)]
+final2[, PRS_0.2:=scale(PRS_0.2)]
+final2[, PRS_0.3:=scale(PRS_0.3)]
+final2[, PRS_0.5:=scale(PRS_0.5)]
+final2[, PRS_0.7:=scale(PRS_0.7)]
+final2[, PRS_1:=scale(PRS_1)]
+
 final2[,AGE2:=AGE^2]
 
 #
-
-
 partial.R2(lm(HEIGHTX~AGE+AGE2+EUR_ANC, data=final2), lm(HEIGHTX~AGE+AGE2+EUR_ANC+PRS_EUR, data=final2))*100 #4.1%
-partial.R2(lm(HEIGHTX~AGE+AGE2+EUR_ANC, data=final2), lm(HEIGHTX~AGE+AGE2+EUR_ANC+PRS_LocAnc, data=final2))*100 #super low
+partial.R2(lm(HEIGHTX~AGE+AGE2+EUR_ANC, data=final2), lm(HEIGHTX~AGE+AGE2+EUR_ANC+PRS_0, data=final2))*100
+partial.R2(lm(HEIGHTX~AGE+AGE2+EUR_ANC, data=final2), lm(HEIGHTX~AGE+AGE2+EUR_ANC+PRS_0.2, data=final2))*100
+partial.R2(lm(HEIGHTX~AGE+AGE2+EUR_ANC, data=final2), lm(HEIGHTX~AGE+AGE2+EUR_ANC+PRS_0.3, data=final2))*100
+partial.R2(lm(HEIGHTX~AGE+AGE2+EUR_ANC, data=final2), lm(HEIGHTX~AGE+AGE2+EUR_ANC+PRS_0.5, data=final2))*100
+partial.R2(lm(HEIGHTX~AGE+AGE2+EUR_ANC, data=final2), lm(HEIGHTX~AGE+AGE2+EUR_ANC+PRS_0.7, data=final2))*100
+partial.R2(lm(HEIGHTX~AGE+AGE2+EUR_ANC, data=final2), lm(HEIGHTX~AGE+AGE2+EUR_ANC+PRS_1, data=final2))*100
 #
-
 
 ###################
 ####
