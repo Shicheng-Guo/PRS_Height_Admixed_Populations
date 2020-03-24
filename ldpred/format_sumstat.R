@@ -19,7 +19,9 @@ gc()
 as.integer(input$CHR)-> input$CHR
 as.integer(input$POS)-> input$POS
 arrange(input, CHR, POS) %>% as.data.table -> input
+input[,SNP:=paste0(CHR, ":", POS)]
 fwrite(input, file="~/height_prediction/ldpred/output/Height.QC.txt", sep="\t") #sumstats file needs to be \t separated for ldpred
 system('bgzip ~/height_prediction/ldpred/output/Height.QC.txt')
 system('mv ~/height_prediction/ldpred/output/Height.QC.txt.gz ~/height_prediction/ldpred/output/Height.QC.gz')
+
 

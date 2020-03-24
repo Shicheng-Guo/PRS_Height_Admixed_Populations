@@ -48,7 +48,7 @@ A_plot<-ggplot(ALL, aes(x=Med_Eur_Anc, y=R_sq,colour=Dataset)) +
         geom_errorbar(aes(x=Med_Eur_Anc, group=Dataset, colour=Dataset,ymin=boots_perc_L, ymax=boots_perc_U), width=0.05, size=0.8) +
         #geom_line(color='lightgray')+
         geom_errorbarh(aes(x=Med_Eur_Anc, group=Dataset, colour=Dataset, xmin=HVB_L, xmax=HVB_U), width=0.05, size=0.5) +
-        scale_color_manual(values=my_colrs) +
+        scale_color_manual(values=my_colrs) + coord_cartesian(ylim = c(-0.01, 0.16)) +
         ylab(expression(paste("Partial R"^"2"))) + xlab("European Ancestry Proportion") +
         theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.title.y = element_text(size = 18), axis.title.x=element_text(size=18),axis.text.x=element_text(size=15), 
 	axis.text.y=element_text(size=15), legend.key=element_blank(), legend.background=element_blank(), legend.title=element_blank(), legend.text=element_text(size=15), legend.position=c(0.25,0.85))
@@ -64,7 +64,7 @@ B_plot<-ggplot(ALL2, aes(x=Med_Eur_Anc, y=R_sq,colour=Dataset)) +
         geom_errorbar(aes(x=Med_Eur_Anc, group=Dataset, colour=Dataset,ymin=boots_perc_L, ymax=boots_perc_U), width=0.05, size=0.8) +
         #geom_line(color='lightgray')+
         geom_errorbarh(aes(x=Med_Eur_Anc, group=Dataset, colour=Dataset, xmin=HVB_L, xmax=HVB_U), width=0.05, size=0.5) +
-        scale_color_manual(values=my_colrs) +
+        scale_color_manual(values=my_colrs) + coord_cartesian(ylim = c(-0.01, 0.16)) + 
         ylab(expression(paste("Partial R"^"2"))) + xlab("European Ancestry Proportion") +
         theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.title.y = element_text(size = 18), axis.title.x=element_text(size=18),axis.text.x=element_text(size=15),
         axis.text.y=element_text(size=15), legend.key=element_blank(), legend.background=element_blank(), legend.title=element_blank(), legend.text=element_text(size=15),legend.position = c(0.25,0.85))
