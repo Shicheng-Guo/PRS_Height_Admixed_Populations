@@ -89,7 +89,10 @@ setkey(anc_WHI, SUBJID)
 setkey(a, SUBJID)
 setkey(Pheno_WHI, SUBJID)
 a[Pheno_WHI][anc_WHI]-> final
-
+m1<-mean(final$HEIGHTX,na.rm=T)
+sd1<-sd(final$HEIGHTX, na.rm=T)
+final<-final[HEIGHTX>=m1-(2*sd1) & HEIGHTX<=m1+(2*sd1)]
+#
 #HRS
 fread('~/height_prediction/input/HRS_afr/HRS_AFR_phenotypes.txt', fill=T)[,1:4]-> Pheno_HRS
 Pheno_HRS[, SUBJID:=paste0(ID, "_", ID)]

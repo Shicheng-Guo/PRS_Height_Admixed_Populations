@@ -196,10 +196,10 @@ return(OR)
 }
 
 x.vals <- seq(0.01,0.5, l=50)
-rho125 <- sapply(x.vals, expected.or, sqrt(0.125))
-rho025 <- sapply(x.vals, expected.or, sqrt(0.025))
-rho038 <- sapply(x.vals, expected.or, sqrt(0.038))
+rho143 <- sapply(x.vals, expected.or, sqrt(0.143))
+rho037 <- sapply(x.vals, expected.or, sqrt(0.036))
 rho041 <- sapply(x.vals, expected.or, sqrt(0.041))
+rho028 <- sapply(x.vals, expected.or, sqrt(0.028))
 
 
 my_col<-wes_palette("Darjeeling1",4)
@@ -213,7 +213,7 @@ my_col<-wes_palette("Darjeeling1",4)
 #legend("topleft", c(expression(paste(R^2, "=0.12",sep="")), expression(paste(R^2,"=0.041", sep="")), expression(paste(R^2,"=0.036", sep="")), expression(paste(R^2,"=0.034", sep=""))), col=my_col, bty="n", lty=1, lwd=2)
 #dev.off()
 
-data.table(Name=c(rep("Rho_12.5",50), rep("Rho_2.5",50), rep("Rho_3.8",50) , rep("Rho_4.1", 50)), Bivariate_OR=c(rho125,rho025, rho038, rho041), Quantile=rep(1-x.vals,4))-> dt
+data.table(Name=c(rep("Rho_14.3",50), rep("Rho_3.7",50), rep("Rho_4.1",50) , rep("Rho_2.8", 50)), Bivariate_OR=c(rho143,rho037, rho041, rho028), Quantile=rep(1-x.vals,4))-> dt
 
 plotF<-ggplot(dt, aes(x=Quantile, y=Bivariate_OR, colour=Name)) + geom_line() +
 labs(title="Expectation", y="Expected OR") +  geom_hline(yintercept=1, linetype="dashed", color = "orange") +
@@ -225,4 +225,3 @@ coord_cartesian(ylim = c(1,8))
 png('~/height_prediction/figs_for_paper/figs/OR_panel1.png', unit="in", res=300, height=12, width=7)
 plot_grid(plotA, plotB,plotC, plotD, plotE, plotF,  labels = c("A", "B", "C","D", "E", "F"), nrow=3, align="v")
 dev.off()
-ggsave(paste0('~/height_prediction/figs_for_paper/figs/OR_panel1.pdf'))

@@ -21,6 +21,7 @@ for(I in dtsets){
 rfmix_anc[['WHI']]<-rfmix_anc[['WHI']][, Dataset:='WHI_afr']
 rfmix_anc[['JHS']]<-rfmix_anc[['JHS']][, Dataset:='JHS_afr']
 rfmix_anc[['ukb_afr']]<-rfmix_anc[['ukb_afr']][, Dataset:='UKB_afr']
+rfmix_anc[['ukb_afr']]<-rfmix_anc[['ukb_afr']][-which(rfmix_anc[['ukb_afr']]$SUBJID=="6007195")] #8792
 #read admixture
 
 admix_anc<-vector('list', 4)
@@ -51,6 +52,7 @@ admix_anc[['JHS']]<-tp
 
 tp<-fread('/project/mathilab/data/UKB/admixture/UKB_AFR_prune.2.Q')
 colnames(tp)<-c('AFR_ANC', 'EUR_ANC')
+tp<-tp[-8792] #exclude this individual
 tp[,SUBJID:=rfmix_anc[['ukb_afr']]$SUBJID]
 tp[,Method:='ADMIXTURE']
 tp[,Dataset:='UKB_afr']
