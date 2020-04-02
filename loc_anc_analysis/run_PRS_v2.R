@@ -110,27 +110,7 @@ res<-sum(bind_rows(afrA,eurA)$PRS_part, na.rm=T)
 return(res)
 }
 
-LA_PRS_unscaled<- function(X=geno2, X2=1, Y=anc2, alpha=as.numeric(args[3])){
-plink_prun[,PLINK2:=scale(PLINK,center=0)]
-plink_prun[,b2:=scale(b,center=0)]
-dataA<-cbind(data.table(Anc=unlist(Y[,X2]), plink_prun))[, Geno:=ifelse(AlM=='YES', (1-unlist(X[,X2])), unlist(X[,X2]))] ##if YES, 0=REF and 1=ALT. If NO, 1=REF, 0=ALT, thus 1-Geno
-afrA<-dataA[Anc==1]
-eurA<-dataA[Anc==2]
-if(nrow(afrA)>=1){
-afrA[,PRS_part:=(alpha*PLINK2*Geno)+((1-alpha)*b2*Geno)]
-}
-if(nrow(eurA)>=1){
-eurA[, PRS_part:=b2*Geno]
-}
-res<-sum(bind_rows(afrA,eurA)$PRS_part, na.rm=T)
-return(res)
-}
-
-if(args[4]=='scaled'){
 system.time(RES<-lapply(1:ncol(geno2), function(I) LA_PRS_scaled(X2=I))) ### 
-} else if(args[4]=='unscaled'){
-system.time(RES<-lapply(1:ncol(geno2), function(I) LA_PRS_unscaled(X2=I))) ###
-}
 names(RES)<-colnames(geno)
 lapply(seq(from=1, to=length(RES), by=2), function(I) (RES[[I]]+RES[[I+1]]))-> RES2  #combine two chr from each individual
 names(RES2)<-unique(gsub("_A", "", gsub("_B", "", colnames(geno2))))

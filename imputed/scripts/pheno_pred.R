@@ -34,7 +34,6 @@ fread('~/height_prediction/input/HRS_afr/HRS_AFR_phenotypes.txt', fill=T)[,V5:=N
 #a partial R2 function
 source('~/height_prediction/strat_prs/scripts/Rsq_R2.R')
 
-
 #add PGS to Pheno table in order to be able to make multiple analyses
 #Pheno_HRS_afr[,ID:=paste0(ID, "_", ID)]
 for (N in nam){
@@ -45,6 +44,8 @@ for (N in nam){
 
 as.character(Pheno_HRS_afr$ID)-> Pheno_HRS_afr$ID
 setkey(Pheno_HRS_afr, ID)
+Pheno_HRS_afr[, HEIGHT:=HEIGHT*100]
+Pheno_HRS_afr[, ":="(SEX=ifelse(SEX==1, "Male", "Female"))]
 #add ancestry
 ancestry<-do.call(rbind, lapply(1:22, function(X) fread(paste0('~/height_prediction/input/HRS_afr/rfmix_anc_chr', X, '.txt'))))
 
@@ -64,8 +65,19 @@ for(N in nam){
 	PGS2_HRS_afr[[N]][anc_HRS_afr, nomatch=0]-> PGS2_HRS_afr[[N]]
 	PGS2_HRS_afr[[N]][,AGE2:=AGE^2]
 	PGS2_HRS_afr[[N]][AFR_ANC>=0.05]-> PGS2_HRS_afr[[N]]
-	PGS2_HRS_afr[[N]][which(!is.na(PGS2_HRS_afr[[N]][,HEIGHT])),]-> PGS2_HRS_afr[[N]]
+	#PGS2_HRS_afr[[N]][which(!is.na(PGS2_HRS_afr[[N]][,HEIGHT])),]-> PGS2_HRS_afr[[N]]
+        dt_f<-PGS2_HRS_afr[[N]][SEX=='Female']
+        dt_m<-PGS2_HRS_afr[[N]][SEX=='Male']
+        sd1_f<-sd(dt_f$HEIGHT)
+        m1_f<-mean(dt_f$HEIGHT)
+        sd1_m<-sd(dt_m$HEIGHT)
+        m1_m<-mean(dt_m$HEIGHT)
+        dt_f<-dt_f[HEIGHT>=m1_f-(2*sd1_f)]
+        dt_m<-dt_m[HEIGHT>=m1_m-(2*sd1_m)]
+        PGS2_HRS_afr[[N]]<-rbind(dt_f, dt_m)
 }
+nrow(PGS2_HRS_afr[[1]])
+
 lapply(PGS2_HRS_afr, function(X) lm(HEIGHT~SEX, X))-> lm0_HRS_afr
 lapply(PGS2_HRS_afr, function(X) lm(HEIGHT~PGS, X))-> lm1_HRS_afr
 lapply(PGS2_HRS_afr, function(X) lm(HEIGHT~AGE, X))-> lm2_HRS_afr
@@ -201,7 +213,17 @@ for(N in nam){
 	PGS2_HRS_eur[[N]][,AGE2:=AGE^2]
 	PGS2_HRS_eur[[N]][,HEIGHT:=HEIGHT*100]
 	PGS2_HRS_eur[[N]]$SEX<-as.factor(PGS2_HRS_eur[[N]]$SEX)
+        dt_f<-PGS2_HRS_eur[[N]][SEX==2]
+        dt_m<-PGS2_HRS_eur[[N]][SEX==1]
+        sd1_f<-sd(dt_f$HEIGHT)
+        m1_f<-mean(dt_f$HEIGHT)
+        sd1_m<-sd(dt_m$HEIGHT)
+        m1_m<-mean(dt_m$HEIGHT)
+        dt_f<-dt_f[HEIGHT>=m1_f-(2*sd1_f)]
+        dt_m<-dt_m[HEIGHT>=m1_m-(2*sd1_m)]
+        PGS2_HRS_eur[[N]]<-rbind(dt_f, dt_m)
 }
+nrow(PGS2_HRS_eur[[N]])
 
 lapply(PGS2_HRS_eur, function(X) lm(HEIGHT~SEX, X))-> lm1_HRS_eur
 lapply(PGS2_HRS_eur, function(X) lm(HEIGHT~PGS, X))-> lm2_HRS_eur
@@ -246,7 +268,6 @@ for (I in names(PGS3_HRS_eur)){
 saveRDS(results.HRS_eur, file='~/height_prediction/imputed/output/results.HRS_eur.Rds')
 saveRDS(PGS3_HRS_eur, file='~/height_prediction/imputed/output/PGS3_HRS_eur.Rds')
 
-
 boots.ci.HRS_eur<-lapply(results.HRS_eur, function(X)  boot.ci(X, type = c("norm", 'basic', "perc")))
 names(boots.ci.HRS_eur)<-names(results.HRS_eur)
 
@@ -283,3 +304,4 @@ dt2[,eur_diff:=HRS_eur_imp-HRS_eur]
 dt2[,afr_diff:=HRS_afr_imp-HRS_afr]
 dt2[,Nr_diff:=Nr_imp-Nr]
 saveRDS(dt2,'~/height_prediction/imputed/output/comparison.Rds')
+txtStop()

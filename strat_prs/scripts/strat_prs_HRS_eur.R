@@ -133,6 +133,9 @@ for (I in names(PGS2_HRS_eur)){
         PGS2_HRS_eur[[I]][,AGE2:=AGE^2]
 	PGS2_HRS_eur[[I]][,HEIGHT:=HEIGHT*100]
 	PGS2_HRS_eur[[I]][,EUR_ANC:=1]
+	sd1<-sd(PGS2_HRS_eur[[I]]$HEIGHT)
+        m1<-mean(PGS2_HRS_eur[[I]]$HEIGHT)
+        PGS2_HRS_eur[[I]]<-PGS2_HRS_eur[[I]][HEIGHT>=m1-(2*sd1)]
 }
 
 #run linear models

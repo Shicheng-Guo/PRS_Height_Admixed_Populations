@@ -16,7 +16,11 @@ library(readr)
 #############
 #############
 
+library(TeachingDemos)
 
+txtStart(paste0("~/height_prediction/sib_betas/JHS/plots_out.txt"))
+# Your code
+#############
 #read in PGS scores
 readRDS('~/height_prediction/sib_betas/JHS/output/PGS_JHS.Rds')-> PGS_JHS
 
@@ -210,3 +214,4 @@ for (I in names(PGS3_JHS)){
 }
 
 saveRDS(B_JHS, file="~/height_prediction/sib_betas/JHS/output/B_JHS.Rds")
+txtStop()

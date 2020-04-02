@@ -78,12 +78,12 @@ write.xlsx(x = imputed, file = "/home/bbita/height_prediction/figs_for_paper/tab
 
 
 ###
-select(readRDS('/home/bbita/height_prediction/unweighted_prs/output/Nr_SNPs_WHI.Rds')[, Dataset:='WHI_afr'],Name, Nr, Part_R2)-> WHI_unw
-select(readRDS('/home/bbita/height_prediction/unweighted_prs/output/Nr_SNPs_JHS.Rds')[, Dataset:='JHS_afr'],Name, Nr, Part_R2)-> JHS_unw
-select(readRDS('/home/bbita/height_prediction/unweighted_prs/output/Nr_SNPs_UKB_afr.Rds')[, Dataset:='UKB_afr'],Name, Nr, Part_R2)-> UKB_AFR_unw
-select(readRDS('/home/bbita/height_prediction/unweighted_prs/output/Nr_SNPs_UKB_eur.Rds')[, Dataset:='UKB_eur'],Name, Nr, Part_R2)-> UKB_EUR_unw
-select(readRDS('/home/bbita/height_prediction/unweighted_prs/output/Nr_SNPs_HRS_afr.Rds')[, Dataset:='HRS_afr'],Name, Nr, Part_R2)-> HRS_afr_unw
-select(readRDS('/home/bbita/height_prediction/unweighted_prs/output/Nr_SNPs_HRS.Rds')[, Dataset:='HRS_eur'], Name, Nr, Part_R2)-> HRS_eur_unw
+select(readRDS('/home/bbita/height_prediction/unweighted_prs/output/Nr_SNPs_WHI.Rds')[, Dataset:='WHI_afr'],Name, Nr, Part_R2, Dataset)-> WHI_unw
+select(readRDS('/home/bbita/height_prediction/unweighted_prs/output/Nr_SNPs_JHS.Rds')[, Dataset:='JHS_afr'],Name, Nr, Part_R2, Dataset)-> JHS_unw
+select(readRDS('/home/bbita/height_prediction/unweighted_prs/output/Nr_SNPs_UKB_afr.Rds')[, Dataset:='UKB_afr'],Name, Nr, Part_R2, Dataset)-> UKB_AFR_unw
+select(readRDS('/home/bbita/height_prediction/unweighted_prs/output/Nr_SNPs_UKB_eur.Rds')[, Dataset:='UKB_eur'],Name, Nr, Part_R2, Dataset)-> UKB_EUR_unw
+select(readRDS('/home/bbita/height_prediction/unweighted_prs/output/Nr_SNPs_HRS_afr.Rds')[, Dataset:='HRS_afr'],Name, Nr, Part_R2, Dataset)-> HRS_afr_unw
+select(readRDS('/home/bbita/height_prediction/unweighted_prs/output/Nr_SNPs_HRS.Rds')[, Dataset:='HRS_eur'], Name, Nr, Part_R2, Dataset)-> HRS_eur_unw
 
 
 write.xlsx(x = WHI_unw, file = "/home/bbita/height_prediction/figs_for_paper/tables/Table_S1.xlsx",

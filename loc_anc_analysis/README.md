@@ -11,7 +11,8 @@ for chr in {1..22};
 do
 for alpha in $(seq 0 0.01 1);
 do
-bsub -M 60000 -o ~/height_prediction/loc_anc_analysis/split_chr${chr} -e ~/height_prediction/loc_anc_analysis/split_chr${chr} Rscript --vanilla ~/height_prediction/loc_anc_analysis/run_PRS_v2.R phys_100000_0.0005 ${chr} ${alpha}
+bsub -M 90000 -o ~/height_prediction/loc_anc_analysis/split_chr${chr} -e ~/height_prediction/loc_anc_analysis/split_chr${chr} Rscript --vanilla ~/height_prediction/loc_anc_analysis/run_PRS_v2.R phys_100000_0.0005 ${chr} ${alpha} scaled
+bsub -M 90000 -o ~/height_prediction/loc_anc_analysis/split_chr${chr} -e ~/height_prediction/loc_anc_analysis/split_chr${chr} Rscript --vanilla ~/height_prediction/loc_anc_analysis/run_PRS_v2.R phys_100000_0.0005 ${chr} ${alpha} unscaled
 done
 done
 ```
@@ -27,7 +28,8 @@ run_partial_r2.r
 #This version uses only SNPs in EUR ancestry blocks.
 for chr in {1..22};
 do
-bsub -M 60000 -o ~/height_prediction/loc_anc_analysis/split_chr${chr} -e ~/height_prediction/loc_anc_analysis/split_chr${chr} Rscript --vanilla ~/height_prediction/loc_anc_analysis/run_PRS_v3.R phys_100000_0.0005 ${chr} 0
+bsub -M 90000 -o ~/height_prediction/loc_anc_analysis/split_chr${chr} -e ~/height_prediction/loc_anc_analysis/split_chr${chr} Rscript --vanilla ~/height_prediction/loc_anc_analysis/run_PRS_v3.R phys_100000_0.0005 ${chr} 0 scaled
+bsub -M 90000 -o ~/height_prediction/loc_anc_analysis/split_chr${chr} -e ~/height_prediction/loc_anc_analysis/split_chr${chr} Rscript --vanilla ~/height_prediction/loc_anc_analysis/run_PRS_v3.R phys_100000_0.0005 ${chr} 0 unscaled
 done
 ```
 
@@ -39,13 +41,15 @@ for chr in {1..22};
 do
 for alpha in $(seq 0 0.01 1);
 do
-bsub -M 60000 -o ~/height_prediction/loc_anc_analysis/split_chr${chr} -e ~/height_prediction/loc_anc_analysis/split_chr${chr} Rscript --vanilla ~/height_prediction/loc_anc_analysis/run_PRS_v2_JHS.R phys_100000_0.0005 ${chr} ${alpha}
+bsub -M 70000 -o ~/height_prediction/loc_anc_analysis/split_chr${chr} -e ~/height_prediction/loc_anc_analysis/split_chr${chr} Rscript --vanilla ~/height_prediction/loc_anc_analysis/run_PRS_v2_JHS.R phys_100000_0.0005 ${chr} ${alpha} scaled
+bsub -M 70000 -o ~/height_prediction/loc_anc_analysis/split_chr${chr} -e ~/height_prediction/loc_anc_analysis/split_chr${chr} Rscript --vanilla ~/height_prediction/loc_anc_analysis/run_PRS_v2_JHS.R phys_100000_0.0005 ${chr} ${alpha} unscaled
 done
 done
 
 for chr in {1..22};
 do
-bsub -M 60000 -o ~/height_prediction/loc_anc_analysis/split_chr${chr} -e ~/height_prediction/loc_anc_analysis/split_chr${chr} Rscript --vanilla ~/height_prediction/loc_anc_analysis/run_PRS_v3_JHS.R phys_100000_0.0005 ${chr} 0
+bsub -M 80000 -o ~/height_prediction/loc_anc_analysis/split_chr${chr} -e ~/height_prediction/loc_anc_analysis/split_chr${chr} Rscript --vanilla ~/height_prediction/loc_anc_analysis/run_PRS_v3_JHS.R phys_100000_0.0005 ${chr} 0 scaled
+bsub -M 80000 -o ~/height_prediction/loc_anc_analysis/split_chr${chr} -e ~/height_prediction/loc_anc_analysis/split_chr${chr} Rscript --vanilla ~/height_prediction/loc_anc_analysis/run_PRS_v3_JHS.R phys_100000_0.0005 ${chr} 0 unscaled
 done
 ```
 
@@ -56,13 +60,15 @@ for chr in {1..22};
 do
 for alpha in $(seq 0 0.01 1);
 do
-bsub -M 50000 -o ~/height_prediction/loc_anc_analysis/split_chr${chr} -e ~/height_prediction/loc_anc_analysis/split_chr${chr} Rscript --vanilla ~/height_prediction/loc_anc_analysis/run_PRS_v2_HRS_afr.R phys_100000_0.0005 ${chr} ${alpha}
+bsub -M 70000 -o ~/height_prediction/loc_anc_analysis/split_chr${chr} -e ~/height_prediction/loc_anc_analysis/split_chr${chr} Rscript --vanilla ~/height_prediction/loc_anc_analysis/run_PRS_v2_HRS_afr.R phys_100000_0.0005 ${chr} ${alpha} scaled
+bsub -M 70000 -o ~/height_prediction/loc_anc_analysis/split_chr${chr} -e ~/height_prediction/loc_anc_analysis/split_chr${chr} Rscript --vanilla ~/height_prediction/loc_anc_analysis/run_PRS_v2_HRS_afr.R phys_100000_0.0005 ${chr} ${alpha} unscaled
 done
 done
 
 for chr in {1..22};
 do
-bsub -M 60000 -o ~/height_prediction/loc_anc_analysis/split_chr${chr} -e ~/height_prediction/loc_anc_analysis/split_chr${chr} Rscript --vanilla ~/height_prediction/loc_anc_analysis/run_PRS_v3_HRS_afr.R phys_100000_0.0005 ${chr} 0
+bsub -M 80000 -o ~/height_prediction/loc_anc_analysis/split_chr${chr} -e ~/height_prediction/loc_anc_analysis/split_chr${chr} Rscript --vanilla ~/height_prediction/loc_anc_analysis/run_PRS_v3_HRS_afr.R phys_100000_0.0005 ${chr} 0 scaled
+bsub -M 80000 -o ~/height_prediction/loc_anc_analysis/split_chr${chr} -e ~/height_prediction/loc_anc_analysis/split_chr${chr} Rscript --vanilla ~/height_prediction/loc_anc_analysis/run_PRS_v3_HRS_afr.R phys_100000_0.0005 ${chr} 0 unscaled
 done
 ```
 
@@ -72,11 +78,15 @@ done
 
 for chr in {1..22};
 do
-bsub -M 60000 -o ~/height_prediction/loc_anc_analysis/split_chr${chr} -e ~/height_prediction/loc_anc_analysis/split_chr${chr} Rscript --vanilla ~/height_prediction/loc_anc_analysis/run_PRS_v3_UKB_afr.R phys_100000_0.0005 ${chr} 0
+bsub -M 90000 -o ~/height_prediction/loc_anc_analysis/split_chr${chr} -e ~/height_prediction/loc_anc_analysis/split_chr${chr} Rscript --vanilla ~/height_prediction/loc_anc_analysis/run_PRS_v3_UKB_afr.R phys_100000_0.0005 ${chr} 0 scaled
+bsub -M 90000 -o ~/height_prediction/loc_anc_analysis/split_chr${chr} -e ~/height_prediction/loc_anc_analysis/split_chr${chr} Rscript --vanilla ~/height_prediction/loc_anc_analysis/run_PRS_v3_UKB_afr.R phys_100000_0.0005 ${chr} 0 unscaled
 done
 
 #Plots:
-Rscript --vanilla ~/height_prediction/loc_anc_analysis/run_partial_r2_v3.r #makes partial-r2vsEUR_ANC plots using LA PRS using only EUR segments
-Rscript --vanilla ~/height_prediction/loc_anc_analysis/run_partial_r2_v2.R
+Rscript --vanilla ~/height_prediction/loc_anc_analysis/run_partial_r2_EuR.r scaled #makes partial-r2vsEUR_ANC plots using LA PRS using only EUR segments
+Rscript --vanilla ~/height_prediction/loc_anc_analysis/run_partial_r2_EuR.r unscaled
+Rscript --vanilla ~/height_prediction/loc_anc_analysis/run_partial_r2_all.r unscaled
+Rscript --vanilla ~/height_prediction/loc_anc_analysis/run_partial_r2_all.r scaled
+
 
 ```

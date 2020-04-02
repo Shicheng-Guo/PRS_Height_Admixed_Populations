@@ -76,19 +76,16 @@ my_plotA<-ggplot(ALL2, aes(x=Med_Eur_Anc, y=R_sq,colour=Dataset)) +
         geom_errorbarh(aes(x=Med_Eur_Anc, group=Dataset, colour=Dataset, xmin=HVB_L, xmax=HVB_U), width=0.05, size=0.5) +  
 	scale_color_manual(values=c(brewer.pal(4, 'Set1')[c(1,4)],"#101010")) +
         ylab(expression(paste("Partial R"^"2"))) + xlab("European Ancestry Proportion") +
-        theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15),axis.text.x=element_text(size=12), axis.text.y=element_text(size=12), legend.key=element_blank(), legend.background=element_blank(), legend.title=element_blank(), legend.position="bottom", legend.text=element_text(size=12))
+        theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15),axis.text.x=element_text(size=15), axis.text.y=element_text(size=15), legend.key=element_blank(), legend.background=element_blank(), legend.title=element_blank(), legend.position="bottom", legend.text=element_text(size=12))
 
 
 my_plotB<-ggplot(dt_final, aes(x=Name, y=value, fill=Method)) + 
 facet_wrap(~Dataset, ncol = 1) + geom_bar(stat="identity",position=position_dodge(), alpha=0.8) + 
 scale_fill_manual(values=c("#96a8b2", "#101010")) +
-theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), legend.position='bottom', legend.title=element_blank(), axis.title.y = element_text(size = 15), axis.title.x=element_blank(), axis.text.x=element_text(size=12), axis.text.y=element_text(size=12), legend.text=element_text(size=12)) + 
+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), legend.position='bottom', legend.title=element_blank(), axis.title.y = element_text(size = 15), axis.title.x=element_blank(), axis.text.x=element_text(size=12), axis.text.y=element_text(size=15), legend.text=element_text(size=12)) + 
 labs(y=expression(Partial~R^2)) + scale_alpha_manual(values=c(0.1, 0.5))
 
 
-png('~/height_prediction/figs_for_paper/figs/Figure4.png',width = 900, height = 500, units = "px")
-plot_grid(my_plotA, my_plotB, labels=c("A","B"), nrow=1)
-dev.off()
-pdf('~/height_prediction/figs_for_paper/figs/Figure4.pdf', width=9, height=5)
+png('~/height_prediction/figs_for_paper/figs/Fig4.png',width = 9, height = 5, units = "in", res=300)
 plot_grid(my_plotA, my_plotB, labels=c("A","B"), nrow=1)
 dev.off()

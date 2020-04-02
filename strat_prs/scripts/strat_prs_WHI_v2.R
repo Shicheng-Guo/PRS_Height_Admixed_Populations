@@ -127,6 +127,7 @@ fread('~/height_prediction/input/WHI/WHI_phenotypes.txt')-> Pheno_WHI #need to f
 Pheno_WHI[, SUBJID:=paste0("0_", as.character(Pheno_WHI[, SUBJID]))]
 setkey(Pheno_WHI, SUBJID)
 
+
 #add ancestry
 #add ancestry
 ancestry<-do.call(rbind, lapply(1:22, function(X) fread(paste0('~/height_prediction/input/WHI/rfmix_anc_chr', X, '.txt'))))
@@ -135,30 +136,36 @@ anc_WHI<-ancestry %>% group_by(SUBJID) %>% summarise(AFR_ANC=mean(AFR_ANC), EUR_
 
 setkey(anc_WHI, SUBJID)
 
-#Make a list to store results
+
+Pheno_WHI[anc_WHI, nomatch=0]-> PGS_WHI
+PGS_WHI[,AGE2:=AGE^2]
+sd1_f<-sd(PGS_WHI$HEIGHTX, na.rm=T)
+m1_f<-mean(PGS_WHI$HEIGHTX, na.rm=T)
+PGS_WHI<-PGS_WHI[HEIGHTX>=m1_f-(2*sd1_f) & HEIGHTX<=m1_f+(2*sd1_f)]
+nrow(PGS_WHI)
+setkey(PGS_WHI, ID)
+nrow(PGS_WHI)
+
 PGS2_WHI<-vector('list', 4)
 names(PGS2_WHI)<-c("q1","q2","q3","q4")
+
 for (I in names(PGS2_WHI)){
-        data.table(SUBJID=rownames(PRS2), PGS=PRS2[,get(I)])-> PGS2_WHI[[I]]
-        setkey(PGS2_WHI[[I]], SUBJID)
-        PGS2_WHI[[I]][Pheno_WHI, nomatch=0]-> PGS2_WHI[[I]]
-        PGS2_WHI[[I]][anc_WHI, nomatch=0]-> PGS2_WHI[[I]]
-        PGS2_WHI[[I]][,age2:=AGE^2]
-        PGS2_WHI[[I]][AFR_ANC>=0.05]-> PGS2_WHI[[I]] #filter out individuals that have no African ancestry
-        PGS2_WHI[[I]][-which(is.na(PGS2_WHI[[I]][,HEIGHTX])),]-> PGS2_WHI[[I]]
+        data.table(ID=rownames(PRS2), PGS=PRS2[,get(I)])-> PGS2_WHI[[I]]
+        setkey(PGS2_WHI[[I]], ID)
+        PGS2_WHI[[I]]<-PGS2_WHI[[I]][PGS_WHI, nomatch=0]
 }
 
 #run linear models
 lapply(PGS2_WHI, function(X) lm(HEIGHTX~PGS, X))-> lm1_WHI
 lapply(PGS2_WHI, function(X) lm(HEIGHTX~AGE, X))-> lm2_WHI
-lapply(PGS2_WHI, function(X) lm(HEIGHTX~age2, X))-> lm3_WHI
+lapply(PGS2_WHI, function(X) lm(HEIGHTX~AGE2, X))-> lm3_WHI
 lapply(PGS2_WHI, function(X) lm(HEIGHTX~EUR_ANC, X))-> lm4_WHI
 lapply(PGS2_WHI, function(X) lm(HEIGHTX~PGS+AGE, X))-> lm5_WHI
-lapply(PGS2_WHI, function(X) lm(HEIGHTX~PGS+age2, X))-> lm6_WHI
-lapply(PGS2_WHI, function(X) lm(HEIGHTX~AGE+age2+EUR_ANC, X))-> lm7_WHI
-lapply(PGS2_WHI, function(X) lm(HEIGHTX~AGE+age2+EUR_ANC+PGS, X))-> lm8_WHI
+lapply(PGS2_WHI, function(X) lm(HEIGHTX~PGS+AGE2, X))-> lm6_WHI
+lapply(PGS2_WHI, function(X) lm(HEIGHTX~AGE+AGE2+EUR_ANC, X))-> lm7_WHI
+lapply(PGS2_WHI, function(X) lm(HEIGHTX~AGE+AGE2+EUR_ANC+PGS, X))-> lm8_WHI
 
-lapply(c("q1","q2","q3","q4"), function(I) boot(data=PGS2_WHI[[I]], statistic=rsq.R2,R=3000, formula1=HEIGHTX~AGE+age2+EUR_ANC, formula2=HEIGHTX~AGE+age2+EUR_ANC+PGS))-> results.WHI
+lapply(c("q1","q2","q3","q4"), function(I) boot(data=PGS2_WHI[[I]], statistic=rsq.R2,R=3000, formula1=HEIGHTX~AGE+AGE2+EUR_ANC, formula2=HEIGHTX~AGE+AGE2+EUR_ANC+PGS))-> results.WHI
 boots.ci.WHI<-lapply(results.WHI, function(X) boot.ci(X, type = c("norm", 'basic', "perc")))
 #Get partial R2, i.e, the proportion of variation in height explained by the PRS
 partial_r2_WHI<-lapply(1:length(PGS2_WHI), function(X) partial.R2(lm7_WHI[[X]], lm8_WHI[[X]]))

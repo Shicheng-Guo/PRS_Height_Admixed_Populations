@@ -1,14 +1,14 @@
 #!/usr/bin/env Rscript
 ############################
 library(data.table)
-
+library(dplyr)
 ##read in a pruned set of SNPs and retain CHR and POS and write it into a file
 library(TeachingDemos)
 txtStart(paste0("~/height_prediction/figs_for_paper/gen_phen_varianct.txt"))
 dtsets<-vector("list", 6)
 names(dtsets)<-c("WHI","JHS", "ukb_afr", "HRS_afr", "ukb_eur", "HRS_eur")
 
-for(I in names(dtsets)){
+for(I in names(dtsets)[c(1,6)]){
 	readRDS(paste0('~/height_prediction/gwas/', I, '/output/hei_phys_100000_0.0005_v2.Rds'))-> betas
 	betas<-lapply(betas, function(X) X[,.(CHR,POS, MarkerName, REF, ALT, Allele1, Allele2, b, SE, p, N)])
 	betas<-do.call(rbind, betas)
@@ -26,10 +26,14 @@ for(I in names(dtsets)){
 			com<-paste0('bcftools view -H -T ~/height_prediction/tmp/tmp', CR, '_', I, '.txt ~/height_prediction/input/',I, '/chr', CR,'_bas.vcf.gz > ~/height_prediction/tmp/res_chr',CR, "_", I, '.txt')
 		} 
 		system(com);cat('sleep\n')
-		Sys.sleep(30)
+		Sys.sleep(10)
 		system(paste0("cat ~/height_prediction/input/", I, "/header_", I, ".txt > ~/height_prediction/tmp/temp2_chr", CR,"_",I, ".txt"))
 		system(paste0("cat ~/height_prediction/tmp/res_chr",CR,"_", I,".txt >> ~/height_prediction/tmp/temp2_chr", CR, "_",I,".txt"))
-		comm<-paste0("plink --vcf ~/height_prediction/tmp/temp2_chr", CR,"_",I, ".txt --double-id --freq --out ~/height_prediction/tmp/out_chr", CR, "_", I) ## calculate allele frequency and then heterozygosity : p*q
+		if(I=='ukb_eur'){
+		comm<-paste0("plink --vcf ~/height_prediction/tmp/temp2_chr", CR,"_",I, ".txt --double-id --freq --out ~/height_prediction/tmp/out_chr", CR, "_", I)
+                } else {
+		comm<-paste0("plink --vcf ~/height_prediction/tmp/temp2_chr", CR,"_",I, ".txt --double-id --keep ~/height_prediction/gwas/",I, "/output/IDs_after_filter.txt ", "--freq --out ~/height_prediction/tmp/out_chr", CR, "_", I) ## calculate allele frequency and then heterozygosity : p*q
+		}
 		system(comm)
 		Sys.sleep(10)
 		res<-fread(paste0('~/height_prediction/tmp/out_chr',CR,"_",I, '.frq'), header=T)
@@ -51,7 +55,6 @@ for(I in names(dtsets)){
 }
 lapply(1:6, function(X) dtsets[[X]][, value2:=2*value])
 saveRDS(dtsets, file="~/height_prediction/output/dtsets.Rds")
-
 
 lapply(dtsets, function(X) sum(X$value, na.rm=T))
 

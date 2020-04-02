@@ -12,6 +12,9 @@ library(ggpubr)
 options(scipen=999)
 W<-as.numeric(args[1])#window size
 #read in frequencies
+library(TeachingDemos)
+
+txtStart(paste0('~/height_prediction/epistasis/outout_', W, '.txt'))
 readRDS('~/height_prediction/epistasis/output/table_HRS_eur.Rds')->hrs_eur
 readRDS('~/height_prediction/epistasis/output/table_HRS_afr.Rds')->hrs_afr
 #calculate frequency difference per SNP
@@ -58,12 +61,12 @@ dt2<-betas_plink_hrs[RES2, nomatch=0]
 dt2[,Quantile:=cut(MeanFreqDiff, breaks=quantile(MeanFreqDiff, probs=seq(0,1, by=0.2), na.rm=T), include.lowest=T)]
 dt2[, MeanBetaDiffChisq:=mean(Beta_Diff_Chisq, na.rm=T), by=Quantile]
 dt2[, MedianMeanFreqDiff:=median(MeanFreqDiff, na.rm=T), by=Quantile]
-
+saveRDS(dt2, paste0('~/height_prediction/epistasis/output/dt2_', W, '.Rds'))
 #check correlation between freq_diff and beta_diff
-#add betas (POP 1 and UKB_eur)
 #calculate beta diff
-
+nrow(dt2)
 my_dt<-dt2[Beta_Diff_Chisq<=15]
+nrow(my_dt)
 model_hrs<-lm(Beta_Diff_Chisq~MeanFreqDiff,data=dt2)
 require(broom)
 glance(model_hrs)
@@ -72,7 +75,7 @@ ggplot(my_dt, aes(x=MeanFreqDiff, y=Beta_Diff_Chisq)) + geom_point(cex=0.5, col=
 geom_smooth(method='lm', se=T, col='black') + 
 geom_point(aes(x=MedianMeanFreqDiff, y=MeanBetaDiffChisq), col='red', cex=0.5) +
 labs(x="Mean Squared Frequency Difference", y=expression(chi[diff]^2), cex=18) + 
-annotate("text", x=0.35, y=0.15, label=paste("p=", round(pval,4))) +
+annotate("text", x=0.3, y=0.15, label=paste("p=", round(pval,4))) +
 #facet_wrap(~Data, nrow=2) + 
 theme(axis.text.x=element_text(size=15), axis.text.y=element_text(size=15), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.title.y = element_text(size = 18), axis.title.x=element_text(size=18))
 ggsave(paste0('~/height_prediction/epistasis/figs/epistasis_', W, '.pdf'))
@@ -81,10 +84,11 @@ ggsave(paste0('~/height_prediction/epistasis/figs/epistasis_', W, '.pdf'))
 attr(dt2$Beta_Diff_Chisq,"scaled:scale")<-NULL
 attr(dt2$Beta_Diff_Chisq,"scaled:center")<-NULL
 model_hrs<-lm(Beta_Diff_Chisq~MeanFreqDiff,data=dt2)
+summary(model_hrs)
 
 
-pdf(paste0('figs/boxcoxhrs_', W, '.pdf'))
-plot(boxcox(model_hrs))
-dev.off()
+#pdf(paste0('figs/boxcoxhrs_', W, '.pdf'))
+#plot(boxcox(model_hrs))
+#dev.off()
 
-
+txtStop()

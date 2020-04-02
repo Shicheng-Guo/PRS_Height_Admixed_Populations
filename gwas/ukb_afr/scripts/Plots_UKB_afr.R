@@ -55,6 +55,10 @@ for (I in names(PGS_UKB_afr)){
 	PGS2_UKB_afr[[I]][ID!="6007195"]-> PGS2_UKB_afr[[I]]
 }
 
+nrow(PGS2_UKB_afr[[1]])
+temp<-data.table(paste0(FID=PGS2_UKB_afr[[63]]$ID, "_", PGS2_UKB_afr[[63]]$ID), IID=paste0(PGS2_UKB_afr[[63]]$ID, "_", PGS2_UKB_afr[[63]]$ID))
+fwrite(temp,'~/height_prediction/gwas/ukb_afr/output/IDs_after_filter.txt', sep="\t", quote=F,col.names=F)
+
 lapply(PGS2_UKB_afr, function(X) lm(Height~Sex, X))-> lm0_UKB_afr
 lapply(PGS2_UKB_afr, function(X) lm(Height~PGS, X))-> lm1_UKB_afr
 lapply(PGS2_UKB_afr, function(X) lm(Height~Age, X))-> lm2_UKB_afr

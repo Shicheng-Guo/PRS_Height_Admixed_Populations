@@ -2,7 +2,7 @@
 
 Note: we use the non-imputed dataset to get the PCAs but we use the imputed data for the GWAS (see PCA_and_GWAS/UKB_AFR_imputed)
 ```
-awk '{b=$1"_"$1;print b,"UKA"}' /project/mathilab/data/UKB/UKB_AFR.fam  > panel_file2.txt
+awk '{b=$1"_"$1;print b,"UKA"}' /project/mathilab/data/UKB/UKB_AFR.fam|grep -v '6007195'  > panel_file2.txt
 touch "pop2.txt"
 echo "UKA" > pop2.txt
 #edit arguments file

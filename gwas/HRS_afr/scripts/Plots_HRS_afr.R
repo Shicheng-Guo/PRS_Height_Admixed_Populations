@@ -45,7 +45,6 @@ setkey(anc_HRS_afr, ID)
 PGS2_HRS_afr<-vector('list', length(PGS_HRS_afr))
 names(PGS2_HRS_afr)<-names(PGS_HRS_afr)
 
-
 for (I in names(PGS_HRS_afr)){
         data.table(ID=names(PGS_HRS_afr[[I]]), PGS=unlist(PGS_HRS_afr[[I]]))-> PGS2_HRS_afr[[I]]
         setkey(PGS2_HRS_afr[[I]], ID)
@@ -54,8 +53,19 @@ for (I in names(PGS_HRS_afr)){
         PGS2_HRS_afr[[I]][,AGE2:=AGE^2]
 	PGS2_HRS_afr[[I]][AFR_ANC>=0.05]-> PGS2_HRS_afr[[I]]
         PGS2_HRS_afr[[I]][which(!is.na(PGS2_HRS_afr[[I]][,HEIGHT])),]-> PGS2_HRS_afr[[I]]
+	PGS2_HRS_afr[[I]]$SEX<-as.factor(PGS2_HRS_afr[[I]]$SEX)
+	dt_f<-PGS2_HRS_afr[[I]][SEX=='Female']
+	dt_m<-PGS2_HRS_afr[[I]][SEX=='Male']
+	sd1_f<-sd(dt_f$HEIGHT)
+        m1_f<-mean(dt_f$HEIGHT)
+	sd1_m<-sd(dt_m$HEIGHT)
+        m1_m<-mean(dt_m$HEIGHT)
+	dt_f<-dt_f[HEIGHT>=m1_f-(2*sd1_f)]
+	dt_m<-dt_m[HEIGHT>=m1_m-(2*sd1_m)]
+	PGS2_HRS_afr[[I]]<-rbind(dt_f, dt_m)
 }
-
+temp<-data.table(FID=paste0(PGS2_HRS_afr[[63]]$ID, "_",PGS2_HRS_afr[[63]]$ID), IID=paste0(PGS2_HRS_afr[[63]]$ID,"_", PGS2_HRS_afr[[63]]$ID))
+fwrite(temp,'~/height_prediction/gwas/HRS_afr/output/IDs_after_filter.txt', sep="\t", quote=F, col.names=F)
 lapply(PGS2_HRS_afr, function(X) lm(HEIGHT~SEX, X))-> lm0_HRS_afr
 lapply(PGS2_HRS_afr, function(X) lm(HEIGHT~PGS, X))-> lm1_HRS_afr
 lapply(PGS2_HRS_afr, function(X) lm(HEIGHT~AGE, X))-> lm2_HRS_afr
@@ -70,10 +80,7 @@ lapply(PGS2_HRS_afr, function(X) lm(HEIGHT~SEX+AGE+AGE2+EUR_ANC+PGS, X))-> lm8_H
 partial_r2_HRS_afr<-lapply(1:length(PGS2_HRS_afr), function(X) partial.R2(lm7_HRS_afr[[X]], lm8_HRS_afr[[X]])) #
 names(partial_r2_HRS_afr)<-names(PGS2_HRS_afr)
 
-partial.R2(lm7_HRS_afr[[63]],lm8_HRS_afr[[63]]) #0.02376103
-partial.R2(lm7_HRS_afr[[67]],lm8_HRS_afr[[67]]) #0.03114019
-partial.R2(lm7_HRS_afr[[64]],lm8_HRS_afr[[64]]) #0.02612528
-partial.R2(lm7_HRS_afr[[35]],lm8_HRS_afr[[35]]) #0.02863406
+partial.R2(lm7_HRS_afr[[63]],lm8_HRS_afr[[63]]) #0.02777
 
 Nr_SNPs<-rep(NA, length(PGS2_HRS_afr))
 names(Nr_SNPs)<- names(PGS2_HRS_afr)
@@ -90,8 +97,8 @@ data.table(Nr=unlist(Nr_SNPs), Name=names(Nr_SNPs), Part_R2=unlist(partial_r2_HR
 saveRDS(A_table, file='~/height_prediction/gwas/HRS_afr/output/Nr_SNPs_HRS_afr.Rds')
 
 #
-cor.test(unlist(Nr_SNPs), unlist(partial_r2_HRS_afr))#  0.84
-summary(lm(Part_R2~Nr,data=A_table))$r.squared #0.72
+cor.test(unlist(Nr_SNPs), unlist(partial_r2_HRS_afr))#  0.78
+summary(lm(Part_R2~Nr,data=A_table))$r.squared #0.614
 
 for(I in 1:length(PGS2_HRS_afr)){
         A<-ggpairs(PGS2_HRS_afr[[I]][,.(HEIGHT, SEX, PGS, AGE, AGE2,EUR_ANC)])
@@ -163,10 +170,8 @@ saveRDS(PGS3_HRS_afr, file='~/height_prediction/gwas/HRS_afr/output/PGS3_HRS_afr
 saveRDS(results.HRS_afr, file='~/height_prediction/gwas/HRS_afr/output/results.HRS_afr.Rds')
 
 #confidence intervals
-
 boots.ci.HRS_afr<-lapply(results.HRS_afr, function(Y) lapply(Y, function(X) boot.ci(X, type = c("norm", 'basic', "perc"))))
 names(boots.ci.HRS_afr)<-names(results.HRS_afr)
-
 for (I in names(PGS3_HRS_afr)){
         B_HRS_afr[[I]][1:2,]-> a
         B_HRS_afr[[I]][3,]-> b

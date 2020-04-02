@@ -45,7 +45,6 @@ anc_WHI<-ancestry %>% group_by(SUBJID) %>% summarise(AFR_ANC=mean(AFR_ANC), EUR_
 #anc_WHI[,SUBJID:=paste0("0_", SUBJID)]
 setkey(anc_WHI, SUBJID)
 
-
 PGS2_WHI<-vector('list', length(PGS_WHI))
 names(PGS2_WHI)<-names(PGS_WHI)
 
@@ -57,7 +56,13 @@ for (I in names(PGS2_WHI)){
         PGS2_WHI[[I]][,age2:=AGE^2]
         PGS2_WHI[[I]][AFR_ANC>=0.05]-> PGS2_WHI[[I]] #filter out individuals that are not african...
         PGS2_WHI[[I]][-which(is.na(PGS2_WHI[[I]][,HEIGHTX])),]-> PGS2_WHI[[I]]
+	m1<-mean(PGS2_WHI[[I]]$HEIGHTX)
+	sd1<-sd(PGS2_WHI[[I]]$HEIGHTX)
+	PGS2_WHI[[I]]<-PGS2_WHI[[I]][HEIGHTX>=m1-(2*sd1) & HEIGHTX<=m1+(2*sd1)]
 }
+nrow(PGS2_WHI[[63]])
+temp<-data.table(FID=PGS2_WHI[[63]]$SUBJID, IID=PGS2_WHI[[63]]$SUBJID)
+fwrite(temp,'~/height_prediction/gwas/WHI/output/IDs_after_filter.txt', sep="\t", quote=F,col.names=F)
 
 lapply(PGS2_WHI, function(X) lm(HEIGHTX~PGS, X))-> lm1_WHI
 lapply(PGS2_WHI, function(X) lm(HEIGHTX~AGE, X))-> lm2_WHI
@@ -69,12 +74,12 @@ lapply(PGS2_WHI, function(X) lm(HEIGHTX~AGE+age2+EUR_ANC, X))-> lm7_WHI
 lapply(PGS2_WHI, function(X) lm(HEIGHTX~AGE+age2+EUR_ANC+PGS, X))-> lm8_WHI
 
 
-partial.R2(lm7_WHI[[67]],lm8_WHI[[67]]) #4.7
+partial.R2(lm7_WHI[[63]],lm8_WHI[[63]]) #3.58%
 
 partial_r2_WHI<-lapply(1:length(PGS2_WHI), function(X) partial.R2(lm7_WHI[[X]], lm8_WHI[[X]])) 
 names(partial_r2_WHI)<- names(PGS2_WHI)
 
-summary(unlist(partial_r2_WHI)) ##min 2.27, max 5.6%
+summary(unlist(partial_r2_WHI)) ##min 2.77, max 4.5%
 
 which.max(unlist(partial_r2_WHI)) #77, or LD_100000_0.01_0.5. Excluding the LD ones, it's 68, phys_5000_0.0005
 

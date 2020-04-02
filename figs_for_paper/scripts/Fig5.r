@@ -104,7 +104,9 @@ dt2[, MeanBetaDiffChisq:=mean(Beta_Diff_Chisq, na.rm=T), by=Quantile]
 dt2[, MedianMeanFreqDiff:=median(MeanFreqDiff, na.rm=T), by=Quantile]
 saveRDS(dt2, paste0('~/height_prediction/epistasis/output/dt2_', W, '.Rds'))
 
+nrow(dt2)
 my_dt<-dt2[Beta_Diff_Chisq<=15]
+nrow(my_dt)
 model_hrs<-lm(Beta_Diff_Chisq~MeanFreqDiff,data=dt2)
 require(broom)
 glance(model_hrs)

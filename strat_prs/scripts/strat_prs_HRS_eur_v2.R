@@ -123,11 +123,29 @@ saveRDS(PRS2, file=paste0('~/height_prediction/strat_prs//output/PRS2_HRS_eur_',
 #########################################################
 
 #read in phenotype data
-fread('~/height_prediction/input/HRS_eur/HRS_EUR_phenotypes.txt')-> Pheno_HRS_eur #need to fix this path
+fread('~/height_prediction/input/HRS_eur/HRS_EUR_phenotypes.txt')-> Pheno_HRS_eur 
 
 #fix some columns and set keys for merging data tables
 Pheno_HRS_eur[,ID:=paste0(ID, "_", ID)]
+Pheno_HRS_eur[, ":="(SEX=ifelse(SEX==1, "Male", "Female"))]
 setkey(Pheno_HRS_eur, ID)
+
+Pheno_HRS_eur[, EUR_ANC:=1]-> PGS_HRS_eur
+PGS_HRS_eur[,AGE2:=AGE^2]
+PGS_HRS_eur[,HEIGHT:=HEIGHT*100]
+PGS_HRS_eur[complete.cases(PGS_HRS_eur)]-> PGS_HRS_eur
+dt_f<-PGS_HRS_eur[SEX=='Female']
+dt_m<-PGS_HRS_eur[SEX=='Male']
+sd1_f<-sd(dt_f$HEIGHT)
+m1_f<-mean(dt_f$HEIGHT)
+sd1_m<-sd(dt_m$HEIGHT)
+m1_m<-mean(dt_m$HEIGHT)
+dt_f<-dt_f[HEIGHT>=m1_f-(2*sd1_f)]
+dt_m<-dt_m[HEIGHT>=m1_m-(2*sd1_m)]
+PGS_HRS_eur<-rbind(dt_f, dt_m)
+nrow(PGS_HRS_eur)
+setkey(PGS_HRS_eur, ID)
+nrow(PGS_HRS_eur)
 
 PGS2_HRS_eur<-vector('list', 4)
 names(PGS2_HRS_eur)<-c("q1","q2","q3","q4")
@@ -135,13 +153,10 @@ names(PGS2_HRS_eur)<-c("q1","q2","q3","q4")
 for (I in names(PGS2_HRS_eur)){
         data.table(ID=rownames(PRS2), PGS=PRS2[,get(I)])-> PGS2_HRS_eur[[I]]
         setkey(PGS2_HRS_eur[[I]], ID)
-        PGS2_HRS_eur[[I]][Pheno_HRS_eur, nomatch=0]-> PGS2_HRS_eur[[I]]
- #       PGS2_HRS_eur[[I]][anc_UKB_eur, nomatch=0]-> PGS2_UKB_eur[[I]]
-        PGS2_HRS_eur[[I]][,AGE2:=AGE^2]
-	PGS2_HRS_eur[[I]][,HEIGHT:=HEIGHT*100]
-	PGS2_HRS_eur[[I]][,EUR_ANC:=1]
+        PGS2_HRS_eur[[I]]<-PGS2_HRS_eur[[I]][PGS_HRS_eur, nomatch=0]
 }
 
+##
 #run linear models
 lapply(PGS2_HRS_eur, function(X) lm(HEIGHT~SEX, X))-> lm0_HRS_eur
 lapply(PGS2_HRS_eur, function(X) lm(HEIGHT~PGS, X))-> lm1_HRS_eur
@@ -155,7 +170,7 @@ lapply(PGS2_HRS_eur, function(X) lm(HEIGHT~SEX+AGE+AGE2+PGS, X))-> lm8_HRS_eur
 
 #Get partial R2, i.e, the proportion of variation in height explained by the PRS
 
-lapply(c("q1","q2","q3","q4"), function(I) boot(data=PGS2_HRS_eur[[I]], statistic=rsq.R2,R=3000, formula1=HEIGHT~SEX+AGE+AGE2+EUR_ANC, formula2=HEIGHT~SEX+AGE+AGE2+EUR_ANC+PGS))-> results.HRS_eur
+lapply(c("q1","q2","q3","q4"), function(I) boot(data=PGS2_HRS_eur[[I]], statistic=rsq.R2,R=3000, formula1=HEIGHT~SEX+AGE+AGE2, formula2=HEIGHT~SEX+AGE+AGE2+PGS))-> results.HRS_eur
 boots.ci.HRS_eur<-lapply(results.HRS_eur, function(X) boot.ci(X, type = c("norm", 'basic', "perc")))
 partial_r2_HRS_eur<-lapply(1:length(PGS2_HRS_eur), function(X) partial.R2(lm7_HRS_eur[[X]], lm8_HRS_eur[[X]]))
 names(partial_r2_HRS_eur)<- names(PGS2_HRS_eur)

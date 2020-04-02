@@ -68,7 +68,9 @@ for (I in names(PGS2_JHS)){
         PGS2_JHS[[I]][, sex:=sex_selfreport]
         PGS2_JHS[[I]][,sex_selfreport:=NULL]
 }
-
+nrow(PGS2_JHS[[1]])
+temp<-data.table(FID=PGS2_JHS[[63]]$SUBJID, IID=PGS2_JHS[[63]]$SUBJID)
+fwrite(temp,'~/height_prediction/gwas/JHS/output/IDs_after_filter.txt', sep="\t", quote=F,col.names=F)
 
 lapply(PGS2_JHS, function(X) lm(HEIGHTX~sex,X))-> lm0_JHS
 lapply(PGS2_JHS, function(X) lm(HEIGHTX~PGS, X))-> lm1_JHS
@@ -81,7 +83,6 @@ lapply(PGS2_JHS, function(X) lm(HEIGHTX~sex+age+age2+EUR_ANC, X))-> lm7_JHS
 lapply(PGS2_JHS, function(X) lm(HEIGHTX~sex+age+age2+EUR_ANC+PGS,X))-> lm8_JHS
 
 
-partial.R2(lm7_JHS[[67]],lm8_JHS[[67]]) #4.3%
 partial.R2(lm7_JHS[[63]],lm8_JHS[[63]]) #3.8
 partial_r2_JHS<-lapply(1:length(PGS2_JHS), function(X) partial.R2(lm7_JHS[[X]], lm8_JHS[[X]])) #min 1.8, max 4.3
 names(partial_r2_JHS)<- names(PGS2_JHS)

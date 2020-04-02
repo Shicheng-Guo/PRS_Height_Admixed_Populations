@@ -38,9 +38,9 @@ for(I in c("WHI","JHS","ukb_afr","HRS_eur", "HRS_afr")){
 }
 
 if(dtset=='gwas'){ ##UKB_afr, WHI_afr, JHS_afr, HRS_afr,HRS_eur
-	r2_vec<-c(0.041,0.041,0.038,0.025, 0.125)
-	r2_l_vec<-c(0.032,0.033, 0.022,0.015,0.112)
-	r2_u_vec<-c(0.049,0.051,0.057, 0.039,0.138)
+	r2_vec<-c(0.04084170,0.03578924,0.0382532, 0.03103462, 0.1563672)
+	r2_l_vec<-c(0.03255115,0.027783862,0.02252898,0.01906344,0.1438352)
+	r2_u_vec<-c(0.04955051,0.04474530,0.05733168, 0.04574303,0.1680824)
 } else if (dtset=='sib_betas'){
 #	r2_vec<-c(0.07511196,0.00967814,0.01993696,0.02717107,0.01060191)
 }
@@ -119,13 +119,11 @@ geom_errorbar(aes(ymin=Perc_L, ymax=Perc_U), position = pd) +
 facet_wrap(. ~Set, scales='free_y') + 
 labs(y=expression(paste("Partial R"^"2")), x="Recombination Rate")+  
 scale_colour_manual(values=c(brewer.pal(4, 'Set1'),"#101010")) +
-theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"),legend.title=element_blank(), axis.title.y = element_text(size = 18), axis.title.x=element_text(size=18),axis.text.x=element_text(size=15), axis.text.y=element_text(size=15),legend.text=element_text(size=12),legend.position = "bottom") + 
+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"),legend.title=element_blank(), axis.title.y = element_text(size = 18), axis.title.x=element_text(size=18),axis.text.x=element_text(size=15), axis.text.y=element_text(size=15),legend.text=element_text(size=13),legend.position = "bottom", strip.text.x = element_text(size = 16)) + 
 scale_x_discrete(labels=c("Low", expression(symbol('\256')), expression(symbol('\256')), "High"))
 
-#axis.line = element_line(colour = "black"), legend.position = "none", legend.title=element_blank(), axis.title.y = element_text(size = 18), axis.title.x=element_text(size=15),axis.text.x=element_text(size=15), axis.text.y=element_text(size=15), legend.text=element_text(size=10)) + scale_x_discrete(labels=c("Low", expression(symbol('\256')), expression(symbol('\256')), "High"))
-
-print(plot1)
-ggsave(paste0('~/height_prediction/strat_prs/figs/v2_barplot_AA_', dtset,'.pdf'))
+#print(plot1)
+#ggsave(paste0('~/height_prediction/strat_prs/figs/v2_barplot_AA_', dtset,'.pdf'))
 
 #
 df2$Dataset<-factor(df2$Dataset, levels=c("UKB_afr", "WHI_afr", "JHS_afr", "HRS_afr",  "HRS_eur"))
@@ -150,7 +148,7 @@ if(dtset=='gwas'){
 	beta<-dplyr::select(do.call(rbind,readRDS('~/height_prediction/gwas/WHI/output/hei_phys_100000_0.0005_v2.Rds')), CHR, POS, b, MarkerName, Allele1, SE) %>% as.data.table
 	beta1<-readRDS('~/height_prediction/loc_anc_analysis/output/final_plink.Rds')
 } else {
-	beta<-do.call(rbind, readRDS(paste0('~/height_prediction/', dtset, '/ukb_afr/output/betas_phys_100000_0.0005_20000.Rds')))
+#	beta<-do.call(rbind, readRDS(paste0('~/height_prediction/', dtset, '/ukb_afr/output/betas_phys_100000_0.0005_20000.Rds')))
 }
 
 merge(beta, beta1, by=c('CHR', 'POS'))-> beta2
@@ -161,46 +159,46 @@ BETA<-vector('list', 22)
 prun<-"phys_100000_0.0005"
 hei<-readRDS(paste0('~/height_prediction/gwas/WHI/output/hei_', prun, '_v2.Rds'))
 for(chr in 22:1){
-cat('start chr ')
-cat(chr)
-cat('\n')
-rate.dist<-20000
-betas<-beta2[CHR==chr]
-maps<-fread(paste0('zcat /project/mathilab/data/maps_b37/maps_chr.', chr, '.gz'))
-snps <- read.table(paste0("~/height_prediction/input/WHI/WHI_b37_strand_include_kgCY_chr", chr, ".phsnp"), as.is=TRUE)
-colnames(snps) <- c("ID", "CHR", "Map", "POS", "REF", "ALT")
-betas<-merge(snps, betas, by=c('CHR', 'POS'))
-setDT(betas)
-cat('checkpoint \n')
-AA.rate <- approxfun(maps$Physical_Pos, maps$AA_Map)
-YRI.rate <- approxfun(maps$Physical_Pos, maps$YRI_LD)
-CEU.rate <- approxfun(maps$Physical_Pos, maps$CEU_LD)
-COMBINED.rate<-approxfun(maps$Physical_Pos,maps$COMBINED_LD)
-betas$AA.rate <- 0
-betas$CEU_YRI_diff.rate <- 0
-betas$CEU.rate <- 0
-betas$YRI.rate <- 0
-betas$COMBINED.rate<-0
-cat('checkpoint \n')
-for(i in 1:NROW(betas)){
-    cat(i, '\r')
-    AA.x <- AA.rate(betas$POS[i]+(rate.dist/2))-AA.rate(betas$POS[i]-(rate.dist/2))
-    betas$AA.rate[i] <- AA.x
-    CEU.x <- CEU.rate(betas$POS[i]+(rate.dist/2))-CEU.rate(betas$POS[i]-(rate.dist/2))
-    betas$CEU.rate[i] <- CEU.x
-    YRI.x <- YRI.rate(betas$POS[i]+(rate.dist/2))-YRI.rate(betas$POS[i]-(rate.dist/2))
-    betas$YRI.rate[i]<-YRI.x
-    COMBINED.x<-COMBINED.rate(betas$POS[i]+(rate.dist/2))-COMBINED.rate(betas$POS[i]-(rate.dist/2))
-    betas$COMBINED.rate[i]<-COMBINED.x
-    betas$CEU_YRI_diff.rate[i] <- abs(CEU.x-YRI.x)
-}
-betas[,Beta_Diff:=b-PLINK]
-betas[,Beta_Diff_Chisq:=(Beta_Diff/sqrt(((SE^2)+(SE_plink^2))))^2]
-#At this point you will restrict the betas to the SNPS that you are using in the PRS.
-BETA[[chr]]<-betas
-cat('chr ')
-cat(chr)
-cat(' done\n')
+	cat('start chr ')
+	cat(chr)
+	cat('\n')
+	rate.dist<-20000
+	betas<-beta2[CHR==chr]
+	maps<-fread(paste0('zcat /project/mathilab/data/maps_b37/maps_chr.', chr, '.gz'))
+	snps <- read.table(paste0("~/height_prediction/input/WHI/WHI_b37_strand_include_kgCY_chr", chr, ".phsnp"), as.is=TRUE)
+	colnames(snps) <- c("ID", "CHR", "Map", "POS", "REF", "ALT")
+	betas<-merge(snps, betas, by=c('CHR', 'POS'))
+	setDT(betas)
+	cat('checkpoint \n')
+	AA.rate <- approxfun(maps$Physical_Pos, maps$AA_Map)
+	YRI.rate <- approxfun(maps$Physical_Pos, maps$YRI_LD)
+	CEU.rate <- approxfun(maps$Physical_Pos, maps$CEU_LD)
+	COMBINED.rate<-approxfun(maps$Physical_Pos,maps$COMBINED_LD)
+	betas$AA.rate <- 0
+	betas$CEU_YRI_diff.rate <- 0
+	betas$CEU.rate <- 0
+	betas$YRI.rate <- 0
+	betas$COMBINED.rate<-0
+	cat('checkpoint \n')
+	for(i in 1:NROW(betas)){
+    		cat(i, '\r')
+    		AA.x <- AA.rate(betas$POS[i]+(rate.dist/2))-AA.rate(betas$POS[i]-(rate.dist/2))
+    		betas$AA.rate[i] <- AA.x
+    		CEU.x <- CEU.rate(betas$POS[i]+(rate.dist/2))-CEU.rate(betas$POS[i]-(rate.dist/2))
+    		betas$CEU.rate[i] <- CEU.x
+    		YRI.x <- YRI.rate(betas$POS[i]+(rate.dist/2))-YRI.rate(betas$POS[i]-(rate.dist/2))
+   		betas$YRI.rate[i]<-YRI.x
+   		COMBINED.x<-COMBINED.rate(betas$POS[i]+(rate.dist/2))-COMBINED.rate(betas$POS[i]-(rate.dist/2))
+    		betas$COMBINED.rate[i]<-COMBINED.x
+    		betas$CEU_YRI_diff.rate[i] <- abs(CEU.x-YRI.x)
+	}
+	betas[,Beta_Diff:=b-PLINK]
+	betas[,Beta_Diff_Chisq:=(Beta_Diff/sqrt(((SE^2)+(SE_plink^2))))^2]
+	#At this point you will restrict the betas to the SNPS that you are using in the PRS.
+	BETA[[chr]]<-betas
+	cat('chr ')
+	cat(chr)
+	cat(' done\n')
 }
 cat('sleep\n')
 Sys.sleep(30)
@@ -225,12 +223,19 @@ lm_test0<-lm(Beta_Diff_Chisq~AA.rate, data=BETA)
 require(broom)
 glance(lm_test0)
 pval<-glance(lm_test0)$p.value
-plot3<-ggplot(BETA, aes(x=AA.rate, y=Beta_Diff_Chisq)) + geom_point(cex=0.5, col='light gray') + geom_smooth(method='lm', se=T, lwd=1, col="black") + labs(y=expression(chi[diff]^2), x="Recombination Rate") + geom_point(aes(x=MedianRecRate, y=MeanBetaDiffChisq, col="red"), cex=0.5) + 
-annotate("text", x=0.4, y=5, label=paste("p=", round(pval,4))) +
+nrow(BETA)
+BETA<-BETA[Beta_Diff_Chisq<=15]
+nrow(BETA)
+plot3<-ggplot(BETA, aes(x=AA.rate, y=Beta_Diff_Chisq)) + 
+geom_point(cex=0.5, col='light gray') + 
+geom_smooth(method='lm', se=T, lwd=1, col="black") + 
+labs(y=expression(chi[diff]^2), x="Recombination Rate") + 
+geom_point(aes(x=MedianRecRate, y=MeanBetaDiffChisq, col="red"), cex=0.5) + 
+annotate("text", x=0.4, y=5, label=paste("p=", round(pval,4)), size=6) +
 theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), legend.position = "none", legend.title=element_blank(), axis.title.y = element_text(size = 18), axis.title.x=element_text(size=18),axis.text.x=element_text(size=15), axis.text.y=element_text(size=15), legend.text=element_text(size=15))
 plot1a<-plot1 + guides(fill=FALSE)
 cat('CHECKPOINT\n')
-c_plot<-readRDS('/project/mathilab/bbita/gwas_admix/height_prediction/output/c_plot.Rds')
+c_plot<-readRDS('~/height_prediction/output/c_plot.Rds')
 my_list<-list(plot1, plot2, c_plot, plot3)
 saveRDS(my_list, '~/height_prediction/strat_prs/output/my_list.Rds')
 ld<-do.call(rbind, lapply(1:22, function(X) fread(paste0('zcat ~/height_prediction/figs_for_paper/eur_w_ld_chr/', X,'.l2.ldscore.gz'))))
@@ -256,15 +261,14 @@ pval<-glance(lm_test)$p.value
 plot4<-ggplot(test, aes(x=L2, y=Beta_Diff_Chisq)) + geom_point(cex=0.5, col='light gray') + geom_smooth(method='lm', se=T, col='black') + 
 labs(y=expression(chi[diff]^2), x="LD Score" ) + 
 geom_point(aes(x=MedianL2, y=MeanBetaDiffChisq, col="red"), cex=0.5) + 
-annotate("text", x=250, y=5, label=paste("p=", round(pval,4))) +
+annotate("text", x=270, y=5, label=paste("p=", round(pval,4)), size=4) +
 theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), legend.position = "none", legend.title=element_blank(), axis.title.y = element_text(size = 18), axis.title.x=element_text(size=18),axis.text.x=element_text(size=15), axis.text.y=element_text(size=15), legend.text=element_text(size=15))
 
 png('~/height_prediction/figs_for_paper/figs/SM_10.png', res=300, unit="in", height=8, width=7)
 print(plot4)
 dev.off()
 
-png(paste0('~/height_prediction/strat_prs/figs/panel_', args[1], '_v2.png'), res=300, width=12, height=12, units="in")
+png(paste0('~/height_prediction/figs_for_paper/figs/Fig3.png'), res=300, width=12, height=12, units="in")
 plot_grid(plot1,plot_grid(c_plot,plot3,labels = c("C", "D"), nrow=1), nrow=2, labels="A", align="v")
-#ggsave(paste0('~/height_prediction/strat_prs/figs/panel_', args[1], '_v2.pdf'))
 dev.off()
 #The End

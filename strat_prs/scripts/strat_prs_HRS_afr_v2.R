@@ -118,7 +118,6 @@ do.call(rbind,PRS2)-> PRS2 #combine into one data.table
 rownames(PRS2)<-names(PRS[[1]])
 saveRDS(PRS2, file=paste0('~/height_prediction/strat_prs/output/PRS2_HRS_afr_',args[3], '_',rate.dist,"_", w_map, '_v2.Rds')) #store results
 
-
 #########################################################
 #### Second part: calculate partial R2 for PRS. #########
 #########################################################
@@ -134,6 +133,7 @@ source('~/height_prediction/strat_prs/scripts/Rsq_R2.R')
 #Pheno_HRS_afr[,ID:=paste0(ID, "_", ID)]
 as.character(Pheno_HRS_afr$ID)-> Pheno_HRS_afr$ID
 Pheno_HRS_afr$ID<-paste0(Pheno_HRS_afr[,ID],"_",Pheno_HRS_afr[,ID])
+Pheno_HRS_afr[, ":="(SEX=ifelse(SEX==1, "Male", "Female"))]
 setkey(Pheno_HRS_afr, ID)
 
 #add ancestry
@@ -145,18 +145,28 @@ anc_HRS_afr[,ID:=paste0(SUBJID,"_",SUBJID)][,SUBJID:=NULL]
 as.character(anc_HRS_afr$ID)-> anc_HRS_afr$ID
 setkey(anc_HRS_afr, ID)
 
-
+Pheno_HRS_afr[anc_HRS_afr, nomatch=0]-> PGS_HRS_afr
+PGS_HRS_afr[,AGE2:=AGE^2]
+PGS_HRS_afr[,HEIGHT:=HEIGHT*100]
+PGS_HRS_afr[which(!is.na(PGS_HRS_afr[,HEIGHT])),]-> PGS_HRS_afr
+dt_f<-PGS_HRS_afr[SEX=='Female']
+dt_m<-PGS_HRS_afr[SEX=='Male']
+sd1_f<-sd(dt_f$HEIGHT)
+m1_f<-mean(dt_f$HEIGHT)
+sd1_m<-sd(dt_m$HEIGHT)
+m1_m<-mean(dt_m$HEIGHT)
+dt_f<-dt_f[HEIGHT>=m1_f-(2*sd1_f)]
+dt_m<-dt_m[HEIGHT>=m1_m-(2*sd1_m)]
+PGS_HRS_afr<-rbind(dt_f, dt_m)
+nrow(PGS_HRS_afr)
+setkey(PGS_HRS_afr, ID)
 PGS2_HRS_afr<-vector('list', 4)
 names(PGS2_HRS_afr)<-c("q1","q2","q3","q4")
 
 for (I in names(PGS2_HRS_afr)){
         data.table(ID=rownames(PRS2), PGS=PRS2[,get(I)])-> PGS2_HRS_afr[[I]]
         setkey(PGS2_HRS_afr[[I]], ID)
-        PGS2_HRS_afr[[I]][Pheno_HRS_afr, nomatch=0]-> PGS2_HRS_afr[[I]]
-        PGS2_HRS_afr[[I]][anc_HRS_afr, nomatch=0]-> PGS2_HRS_afr[[I]]
-        PGS2_HRS_afr[[I]][,AGE2:=AGE^2]
-	PGS2_HRS_afr[[I]][,HEIGHT:=HEIGHT*100]
-	PGS2_HRS_afr[[I]][which(!is.na(PGS2_HRS_afr[[I]][,HEIGHT])),]-> PGS2_HRS_afr[[I]]
+	PGS2_HRS_afr[[I]]<-PGS2_HRS_afr[[I]][PGS_HRS_afr, nomatch=0]
 }
 
 #run linear models

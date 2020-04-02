@@ -11,7 +11,9 @@ library(tidyr)
 library(hexbin)
 library(psychometric)
 library(boot)
+library(TeachingDemos)
 
+txtStart(paste0("~/height_prediction/sib_betas/ukb_eur/plots_out.txt"))
 #read in PGS scores
 readRDS('~/height_prediction/sib_betas/ukb_eur/output/PGS_ukb_eur.Rds')-> PGS_UKB_eur
 #read in phenotype data
@@ -129,3 +131,4 @@ for (I in names(PGS3_UKB_eur)){
 }
 
 saveRDS(B_UKB_eur, file="~/height_prediction/sib_betas/ukb_eur/output/B_UKB_eur.Rds")
+txtStop()

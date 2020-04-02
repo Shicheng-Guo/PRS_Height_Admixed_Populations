@@ -45,7 +45,7 @@ Within each dataset's directory you will find a README.md with instructions on h
 Once the input data is formatted, we can do some pruning/clumping using both the GWAS effect sizes ('gwas') and the sibling-estimated effect sizes ('sib_betas'). In both cases, p-values used for clumping come from thefull UKB GWAS.
 
 ```
-for D in JHS WHI pennBB_afr pennBB_eur ukb_afr ukb_eur HRS_eur HRS_afr;  #for each dataset
+for D in JHS WHI ukb_afr ukb_eur HRS_eur HRS_afr;  #for each dataset
 do
 Rscript --vanilla ~/height_prediction/scripts/make_vcf.R temp sib_betas $D
 Rscript --vanilla ~/height_prediction/scripts/make_vcf.R temp gwas $D
@@ -75,7 +75,7 @@ done
 Now we are ready to calculate polygenic risk scores for each set of SNPs (gwas, sib_betas and unweighted_prs which, as the name suggest, is the unweighted version of the PRS):
 
 ```
-for D in JHS WHI pennBB_afr pennBB_eur ukb_afr ukb_eur HRS_eur HRS_afr;
+for D in JHS WHI ukb_afr ukb_eur HRS_eur HRS_afr;
 do
 ~/height_prediction/scripts/calc_PGS.sh sib_betas $D
 ~/height_prediction/scripts/calc_PGS.sh gwas $D;
@@ -87,7 +87,7 @@ done
 
 Combine all PRS results per dataset:
 ```
-for D in JHS WHI pennBB_afr pennBB_eur ukb_afr ukb_eur HRS_eur HRS_afr;
+for D in JHS WHI ukb_afr ukb_eur HRS_eur HRS_afr;
 do
 rm ~/height_prediction/gwas/${D}/scripts/test2.txt;
 rm ~/height_prediction/sib_betas/${D}/scripts/test2.txt;

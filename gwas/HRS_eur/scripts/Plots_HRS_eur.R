@@ -27,8 +27,6 @@ Pheno_HRS_eur[,ID:=paste0(ID, "_", ID)]
 setkey(Pheno_HRS_eur, ID)
 
 PGS2_HRS_eur<-vector('list', length(PGS_HRS_eur))
-
-
 names(PGS2_HRS_eur)<-names(PGS_HRS_eur)
 
 for (I in names(PGS_HRS_eur)){
@@ -40,9 +38,19 @@ for (I in names(PGS_HRS_eur)){
 	PGS2_HRS_eur[[I]][,HEIGHT:=HEIGHT*100]
 	#PGS2_UKB_eur[[I]][EUR_ANC>=0.05]->PGS2_UKB_eur[[I]]
 	PGS2_HRS_eur[[I]]$SEX<-as.factor(PGS2_HRS_eur[[I]]$SEX)
-        #PGS2_HRS_eur[[I]][-which(is.na(PGS2_HRS_eur[[I]][,HEIGHT])),]-> PGS2_HRS_eur[[I]]
+        dt_f<-PGS2_HRS_eur[[I]][SEX==2]
+        dt_m<-PGS2_HRS_eur[[I]][SEX==1]
+        sd1_f<-sd(dt_f$HEIGHT)
+        m1_f<-mean(dt_f$HEIGHT)
+        sd1_m<-sd(dt_m$HEIGHT)
+        m1_m<-mean(dt_m$HEIGHT)
+        dt_f<-dt_f[HEIGHT>=m1_f-(2*sd1_f)]
+        dt_m<-dt_m[HEIGHT>=m1_m-(2*sd1_m)]
+	PGS2_HRS_eur[[I]]<-rbind(dt_f, dt_m)
 }
-
+nrow(PGS2_HRS_eur[[63]])
+temp<-data.table(FID=PGS2_HRS_eur[[63]]$ID, IID=PGS2_HRS_eur[[63]]$ID)
+fwrite(temp,'~/height_prediction/gwas/HRS_eur/output/IDs_after_filter.txt', sep="\t", quote=F,col.names=F)
 lapply(PGS2_HRS_eur, function(X) lm(HEIGHT~SEX, X))-> lm1_HRS_eur
 lapply(PGS2_HRS_eur, function(X) lm(HEIGHT~PGS, X))-> lm2_HRS_eur
 lapply(PGS2_HRS_eur, function(X) lm(HEIGHT~AGE, X))-> lm3_HRS_eur
@@ -52,11 +60,11 @@ lapply(PGS2_HRS_eur, function(X) lm(HEIGHT~PGS+AGE2, X))-> lm6_HRS_eur
 lapply(PGS2_HRS_eur, function(X) lm(HEIGHT~SEX+AGE+AGE2, X))-> lm7_HRS_eur
 lapply(PGS2_HRS_eur, function(X) lm(HEIGHT~SEX+AGE+AGE2+PGS, X))-> lm8_HRS_eur
 
-partial.R2(lm7_HRS_eur[[63]],lm8_HRS_eur[[63]]) #12%
+partial.R2(lm7_HRS_eur[[63]],lm8_HRS_eur[[63]]) #15.6%
 
-partial_r2_HRS_eur<-lapply(1:length(PGS2_HRS_eur), function(X) partial.R2(lm7_HRS_eur[[X]], lm8_HRS_eur[[X]])) #min 7.9% max 14.8%
+partial_r2_HRS_eur<-lapply(1:length(PGS2_HRS_eur), function(X) partial.R2(lm7_HRS_eur[[X]], lm8_HRS_eur[[X]])) #min 10.4% max 18.9%
 names(partial_r2_HRS_eur)<-names(PGS2_HRS_eur)
-which.max(unlist(partial_r2_HRS_eur)) #71, genet_0.3_0.0005
+which.max(unlist(partial_r2_HRS_eur)) #76 LD_250000_0.01_0.5
 Nr_SNPs<-rep(NA, length(PGS2_HRS_eur))
 names(Nr_SNPs)<- names(PGS2_HRS_eur)
 
@@ -72,50 +80,21 @@ data.table(Nr=unlist(Nr_SNPs), Name=names(Nr_SNPs), Part_R2=unlist(partial_r2_HR
 saveRDS(A_table, file='~/height_prediction/gwas/HRS_eur/output/Nr_SNPs_HRS.Rds')
 
 
-cor.test(unlist(Nr_SNPs), unlist(partial_r2_HRS_eur)) #0.4235654
-summary(lm(Part_R2~Nr,data=A_table))$r.squared #0.1794076
+cor.test(unlist(Nr_SNPs), unlist(partial_r2_HRS_eur)) #0.5
+summary(lm(Part_R2~Nr,data=A_table))$r.squared #0.25
 #
-
-#this weird negative corrrelation os due to the LD pruned sets: this is ebcause the LD blocks have few SNPs and explain A LOT and the LD_kb sets have a lot of SNPs and explain very little. 
-
-#cor.test(A_table[-grep("LD",Name)]$Part_R2, A_table[-grep("LD",Name)]$Nr)
-
 
 for(I in 1:length(PGS2_HRS_eur)){
         A<-ggpairs(PGS2_HRS_eur[[I]][,.(HEIGHT, SEX, PGS, AGE, AGE2)])
-        png(filename=paste0('~/height_prediction/gwas/HRS_eur/figs/UKB_eur_ggpairs_', names(PGS2_HRS_eur)[I], '.png'))
+        png(filename=paste0('~/height_prediction/gwas/HRS_eur/figs/HRS_eur_ggpairs_', names(PGS2_HRS_eur)[I], '.png'))
         print(A)
         cat(names(PGS2_HRS_eur)[I])
         cat(' done\n')
         dev.off()
 }
 
-#lapply(PGS2_HRS_eur, function(X) X[, Quantile:= cut(EUR_ANC,
-#                                breaks=quantile(EUR_ANC, probs=seq(0,1, by=0.25), na.rm=TRUE),
-#                                include.lowest=TRUE)])-> PGS3_HRS_eur
-
-#names(PGS3_HRS_eur)<-names(PGS2_HRS_eur)
-
-#lapply(1:length(PGS3_HRS_eur), function(X) PGS3_HRS_eur[[X]][,Med_Eur_Anc:=median(EUR_ANC),by=Quantile])
-
-#lapply(1:length(PGS3_HRS_eur), function(X) as.character(unique((PGS3_HRS_eur[[X]]$Quantile))))-> a
-
-#lapply(a, function(X) c(X[4],X[1], X[2], X[3]))-> a1 #check
-
-#names(a1)<-names(PGS3_HRS_eur)
 
 lapply(PGS2_HRS_eur, function(X) X[, Quantile:='total'][,Med_Eur_Anc:=1])-> PGS3_HRS_eur
-#r2_HRS_eur<-vector('list', length(PGS3_HRS_eur))
-#names(r2_HRS_eur)<-names(PGS3_HRS_eur)
-
-#for(I in names(r2_HRS_eur)){
-#        r2_HRS_eur[[I]]<-vector('list', length(a1[[I]]))
-#        names(r2_HRS_eur[[I]])<-a1[[I]]
-#        for(i in a1[[I]]){
-#        r2_HRS_eur[[I]][[i]]<-partial.R2(lm(Height~Sex+Age+age2, PGS3_HRS_eur[[I]][Quantile==i]),lm(Height~Sex+Age+age2+PGS, PGS3_HRS_eur[[I]][Quantile==i]))
-#        }
-#}
-
 
 B_HRS_eur<-vector('list', length(PGS3_HRS_eur))
 names(B_HRS_eur)<-names(PGS3_HRS_eur)
@@ -132,13 +111,6 @@ for (I in names(PGS3_HRS_eur)){
 results.HRS_eur<-vector('list', length(PGS3_HRS_eur))
 names(results.HRS_eur)<-names(PGS3_HRS_eur)
 
-#for (I in names(PGS3_HRS_eur)){
-#        results.HRS_eur[[I]]<-vector('list', length(a1[[I]])+1)
-#        names(results.HRS_eur[[I]])<-c(a1[[I]], "total")
-#       lapply(a1[[I]], function(i) boot(data=PGS3_HRS_eur[[I]][Quantile==i], statistic=rsq.R2,R=999, formula1=Height~Sex+Age+age2, formula2=Height~Sex+Age+age2+PGS))-> results.HRS_eur[[I]]
-#        cat(I)
-#        cat(' done\n')
-#}
 
 for (I in names(PGS3_HRS_eur)){
         results.HRS_eur[[I]]<- boot(data=PGS2_HRS_eur[[I]], statistic=rsq.R2, R=999, formula1=HEIGHT~SEX+AGE+AGE2, formula2=HEIGHT~SEX+AGE+AGE2+PGS)
@@ -150,7 +122,6 @@ for (I in names(PGS3_HRS_eur)){
 #95% confidence intervals.
 saveRDS(results.HRS_eur, file='~/height_prediction/gwas/HRS_eur/output/results.HRS_eur.Rds')
 saveRDS(PGS3_HRS_eur, file='~/height_prediction/gwas/HRS_eur/output/PGS3_HRS_eur.Rds')
-
 
 boots.ci.HRS_eur<-lapply(results.HRS_eur, function(X)  boot.ci(X, type = c("norm", 'basic', "perc")))
 names(boots.ci.HRS_eur)<-names(results.HRS_eur)
@@ -218,7 +189,7 @@ A_table$Window[grep("LD_100000_", A_table$Name)]<-"LD"
 A_table$Window[grep("LD_50000_", A_table$Name)]<-"LD"
 
 A_table$Method[which(is.na(A_table$Method))]<-"LD"
-ggplot(A_table, aes(x=Nr, y=Part_R2, colour=Method, group=Window)) + geom_point(size=2) + geom_line()+ geom_text(A_table[Name=='phys_100000_0.0005'], aes(label=Name)) +
+ggplot(A_table, aes(x=Nr, y=Part_R2, colour=Method)) + geom_point(size=2) + geom_line()+ geom_text(A_table[Name=='phys_100000_0.0005'], aes(label=Name)) +
 theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15),  axis.text.x=element_text(size=9), axis.text.y=element_text(size=9))
-ggsave('~/height_prediction/gwas/HRS_eur/figs/ashg_like.png')
+ggsave('~/height_prediction/figs_for_paper/figs/ashg_like.png')
 txtStop()

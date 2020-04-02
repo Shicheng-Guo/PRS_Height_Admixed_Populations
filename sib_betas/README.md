@@ -1,7 +1,7 @@
 ####
 *Select SNPs and prepare the data*
 ```
-for D in JHS WHI pennBB_afr pennBB_eur ukb_afr ukb_eur;
+for D in JHS WHI pennBB_afr pennBB_eur ukb_afr ukb_eur HRS_eur;
 do
 Rscript --vanilla ~/height_prediction/scripts/make_vcf.R temp sib_betas $D
 done
@@ -11,7 +11,7 @@ done
 *Prune
 
 ```
-for D in JHS WHI pennBB_afr pennBB_eur ukb_afr ukb_eur;
+for D in JHS WHI pennBB_afr pennBB_eur ukb_afr ukb_eur HRS_eur;
 do
 ~/height_prediction/scripts/LD_prun.bash sib_betas $D
 done
@@ -19,7 +19,7 @@ done
 
 *Combine
 ```
-for D in JHS WHI pennBB_afr pennBB_eur ukb_afr ukb_eur;
+for D in JHS WHI pennBB_afr pennBB_eur ukb_afr ukb_eur HRS_eur;
 do
 ~/height_prediction/scripts/combine_Rds_v2.sh sib_betas $D
 done
@@ -28,7 +28,7 @@ done
 *Run polygenic scores*
 
 ```
-for D in JHS WHI pennBB_afr pennBB_eur ukb_afr ukb_eur;
+for D in JHS WHI pennBB_afr pennBB_eur ukb_afr ukb_eur HRS_eur;
 do
 ~/height_prediction/scripts/calc_PGS.sh sib_betas $D
 done
@@ -36,7 +36,7 @@ done
 
 *Combine PGS results
 
-for D in JHS WHI pennBB_afr pennBB_eur ukb_afr ukb_eur;
+for D in JHS WHI pennBB_afr pennBB_eur ukb_afr ukb_eur HRS_eur;
 do
 ~/height_prediction/scripts/combine_Rds_PGS.sh sib_betas $D
 done

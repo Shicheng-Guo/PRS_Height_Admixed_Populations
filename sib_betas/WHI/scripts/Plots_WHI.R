@@ -15,7 +15,9 @@ library(boot)
 library(readr)
 #############
 #############
+library(TeachingDemos)
 
+txtStart(paste0("~/height_prediction/sib_betas/WHI/plots_out.txt"))
 #read in PGS scores
 readRDS('~/height_prediction/sib_betas/WHI/output/PGS_WHI.Rds')-> PGS_WHI
 
@@ -55,6 +57,9 @@ for (I in names(PGS2_WHI)){
         PGS2_WHI[[I]][,age2:=AGE^2]
         PGS2_WHI[[I]][AFR_ANC>=0.05]-> PGS2_WHI[[I]] #filter out individuals that are not african...
         PGS2_WHI[[I]][-which(is.na(PGS2_WHI[[I]][,HEIGHTX])),]-> PGS2_WHI[[I]]
+	m1<-mean(PGS2_WHI[[I]]$HEIGHTX)
+        sd1<-sd(PGS2_WHI[[I]]$HEIGHTX)
+        PGS2_WHI[[I]]<-PGS2_WHI[[I]][HEIGHTX>=m1-(2*sd1) & HEIGHTX<=m1+(2*sd1)]
 }
 
 lapply(PGS2_WHI, function(X) lm(HEIGHTX~PGS, X))-> lm1_WHI
@@ -67,14 +72,14 @@ lapply(PGS2_WHI, function(X) lm(HEIGHTX~AGE+age2+EUR_ANC, X))-> lm7_WHI
 lapply(PGS2_WHI, function(X) lm(HEIGHTX~AGE+age2+EUR_ANC+PGS, X))-> lm8_WHI
 
 
-partial.R2(lm7_WHI[[67]],lm8_WHI[[67]]) #4.7
+partial.R2(lm7_WHI[[63]],lm8_WHI[[63]]) #0.8%
 
 partial_r2_WHI<-lapply(1:length(PGS2_WHI), function(X) partial.R2(lm7_WHI[[X]], lm8_WHI[[X]])) 
 names(partial_r2_WHI)<- names(PGS2_WHI)
 
-summary(unlist(partial_r2_WHI)) ##min 2.27, max 5.6%
+summary(unlist(partial_r2_WHI)) ##min 0.6, max 2.4%
 
-which.max(unlist(partial_r2_WHI)) #77, or LD_100000_0.01_0.5. Excluding the LD ones, it's 68, phys_5000_0.0005
+which.max(unlist(partial_r2_WHI)) #76, or LD_. Excluding the LD ones, it's
 
 Nr_SNPs<-rep(NA, length(PGS2_WHI))
 names(Nr_SNPs)<- names(PGS2_WHI)
@@ -87,8 +92,8 @@ for(I in names(Nr_SNPs)){
 data.table(Nr=unlist(Nr_SNPs), Name=names(Nr_SNPs), Part_R2=unlist(partial_r2_WHI))-> A_table
 saveRDS(A_table, file='~/height_prediction/sib_betas/WHI/output/Nr_SNPs_WHI.Rds')
 
-cor(A_table$Part_R2, A_table$Nr) #0.89
-summary(lm(Part_R2~Nr,data=A_table))$r.squared #0.79
+cor(A_table$Part_R2, A_table$Nr) #0.5277036484
+summary(lm(Part_R2~Nr,data=A_table))$r.squared # 0.28
 #
 
 ###########################
@@ -198,3 +203,4 @@ for (I in names(PGS3_WHI)){
 }
 
 saveRDS(B_WHI, file="~/height_prediction/sib_betas/WHI/output/B_WHI.Rds")
+txtStop()

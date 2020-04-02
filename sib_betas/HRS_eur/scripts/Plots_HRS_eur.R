@@ -10,7 +10,9 @@ library(tidyr)
 library(hexbin)
 library(psychometric)
 library(boot)
+library(TeachingDemos)
 
+txtStart(paste0("~/height_prediction/sib_betas/HRS_eur/plots_out.txt"))
 #read in PGS scores
 readRDS('~/height_prediction/sib_betas/HRS_eur/output/PGS_HRS_eur.Rds')-> PGS_HRS_eur
 #read in phenotype data
@@ -38,7 +40,15 @@ for (I in names(PGS_HRS_eur)){
 	PGS2_HRS_eur[[I]][,HEIGHT:=HEIGHT*100]
 	#PGS2_UKB_eur[[I]][EUR_ANC>=0.05]->PGS2_UKB_eur[[I]]
 	PGS2_HRS_eur[[I]]$SEX<-as.factor(PGS2_HRS_eur[[I]]$SEX)
-        #PGS2_HRS_eur[[I]][-which(is.na(PGS2_HRS_eur[[I]][,HEIGHT])),]-> PGS2_HRS_eur[[I]]
+        dt_f<-PGS2_HRS_eur[[I]][SEX==2]
+        dt_m<-PGS2_HRS_eur[[I]][SEX==1]
+        sd1_f<-sd(dt_f$HEIGHT)
+        m1_f<-mean(dt_f$HEIGHT)
+        sd1_m<-sd(dt_m$HEIGHT)
+        m1_m<-mean(dt_m$HEIGHT)
+        dt_f<-dt_f[HEIGHT>=m1_f-(2*sd1_f)]
+        dt_m<-dt_m[HEIGHT>=m1_m-(2*sd1_m)]
+        PGS2_HRS_eur[[I]]<-rbind(dt_f, dt_m)
 }
 
 lapply(PGS2_HRS_eur, function(X) lm(HEIGHT~SEX, X))-> lm1_HRS_eur
@@ -219,4 +229,4 @@ A_table$Method[which(is.na(A_table$Method))]<-"LD"
 ggplot(A_table, aes(x=Nr, y=Part_R2, colour=Method, group=Window)) + geom_point(size=2) + geom_line()+ geom_text(A_table[Name=='phys_100000_0.0005'], aes(label=Name)) +
 theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15),  axis.text.x=element_text(size=9), axis.text.y=element_text(size=9))
 ggsave('~/height_prediction/sib_betas/HRS_eur/figs/ashg_like.png')
-
+txtStop()

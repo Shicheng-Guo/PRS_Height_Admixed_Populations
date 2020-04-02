@@ -150,6 +150,9 @@ for (I in names(PGS2_HRS_afr)){
         PGS2_HRS_afr[[I]][,AGE2:=AGE^2]
 	PGS2_HRS_afr[[I]][,HEIGHT:=HEIGHT*100]
 	PGS2_HRS_afr[[I]][which(!is.na(PGS2_HRS_afr[[I]][,HEIGHT])),]-> PGS2_HRS_afr[[I]]
+	sd1<-sd(PGS2_HRS_afr[[I]]$HEIGHT)
+        m1<-mean(PGS2_HRS_afr[[I]]$HEIGHT)
+        PGS2_HRS_afr[[I]]<-PGS2_HRS_afr[[I]][HEIGHT>=m1-(2*sd1)]
 }
 
 #run linear models

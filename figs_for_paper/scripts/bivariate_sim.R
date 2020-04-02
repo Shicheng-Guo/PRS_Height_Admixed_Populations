@@ -196,10 +196,10 @@ return(OR)
 }
 
 x.vals <- seq(0.01,0.5, l=50)
-rho143 <- sapply(x.vals, expected.or, sqrt(0.143))
+rho156 <- sapply(x.vals, expected.or, sqrt(0.156))
 rho037 <- sapply(x.vals, expected.or, sqrt(0.036))
 rho041 <- sapply(x.vals, expected.or, sqrt(0.041))
-rho028 <- sapply(x.vals, expected.or, sqrt(0.028))
+rho031 <- sapply(x.vals, expected.or, sqrt(0.031))
 
 
 my_col<-wes_palette("Darjeeling1",4)
@@ -213,7 +213,7 @@ my_col<-wes_palette("Darjeeling1",4)
 #legend("topleft", c(expression(paste(R^2, "=0.12",sep="")), expression(paste(R^2,"=0.041", sep="")), expression(paste(R^2,"=0.036", sep="")), expression(paste(R^2,"=0.034", sep=""))), col=my_col, bty="n", lty=1, lwd=2)
 #dev.off()
 
-data.table(Name=c(rep("Rho_14.3",50), rep("Rho_3.7",50), rep("Rho_4.1",50) , rep("Rho_2.8", 50)), Bivariate_OR=c(rho143,rho037, rho041, rho028), Quantile=rep(1-x.vals,4))-> dt
+data.table(Name=c(rep("Rho_15.6",50), rep("Rho_3.7",50), rep("Rho_4.1",50) , rep("Rho_3.1", 50)), Bivariate_OR=c(rho156,rho037, rho041, rho031), Quantile=rep(1-x.vals,4))-> dt
 
 plotF<-ggplot(dt, aes(x=Quantile, y=Bivariate_OR, colour=Name)) + geom_line() +
 labs(title="Expectation", y="Expected OR") +  geom_hline(yintercept=1, linetype="dashed", color = "orange") +
