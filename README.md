@@ -54,7 +54,7 @@ done
 
 *Prune/clump using different methods* 
 ```
-for D in JHS WHI pennBB_afr pennBB_eur ukb_afr ukb_eur HRS_eur HRS_afr;
+for D in JHS WHI ukb_afr ukb_eur HRS_eur HRS_afr;
 do
 ~/height_prediction/scripts/LD_prun.bash sib_betas $D
 ~/height_prediction/scripts/LD_prun.bash gwas $D
@@ -64,7 +64,7 @@ done
 *Combine these 80 sets*
 
 ```
-for D in JHS WHI pennBB_afr pennBB_eur ukb_afr ukb_eur HRS_eur HRS_afr;
+for D in JHS WHI ukb_afr ukb_eur HRS_eur HRS_afr;
 do
 ~/height_prediction/scripts/combine_Rds_v2.sh sib_betas $D
 ~/height_prediction/scripts/combine_Rds_v2.sh gwas $D
