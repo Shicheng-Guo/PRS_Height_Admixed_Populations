@@ -1,32 +1,24 @@
 ############################################
 # A function to calculate polygenic scores##
 ############################################
-
-#Input data: 
-#1.a set of SNPs and their beta scores and p-values (and CHR, POS, perhaps)
-#2.a population name (from the Phase 3 1000 Genomes Project)
-#3.a method to calculate PGS.
-#4. VCF file from 1000G
-
-##Note:
-#1. For now I am using the set of 697 SNPs defined based on p<5*10^-8 in the Wood et al (2014) paper. This set has already been LD-prunned in that paper. In the future, we may incorporate prunning methods here. Or, most likely, integration with LDpred or PLINK within this R function.
-#2. Let's start with one of European ancestry, because the Wood et. al height GWAS was done in populations of European ancestry.
-#3. For now I will use the only one I know how to implement (unsure if there are others or if differences rely on prunning -yes/no, clumping/prunning- and p-value thresholds only). 
-#4. In this case we already have the vcf but we could add an option where vcf file from 1000G is read in, but that's too much memory so I filtered beforehand.
-
-#************
 #NOTE: WHI data and ubnphased genotypes
 home="~/height_prediction/"
 PolScore2<- function(panel='sib_betas', panel2='WHI', tag='phys_100000_0.0005', CHR=22){
 	#readRDS(paste0(home, panel, "/", panel2,  '/output/hei_', tag, '_v2.Rds'))-> hei
         hei[[CHR]]-> hei2	
-	if(panel=='sib_betas'){
+	if(panel=='sib_betas' & tag %in% c("LD_250000_0.01_0.5","LD_100000_0.01_0.5", "LD_50000_0.01_0.5")){
         	samps<-colnames(hei2)[9:(ncol(hei2)-6)]
-		} else if (panel=='gwas'){
+		hei2[ALT==A1]-> temp1
+        	hei2[REF==A1]-> temp2
+		} else if (panel=='sib_betas'){
+		samps<-colnames(hei2)[9:(ncol(hei2)-7)]
+                hei2[ALT==Allele1]-> temp1
+                hei2[REF==Allele1]-> temp2 #im ignoring the other two rows for now
+                } else if (panel=='gwas'){
 	        samps<-colnames(hei2)[9:(ncol(hei2)-7)] 
-	}
-        hei2[ALT==Allele1]-> temp1
-        hei2[REF==Allele1]-> temp2 #im ignoring the other two rows for now
+        	hei2[ALT==Allele1]-> temp1
+        	hei2[REF==Allele1]-> temp2 #im ignoring the other two rows for now
+		}
         vector('list', length(samps))-> temp_list
         names(temp_list)<-samps
 	cat('Number of samples is', length(samps), '\n')

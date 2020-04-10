@@ -6,7 +6,7 @@ do
 Rscript --vanilla ~/height_prediction/scripts/make_vcf.R temp sib_betas $D
 done
 ``
-*Prune using different methods* #[ongoing]
+*Prune using different methods* 
 ```
 *Prune
 

@@ -70,6 +70,6 @@ geom_line(size=1.2) +
 coord_cartesian(xlim=c(0,0.5), ylim=c(0.5, 1.5)) +
 scale_color_manual(values=c("darkseagreen4", "darkslateblue", "deeppink4", "gray7")) +
 #geom_hline(yintercept=1) +
-theme(strip.text.x = element_text(size=12), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.title.y = element_text(size = 18), axis.title.x=element_text(size=18),axis.text.x=element_text(size=14, angle=45), axis.text.y=element_text(size=14), legend.key=element_blank(), legend.background=element_blank(),legend.title=element_blank(), legend.text=element_text(size=18)) + labs(x=expression(alpha), y=expression(Partial~R^2~fold))
+theme(strip.text.x = element_text(size=12), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.title.y = element_text(size = 18), axis.title.x=element_text(size=18),axis.text.x=element_text(size=14, angle=45), axis.text.y=element_text(size=14), legend.key=element_blank(), legend.background=element_blank(),legend.title=element_blank(), legend.text=element_text(size=18)) + labs(x=expression(alpha), y=expression(Partial~R^2~relative~change))
 dev.off()
 

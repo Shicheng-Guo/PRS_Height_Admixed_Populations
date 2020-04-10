@@ -24,7 +24,7 @@ if(args[1]=='sib_betas'){
         ukb_height_sib[,POS:=as.integer(POS)]
         ukb_height_sib[order(CHR,POS)]-> ukb_height_sib
         fread(paste0('zcat ', home,"gwas/input/50_raw_filtered.txt.gz"))-> ukb_height #read in GWAS summary statistics for height from the Uk Biobank
-        ukb_height[,c("CHR", "POS","Allele2","Allele1") := tstrsplit(variant, ":", fixed=TRUE)][,variant:=NULL]  #fix columns. In the UKB, variants are listed as CHR:POS: REF:ALT, where ALT is the effect allele. So, in order to be compatilble with my scripts (where allele 1 is effect all
+        ukb_height[,c("CHR", "POS","Allele2","Allele1") := tstrsplit(variant, ":", fixed=TRUE)] #fix columns. In the UKB, variants are listed as CHR:POS: REF:ALT, where ALT is the effect allele. So, in order to be compatilble with my scripts (where allele 1 is effect all
 	na.omit(ukb_height)-> ukb_height
 	ukb_height[CHR %in% 1:22]-> ukb_height
 	gc()
@@ -37,7 +37,7 @@ if(args[1]=='sib_betas'){
 	setkey(ukb_height,CHR, POS)
 	setkey(ukb_height_sib,CHR, POS)
         ukb_height[ukb_height_sib, nomatch=0][,.(Allele1,Allele2,beta, SE, p, N, CHR, POS)][, b:=beta][,beta:=NULL]-> ukb_height_sib
-	ukb_height_sib[!(POS %in% ukb_height[which(duplicated(ukb_height_sib, by='POS')), POS])]-> ukb_height
+	ukb_height_sib[!(POS %in% ukb_height_sib[which(duplicated(ukb_height_sib, by='POS')), POS])]-> ukb_height
 } else if (args[1]=='gwas'){
       	fread(paste0('zcat ', home,"gwas/input/50_raw_filtered.txt.gz"))-> ukb_height #read in GWAS summary statistics for height from the Uk Biobank
         ukb_height[,c("CHR", "POS","Allele2","Allele1") := tstrsplit(variant, ":", fixed=TRUE)][,variant:=NULL]  #fix columns. In the UKB, variants are listed as CHR:POS: REF:ALT, where ALT is the effect allele. So, in order to be compatilble with my scripts (where allele 1 is effect all

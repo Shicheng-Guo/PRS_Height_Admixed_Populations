@@ -34,7 +34,7 @@ LD_prun<-function(W=NULL,p_thresh=NULL, dis=opt$method, CHR=opt$chromosome, r2=N
 		setwd(paste0(parentdir, opt$dataset1, "/", opt$dataset2, "/plink2/output/"))
 #run PLINK with these parameters #TO DO TO DO TO DO TO DO TO DO TO DO TO DO TO DO
 		if(dataset1=='sib_betas'){
-		a.str<- paste(paste0("plink \\", "--noweb \\", "--bfile chr", CHR, " \\",  "--clump ~/height_prediction/sib_betas/input/sib_beta_gwas_p.txt \\", paste0("--clump-p1 ", p_thresh, " \\"), paste0("--clump-r2 ", r2, " \\"),  paste0("--clump-kb ", W/1000," \\"), paste0("--out giant_out_clump_p1_", p_thresh, "_r2_", r2, "_kb_", W/1000, "_chr_", CHR), sep="\n"))
+		a.str<- paste(paste0("plink \\", "--noweb \\", "--bfile chr", CHR, " \\",  "--clump betas_for_plink.txt \\", paste0("--clump-p1 ", p_thresh, " \\"), paste0("--clump-r2 ", r2, " \\"),  paste0("--clump-kb ", W/1000," \\"), paste0("--out giant_out_clump_p1_", p_thresh, "_r2_", r2, "_kb_", W/1000, "_chr_", CHR), sep="\n"))
 		} else if (dataset1=='gwas'){
 		a.str<- paste(paste0("plink \\", "--noweb \\", "--bfile chr", CHR, " \\",  "--clump betas_for_plink.txt \\", paste0("--clump-p1 ", p_thresh, " \\"), paste0("--clump-r2 ", r2, " \\"),  paste0("--clump-kb ", W/1000," \\"), paste0("--out giant_out_clump_p1_", p_thresh, "_r2_", r2, "_kb_", W/1000, "_chr_", CHR), sep="\n"))
 		}

@@ -10,8 +10,10 @@ do
 ~/height_prediction/unweighted_prs/calc_PGS.sh gwas $D
 done
 #combine
-for D in JHS WHI ukb_afr ukb_eur HRS_eur HRS_afr;
-do
+for D in JHS WHI ukb_afr ukb_eur HRS_afr HRS_eur; 
+do 
+rm ~/height_prediction/unweighted_prs/${D}/test2.txt; 
+rm ~/height_prediction/unweighted_prs/${D}/run_this_PGS.sh;
 ~/height_prediction/unweighted_prs/combine_Rds_PGS.sh unweighted_prs $D
 done
 ```

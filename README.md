@@ -126,7 +126,7 @@ Rscript --vanilla ~/height_prediction/unweighted_prs/HRS_eur/scripts/Plots_HRS_e
 ```
 
 
-*Combine datasets into Fig 1, Fig S6, Fig S7*
+*Combine datasets into Fig 1, Fig S7, Fig 5*
 
 These scripts will produce plots for each pruning/clumping strategy. Throughout the paper we show the one called "phys_100000_0.0005":
 

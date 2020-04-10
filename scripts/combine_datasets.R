@@ -102,12 +102,13 @@ for(I in names(B_JHS)){
 	} else{
 	ggsave(paste0('~/height_prediction/figs/error_bars_all_v3_', I, '.png'))
 	}
+	cat(I, 'done\n')
 }
 
 a<-data.table(Name=names(B_JHS), Intercept=unlist(lapply(1:80, function(I) coef(lm(R_sq~Med_Eur_Anc, weights= W, data=ALL2[[I]]))[[1]])), Slope=unlist(lapply(1:80, function(I) coef(lm(R_sq~Med_Eur_Anc, weights= W, data=ALL2[[I]]))[[2]])), R_sq=unlist(lapply(1:80, function(I) summary(lm(R_sq~Med_Eur_Anc, weights= W, data=ALL2[[I]]))[9])), P=unlist(lapply(1:80, function(I) summary(lm(R_sq~Med_Eur_Anc, weights= W, data=ALL2[[I]]))$coefficients[8])))
 a[Name=='phys_100000_0.0005']
 
-#fwrite(a, file=paste0("~/height_prediction/figs_for_paper/figs/SM_Table1_", args[1], ".txt", sep=","))
+fwrite(a, file=paste0("~/height_prediction/figs_for_paper/figs/SM_Table1_", args[1], ".txt", sep=","))
 ALL2b<-vector('list', length(names(B_JHS)))
 #add ancestry
 names(ALL2b)<-names(B_JHS)
@@ -136,6 +137,7 @@ for(I in names(B_JHS)){
 	} else{
         ggsave(paste0('~/height_prediction/figs/error_bars_all_v3b_', I, '.png'))
 	}
+	cat(I, 'done\n')
 }
 
 for(I in names(B_JHS)){
@@ -160,11 +162,11 @@ for(I in names(B_JHS)){
 	} else{
         ggsave(paste0('~/height_prediction/figs/error_bars_all_v4_', I, '.png'))
 	}
+	cat(I, 'done\n')
 }
 #
 lm(ALL2[[63]]$R_sq ~ ALL2[[63]]$Med_Eur_Anc, weights=ALL2[[63]]$W)
 summary(lm( ALL2[[63]]$R_sq ~ ALL2[[63]]$Med_Eur_Anc, weights=ALL2[[63]]$W)) #p-value: 0.006, adj-r2=0.466 for sibs;0.0000001534, adj-r2=0.92 for gwas
-txtStop()
 #stop here 04/09/2019
 ALL3<-vector('list', length(names(B_JHS)))
 names(ALL3)<- names(B_JHS)
@@ -195,8 +197,8 @@ for (I in names(B_JHS)){
 	ALL3[[I]][, Nr_SNPs_HRS_afr:=f]
 	cat(I, ' \n')
 }
-if(args[1]=='gwas'){
-do.call(rbind,ALL3)[,.(Set,Intercept,Slope_Intercept, Slope, Nr_SNPs_WHI, Nr_SNPs_UKB, R_sq, Med_Eur_Anc)]->ALL4
+#if(args[1]=='gwas'){
+do.call(rbind,ALL3)[,.(Quant,Set,Intercept,Slope_Intercept, Slope, Nr_SNPs_WHI, Nr_SNPs_HRS_eur, R_sq, Med_Eur_Anc)]->ALL4
 #add nr of snps
 
 ALL4[grep("phys",  ALL4$Set),][,.(Set,Intercept,Slope_Intercept)]->dt_phys
@@ -238,7 +240,7 @@ ggsave('~/height_prediction/figs/reg_rsq_eur_anc_phys.png')
 
 #plot as function of Nr_SNPs
 
-data.table(Set=unique(ALL4$Set), Nr_SNPs=unique(ALL4$Nr_SNPs_UKB))->A1
+data.table(Set=unique(ALL4$Set), Nr_SNPs=unique(ALL4$Nr_SNPs_HRS_eur))->A1
 
 ALL4[grep("phys",  ALL4$Set),][,.(Set,Intercept,Slope, Slope_Intercept, R_sq, Med_Eur_Anc)][Med_Eur_Anc==1][, Med_Eur_Anc:=NULL]->dt_phys
 ALL4[grep("genet", ALL4$Set),][,.(Set,Intercept,Slope,Slope_Intercept, R_sq, Med_Eur_Anc)][Med_Eur_Anc==1][, Med_Eur_Anc:=NULL]->dt_genet
@@ -271,11 +273,9 @@ dt_phys[, c("method", "window","p") := tstrsplit(Set, "_")]
 as.factor(dt_phys$window)-> dt_phys$window
 factor(dt_phys$window, levels(dt_phys$window)[c(3,7,2,8,6,4,1,5)])-> dt_phys$window
 
-
 setkey(A1, Set)
 setkey(dt_phys, Set)
 dt_phys[A1,nomatch=0]-> dt_phys
-
 
 melt(dt_genet)->dt_genet
 dt_genet[, c("method", "window","p") := tstrsplit(Set, "_")]
@@ -323,13 +323,8 @@ cat('STOP HERE STOP HERE\n')
 ggplot() + geom_point(data=dt,aes(x=Nr_SNPs, y=value, colour=method, shape=p), size=1.2, alpha = 0.7) + theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15), axis.text.x=element_text(size=12), axis.text.y=element_text(size=12), legend.text=element_text(size=12)) + facet_wrap(~variable, nrow=2, scales='free_y')
 ggsave('~/height_prediction/figs/test.png')
 
-
-ggplot() + geom_point(data=dt[variable=='R_sq'], ,aes(x=Nr_SNPs, y=value, colour=method, shape=p), size=1.2, alpha = 0.7) + theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15), axis.text.x=element_text(size=12), axis.text.y=element_text(size=12)) 
-ggsave('~/height_prediction/figs/testb.png')
-
 ggplot(dt, aes(x=Nr_SNPs, y=value, colour=method, shape=p)) + geom_point(size=1.2, alpha = 0.7) + scale_shape_manual(values=c(16,3,15,0,17,12)) + geom_line(alpha=0.4) + theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15), axis.text.x=element_text(size=12), axis.text.y=element_text(size=12), legend.text=element_text(size=12)) +  facet_wrap(~variable, nrow=2, scales='free_y')
 ggsave('~/height_prediction/figs/test2.png')
-
 
 ggplot(dt[variable=='R_sq'], aes(x=Nr_SNPs, y=value, colour=method, shape=p)) + geom_point(size=1.2, alpha = 0.7) + scale_shape_manual(values=c(16,3,15,0,17,12)) + geom_line(alpha=0.4) + theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15), axis.text.x=element_text(size=12), axis.text.y=element_text(size=12), legend.text=element_text(size=12))
 ggsave('~/height_prediction/figs/test2b.png')
@@ -571,7 +566,6 @@ for(I in names(AA)){
         names(WOW[[I]][['JHS_afr']][['0.95perc']])<-c(levels(g$Quantile), 'all');names(WOW[[I]][['JHS_afr']][['0.975perc']])<-c(levels(g$Quantile), 'all');names(WOW[[I]][['JHS_afr']][['0.85perc']])<-c(levels(g$Quantile), 'all'); names(WOW[[I]][['JHS_afr']][['0.8perc']])<-c(levels(g$Quantile), 'all')
 	cat(I);cat('\n')
 }
-	
 
 WOW2<-vector('list', length(B_WHI));test2<-vector('list', length(B_WHI))
 names(WOW2)<-names(B_WHI);names(test2)<-names(B_WHI)
@@ -777,9 +771,10 @@ geom_point(size=2) + labs( y="log(OR)", x="European Ancestry Proportion") + geom
 print(one)
 dev.off()
 
-png(paste0('~/height_prediction/figs/OR_test_', names(AA)[63], '.png'))
+png(paste0('~/height_prediction/figs_for_paper/figs/Fig_S8.png'), res=300, unit="in", height=8, width=7)
 two<-ggplot(OR_table[[63]], aes(x=EUR_ANC, y=OR,colour=Alpha)) +
-geom_point(size=2) + labs(y="OR", x="European Ancestry Proportion") + geom_hline(yintercept=1, linetype="dashed", color = "orange") + stat_smooth(method = "lm", se=F, aes(group=Alpha)) + theme(legend.text=element_text(size=12)) + scale_colour_manual(values=colors)
+geom_point(size=2) + labs(y="OR", x="European Ancestry Proportion") + geom_hline(yintercept=1, linetype="dashed", color = "orange") + stat_smooth(method = "lm", se=F, aes(group=Alpha)) + theme(legend.key=element_blank(),legend.background=element_blank(),legend.title=element_blank(), legend.text=element_text(size=12),panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black")) + 
+scale_colour_manual(values=colors)
 print(two)
 dev.off()
 
@@ -796,6 +791,7 @@ combo[[63]]-> tmp
 melt(tmp[,.(PGS, Std.PRS, HEIGHTX, Res.Height, Dataset)])-> me
 ggplot(me, aes(x=value, group=Dataset, color=Dataset))+ geom_density() + facet_wrap(~variable, nrow=4, scales='free') + 
 theme(axis.title.y = element_text(size = 15), axis.title.x=element_text(size=15),  axis.text.x=element_text(size=12), axis.text.y=element_text(size=12), legend.text=element_text(size=12))
-ggsave('figs/test_density.png')
-} #end of if(args[1]=='gwas')
+ggsave('~/height_prediction/figs/test_density.png')
+#} #end of if(args[1]=='gwas')
+txtStop()
 

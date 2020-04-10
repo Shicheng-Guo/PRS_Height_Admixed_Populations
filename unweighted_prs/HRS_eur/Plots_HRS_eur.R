@@ -38,11 +38,17 @@ for (I in names(PGS_HRS_eur)){
 	PGS2_HRS_eur[[I]][, EUR_ANC:=1]
         PGS2_HRS_eur[[I]][,AGE2:=AGE^2]
 	PGS2_HRS_eur[[I]][,HEIGHT:=HEIGHT*100]
-	#PGS2_UKB_eur[[I]][EUR_ANC>=0.05]->PGS2_UKB_eur[[I]]
 	PGS2_HRS_eur[[I]]$SEX<-as.factor(PGS2_HRS_eur[[I]]$SEX)
-        #PGS2_HRS_eur[[I]][-which(is.na(PGS2_HRS_eur[[I]][,HEIGHT])),]-> PGS2_HRS_eur[[I]]
+	       dt_f<-PGS2_HRS_eur[[I]][SEX==1]
+        dt_m<-PGS2_HRS_eur[[I]][SEX==2]
+        sd1_f<-sd(dt_f$HEIGHT)
+        m1_f<-mean(dt_f$HEIGHT)
+        sd1_m<-sd(dt_m$HEIGHT)
+        m1_m<-mean(dt_m$HEIGHT)
+        dt_f<-dt_f[HEIGHT>=m1_f-(2*sd1_f)]
+        dt_m<-dt_m[HEIGHT>=m1_m-(2*sd1_m)]
+	PGS2_HRS_eur[[I]]<-rbind(dt_f, dt_m)
 }
-
 lapply(PGS2_HRS_eur, function(X) lm(HEIGHT~SEX, X))-> lm1_HRS_eur
 lapply(PGS2_HRS_eur, function(X) lm(HEIGHT~PGS, X))-> lm2_HRS_eur
 lapply(PGS2_HRS_eur, function(X) lm(HEIGHT~AGE, X))-> lm3_HRS_eur
@@ -52,7 +58,7 @@ lapply(PGS2_HRS_eur, function(X) lm(HEIGHT~PGS+AGE2, X))-> lm6_HRS_eur
 lapply(PGS2_HRS_eur, function(X) lm(HEIGHT~SEX+AGE+AGE2, X))-> lm7_HRS_eur
 lapply(PGS2_HRS_eur, function(X) lm(HEIGHT~SEX+AGE+AGE2+PGS, X))-> lm8_HRS_eur
 
-partial.R2(lm7_HRS_eur[[35]],lm8_HRS_eur[[35]]) #0.1027277
+partial.R2(lm7_HRS_eur[[35]],lm8_HRS_eur[[35]]) #
 
 partial_r2_HRS_eur<-lapply(1:length(PGS2_HRS_eur), function(X) partial.R2(lm7_HRS_eur[[X]], lm8_HRS_eur[[X]])) #min 7.9% max 14.8%
 names(partial_r2_HRS_eur)<-names(PGS2_HRS_eur)

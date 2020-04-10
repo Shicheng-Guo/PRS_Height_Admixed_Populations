@@ -78,7 +78,7 @@ lapply(PGS2_JHS, function(X) lm(HEIGHTX~sex+age+age2, X))-> lm6_JHS
 lapply(PGS2_JHS, function(X) lm(HEIGHTX~sex+age+age2+EUR_ANC, X))-> lm7_JHS
 lapply(PGS2_JHS, function(X) lm(HEIGHTX~sex+age+age2+EUR_ANC+PGS,X))-> lm8_JHS
 
-partial.R2(lm7_JHS[[35]],lm8_JHS[[35]])  #0.04239851
+partial.R2(lm7_JHS[[35]],lm8_JHS[[35]])  
 
 partial_r2_JHS<-lapply(1:length(PGS2_JHS), function(X) partial.R2(lm7_JHS[[X]], lm8_JHS[[X]])) 
 names(partial_r2_JHS)<- names(PGS2_JHS)
@@ -207,7 +207,7 @@ for (I in names(PGS3_JHS)){
         geom_errorbarh(aes(x=Med_Eur_Anc, xmin=HVB_L, xmax=HVB_U), width=0.05, size=0.5, color="cornflowerblue") +
         labs(title = "JHS_AA") + ylab("R-squared") + xlab("European Ancestry Proportion")
         print(myp)
-        ggsave(paste0('~/height_prediction/unweighted_prs/figs/error_bars_', I, '.png'))
+        ggsave(paste0('~/height_prediction/unweighted_prs/figs/JHS_error_bars_', I, '.png'))
 }
 
 saveRDS(B_JHS, file="~/height_prediction/unweighted_prs/output/B_JHS.Rds")

@@ -40,21 +40,21 @@ ukb_height[order(CHR,POS)]-> ukb_height
 
 print('checkpoint 1')
 
-paste0('mkdir -m 777 ', parentdir, args[1], '/')-> smtg
-try(system(smtg))
-for(X in 1:22){ #generates temp files
-	system(paste0('touch ', parentdir, args[1],"/temp_chr", X, ".txt"))
-        ukb_height[CHR==X]-> a
-        setkey(a, POS)
- 	a<-a[!(POS %in% a[which(duplicated(a, by='POS')), POS])] #exclude multi-allelic positions
-	a<-a[, .(CHR,POS)][order(CHR,POS)]
-	a<-a[,V3:=paste(CHR,POS,sep="\t")]
-	fwrite(as.data.frame(a[,V3]), file=paste0(parentdir, args[1],"/temp_chr", X, ".txt"), quote=F, col.names=F, row.names=F)
-        print(X)
-}
-system(paste0(home,'scripts/master.sh ', parentdir, args[1], " ", args[3])) #generates temp2 files
+#paste0('mkdir -m 777 ', parentdir, args[1], '/')-> smtg
+#try(system(smtg))
+#for(X in 1:22){ #generates temp files
+#	system(paste0('touch ', parentdir, args[1],"/temp_chr", X, ".txt"))
+#        ukb_height[CHR==X]-> a
+#        setkey(a, POS)
+# 	a<-a[!(POS %in% a[which(duplicated(a, by='POS')), POS])] #exclude multi-allelic positions
+#	a<-a[, .(CHR,POS)][order(CHR,POS)]
+#	a<-a[,V3:=paste(CHR,POS,sep="\t")]
+#	fwrite(as.data.frame(a[,V3]), file=paste0(parentdir, args[1],"/temp_chr", X, ".txt"), quote=F, col.names=F, row.names=F)
+#        print(X)
+#}
+#system(paste0(home,'scripts/master.sh ', parentdir, args[1], " ", args[3])) #generates temp2 files
 #print('so far so good')
-system(paste0(home,'scripts/combine_temp.bash ', parentdir, " ", args[3])) #generates vcf files
+#system(paste0(home,'scripts/combine_temp.bash ', parentdir, " ", args[3])) #generates vcf files
 this<-paste0('for K in {12..22}; do bsub -M 40000 -o ', parentdir, 'logs/logthis -e ' , parentdir, 'logs/logthis Rscript --vanilla ', home, 'scripts/make_vcf_v2.R $K ', args[2], ' ' , args[3], '; done') #generates .Rds files
 system(this)
 andthis<-paste0('for K in {3..11}; do bsub -M 90240 -o ', parentdir, 'logs/logandthis -e ', parentdir, 'logs/logandthis Rscript --vanilla ', home, 'scripts/make_vcf_v2.R $K ', args[2], ' ' , args[3], '; done') #generates .Rds files

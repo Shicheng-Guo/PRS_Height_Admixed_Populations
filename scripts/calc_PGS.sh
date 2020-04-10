@@ -28,7 +28,7 @@ echo $i
 for j in 0.00000005 0.0000005 0.000005 0.00005 0.0005;
 do
 echo $j
-bsub -M 95240 -o ~/height_prediction/logs/log_${dtset1}_${dtset2}_${i}_${j}_prs  -e ~/height_prediction/logs/log_${dtset1}_${dtset2}_${i}_${j}_prs Rscript --vanilla ~/height_prediction/scripts/run_PRS.R ${dtset1} ${dtset2} phys_${i}_${j}
+bsub -M 100000 -o ~/height_prediction/logs/log_${dtset1}_${dtset2}_${i}_${j}_prs  -e ~/height_prediction/logs/log_${dtset1}_${dtset2}_${i}_${j}_prs Rscript --vanilla ~/height_prediction/scripts/run_PRS.R ${dtset1} ${dtset2} phys_${i}_${j}
 echo $j
 echo 'done'
 done

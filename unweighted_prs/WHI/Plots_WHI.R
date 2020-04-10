@@ -57,6 +57,9 @@ for (I in names(PGS2_WHI)){
         PGS2_WHI[[I]][,age2:=AGE^2]
         PGS2_WHI[[I]][AFR_ANC>=0.05]-> PGS2_WHI[[I]] #filter out individuals that are not african...
         PGS2_WHI[[I]][-which(is.na(PGS2_WHI[[I]][,HEIGHTX])),]-> PGS2_WHI[[I]]
+	m1<-mean(PGS2_WHI[[I]]$HEIGHTX)
+        sd1<-sd(PGS2_WHI[[I]]$HEIGHTX)
+        PGS2_WHI[[I]]<-PGS2_WHI[[I]][HEIGHTX>=m1-(2*sd1) & HEIGHTX<=m1+(2*sd1)]
 }
 
 lapply(PGS2_WHI, function(X) lm(HEIGHTX~PGS, X))-> lm1_WHI
@@ -69,7 +72,7 @@ lapply(PGS2_WHI, function(X) lm(HEIGHTX~AGE+age2+EUR_ANC, X))-> lm7_WHI
 lapply(PGS2_WHI, function(X) lm(HEIGHTX~AGE+age2+EUR_ANC+PGS, X))-> lm8_WHI
 
 
-partial.R2(lm7_WHI[[35]],lm8_WHI[[35]])  #3.3
+partial.R2(lm7_WHI[[35]],lm8_WHI[[35]])  
 
 partial_r2_WHI<-lapply(1:length(PGS2_WHI), function(X) partial.R2(lm7_WHI[[X]], lm8_WHI[[X]])) 
 names(partial_r2_WHI)<- names(PGS2_WHI)
@@ -195,7 +198,7 @@ for (I in names(PGS3_WHI)){
         geom_errorbarh(aes(x=Med_Eur_Anc, xmin=HVB_L, xmax=HVB_U), width=0.05, size=0.5, color="cornflowerblue") +
         labs(title = "WHI_AA") + ylab("R-squared") + xlab("European Ancestry Proportion")
         print(myp)
-        ggsave(paste0('~/height_prediction/unweighted_prs/figs/error_bars_', I, '.png'))
+        ggsave(paste0('~/height_prediction/unweighted_prs/figs/WHI_error_bars_', I, '.png'))
 }
 
 saveRDS(B_WHI, file="~/height_prediction/unweighted_prs/output/B_WHI.Rds")
