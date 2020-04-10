@@ -60,9 +60,12 @@ dt[Pheno_WHI][anc_WHI]-> final
 final2<-final[,c("SUBJID","PRS_0","AGE", "EUR_ANC", "HEIGHTX")]
 
 final2[,AGE2:=AGE^2]
-
+m1<-mean(final2$HEIGHTX, na.rm=T)
+sd1<-sd(final2$HEIGHTX, na.rm=T)
+final2<-final2[HEIGHTX>=m1-(2*sd1) & HEIGHTX<=m1+(2*sd1)]
+nrow(final2)
 #
-r2_whi_afr<-partial.R2(lm(HEIGHTX~AGE+AGE2+EUR_ANC, data=final2), lm(HEIGHTX~AGE+AGE2+EUR_ANC+PRS_0, data=final2)) # 0.93%  for unscaled or scaled
+r2_whi_afr<-partial.R2(lm(HEIGHTX~AGE+AGE2+EUR_ANC, data=final2), lm(HEIGHTX~AGE+AGE2+EUR_ANC+PRS_0, data=final2)) # 0.79%  for unscaled or scaled
  
 saveRDS(final2, paste0('~/height_prediction/loc_anc_analysis/output/all_PRS_WHI_Eur_', args[1], '.Rds'))
 all_datasets[['WHI_afr']]<-final2
@@ -199,7 +202,6 @@ results.JHS_afr[['total']] <- boot(data=all_datasets[['JHS_afr']], statistic=rsq
 boots.ci.JHS_afr<-lapply(results.JHS_afr, function(X) boot.ci(X, type = c("norm", 'basic', "perc")))
 names(boots.ci.JHS_afr)<-names(results.JHS_afr)
 
-
 B_JHS_afr[1:2,]-> a
 B_JHS_afr[3,]-> b
 a[,HVB_L:=sapply(a$Quant, function(X) as.numeric(gsub("\\]","",gsub("\\(","",gsub("\\[","",strsplit(X,",")[[1]])))))[1,]]
@@ -333,6 +335,7 @@ fread('~/height_prediction/input/HRS_afr/HRS_AFR_phenotypes.txt', fill=T)-> Phen
 
 Pheno_HRS_afr[, SUBJID:=paste0(as.character(Pheno_HRS_afr[, ID]),"_", as.character(Pheno_HRS_afr[,ID]))]
 setkey(Pheno_HRS_afr, SUBJID)
+Pheno_HRS_afr[, ":="(SEX=ifelse(SEX==1, "Male", "Female"))]
 #add ancestry
 ancestry<-do.call(rbind, lapply(1:22, function(X) fread(paste0('~/height_prediction/input/HRS_afr/rfmix_anc_chr', X, '.txt'))))
 anc_HRS_afr<-ancestry %>% dplyr::group_by(SUBJID) %>% dplyr::summarise(AFR_ANC=mean(AFR_ANC), EUR_ANC=1-mean(AFR_ANC)) %>% as.data.table #mean across chromosomes for each individual
@@ -345,11 +348,20 @@ setkey(Pheno_HRS_afr, SUBJID)
 dt[Pheno_HRS_afr][anc_HRS_afr]-> final
 final[, HEIGHTX:=HEIGHT]
 final[,AGE2:=AGE^2]
+dt_f<-final[SEX=='Female']
+dt_m<-final[SEX=='Male']
+sd1_f<-sd(dt_f$HEIGHT)
+m1_f<-mean(dt_f$HEIGHT)
+sd1_m<-sd(dt_m$HEIGHT)
+m1_m<-mean(dt_m$HEIGHT)
+dt_f<-dt_f[HEIGHT>=m1_f-(2*sd1_f)]
+dt_m<-dt_m[HEIGHT>=m1_m-(2*sd1_m)]
+final<-rbind(dt_f, dt_m)
 
 final2<-final[,c("SUBJID","PRS_0","AGE", "EUR_ANC", "HEIGHTX", 'AGE2', "SEX")]
 
 #c
-r2_hrs_afr<-partial.R2(lm(HEIGHTX~SEX+AGE+AGE2+EUR_ANC, data=final2), lm(HEIGHTX~SEX+AGE+AGE2+EUR_ANC+PRS_0, data=final2)) #1.29 %
+r2_hrs_afr<-partial.R2(lm(HEIGHTX~SEX+AGE+AGE2+EUR_ANC, data=final2), lm(HEIGHTX~SEX+AGE+AGE2+EUR_ANC+PRS_0, data=final2)) #1.37%
 saveRDS(final2, paste0('~/height_prediction/loc_anc_analysis/output/all_PRS_HRS_afr_Eur_', args[1], '.Rds'))
 all_datasets[['HRS_afr']]<-final2
 remove(final2,dt)
@@ -403,6 +415,7 @@ B_HRS_afr[, boots_perc_L:=sapply(1:3, function(X) boots.ci.HRS_afr[[X]]$perc[4])
 B_HRS_afr[, boots_perc_U:=sapply(1:3, function(X) boots.ci.HRS_afr[[X]]$perc[5])]
 B_HRS_afr[, boots_basic_L:=sapply(1:3, function(X) boots.ci.HRS_afr[[X]]$basic[4])]
 B_HRS_afr[, boots_basic_U:=sapply(1:3, function(X) boots.ci.HRS_afr[[X]]$basic[5])]
+cat('HRS_afr done\n')
 #####################################################################################
 #####################################################################################
 readRDS('~/height_prediction/gwas/HRS_eur/output/B_HRS_eur.Rds')[[63]]-> B_HRS_eur
@@ -427,4 +440,4 @@ element_blank(), legend.title=element_blank(), legend.text=element_text(size=15)
 ggsave(paste0('~/height_prediction/loc_anc_analysis/figs/r2_plot_eur_only_', args[1], '.pdf'))
 
 saveRDS(ALL2,file='~/height_prediction/loc_anc_analysis/output/eur_only.Rds')
-summary(lm(ALL2$R_sq~ALL2$Med_Eur_Anc)) #R2=0.95, Intercept--0.01 for scaled and unscaled
+summary(lm(ALL2$R_sq~ALL2$Med_Eur_Anc)) #R2=0.92, Intercept: -0.015 for scaled and unscaled

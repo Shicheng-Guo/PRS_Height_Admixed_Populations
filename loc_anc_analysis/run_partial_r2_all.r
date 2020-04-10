@@ -103,7 +103,9 @@ setkey(Pheno_WHI, SUBJID)
 dt[Pheno_WHI][anc_WHI]-> final
 final2<-select(final, cols_names, PRS_EUR, PRS_afr,AGE, EUR_ANC,HEIGHTX, SUBJID) %>% as.data.table
 final2[,AGE2:=AGE^2]
-
+m1<-mean(final2$HEIGHTX,na.rm=T)
+sd1<-sd(final2$HEIGHTX, na.rm=T)
+final2<-final2[HEIGHTX>=m1-(2*sd1) & HEIGHTX<=m1+(2*sd1)]
 #
 colnames(final2)[1:103]-> my_cols
 part_r2<-vector('list', 103)

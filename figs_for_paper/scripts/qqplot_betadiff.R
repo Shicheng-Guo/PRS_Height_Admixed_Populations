@@ -87,8 +87,8 @@ b_plot<-ggplot(test_dat)+
   theme(panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank(),
         panel.background = element_rect(colour = "black", size=3)) +
-  labs(x=bquote(log[10]~"Expected"~chi^2),
-       y=bquote(log[10]~"Observed"~chi^2))
+  labs(x=bquote("Expected"~chi^2),
+       y=bquote("Observed"~chi^2))
 
 print(b_plot)
 dev.off()
