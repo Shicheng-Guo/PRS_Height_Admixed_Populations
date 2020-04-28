@@ -17,11 +17,23 @@ use --help for detailed options. This step requires at least one genotype file (
 
 grep EUR /project/mathilab/data/1kg/20130502_phase3_final/integrated_call_samples_v3.20130502.ALL.panel |grep -v FIN|awk 'OFS="\t"{print $1, $1}' > EUR_samples.txt
 
-for chr in {1..22};
+for chr in {22..1};
 do
-plink2 --vcf /project/mathilab/data/1kg/20130502_phase3_final/ALL.chr${chr}.phase3_shapeit2_mvncall_integrated_v5.20130502.genotypes.vcf.gz --keep EUR_samples.txt --make-bed --out output/1000g_chr${chr}
+bcftools view -m2 -M2 -v snps /project/mathilab/data/1kg/20130502_phase3_final/ALL.chr${chr}.phase3_shapeit2_mvncall_integrated_v5.20130502.genotypes.vcf.gz > tmp${chr} && mv tmp${chr} output/1000g_chr${chr}.vcf && bgzip output/1000g_chr${chr}.vcf &&
+plink2 --vcf output/1000g_chr${chr}.vcf.gz  --snps-only --keep EUR_samples.txt --make-bed --out output/1000g_chr${chr}
+awk '{$2=$1"_"$4;print $0}' output/1000g_chr${chr}.bim > output/tmp && mv output/tmp output/1000g_chr${chr}.bim
 done
+
 #merge all vcfs into one
+Rscript --vanilla remove_dups.R
+
+rm output/mergelist.txt
+for i in {1..22}
+do
+echo output/1000g_chr$i >> output/mergelist.txt
+done
+
+plink --merge-list output/mergelist.txt --make-bed --out output/1000g_all
 
 #UKB_EUR
 awk '{print $2,$1,$3,$4}' /project/mathilab/data/UKB/UKB_EUR_pheno.txt > My_Pheno_UKB_eur.txt
@@ -105,6 +117,7 @@ Rscript --vanilla merge_hrs_ukb.R
 #Preprocessing the base data file:
 
 # There are 361,194 samples in the Height GWAS
+
 #UKB_EUR
 ldpred coord \
     --rs SNP \

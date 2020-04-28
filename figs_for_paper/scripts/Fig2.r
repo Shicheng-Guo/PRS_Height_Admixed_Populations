@@ -67,6 +67,7 @@ dt3<-rbind(dt2_WHI, dt2_JHS, dt2_HRS)
 png("~/height_prediction/figs_for_paper/figs/multi_prs_fold.png", unit='in', res=300, height=5, width=9)
 ggplot(dt3, aes(x=Alpha, y=value2,colour=Test))  + facet_wrap(~Dataset) +
 geom_line(size=1.2) +
+geom_hline(yintercept=1, linetype="dashed", color = "darkgray")+
 coord_cartesian(xlim=c(0,0.5), ylim=c(0.5, 1.5)) +
 scale_color_manual(values=c("darkseagreen4", "darkslateblue", "deeppink4", "gray7")) +
 #geom_hline(yintercept=1) +

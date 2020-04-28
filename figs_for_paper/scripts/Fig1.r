@@ -44,10 +44,10 @@ my_colrs<-c(brewer.pal(4, 'Set1'),"#101010")
 
 
 A_plot<-ggplot(ALL, aes(x=Med_Eur_Anc, y=R_sq,colour=Dataset)) +
-	geom_point(aes(shape=Dataset), size=1.5, fill="white", alpha=0.8) + stat_smooth(data=ALL,method = "lm", mapping = aes(weight = W), col='black') +
+	geom_point(aes(shape=Dataset), size=5, fill="white", alpha=0.8) + stat_smooth(data=ALL,method = "lm", mapping = aes(weight = W), col='darkgray', lty=2, lwd=1) +
         geom_errorbar(aes(x=Med_Eur_Anc, group=Dataset, colour=Dataset,ymin=boots_perc_L, ymax=boots_perc_U), width=0.05, size=0.8) +
         #geom_line(color='lightgray')+
-        geom_errorbarh(aes(x=Med_Eur_Anc, group=Dataset, colour=Dataset, xmin=HVB_L, xmax=HVB_U), width=0.05, size=0.5) +
+#        geom_errorbarh(aes(x=Med_Eur_Anc, group=Dataset, colour=Dataset, xmin=HVB_L, xmax=HVB_U), width=0.05, size=0.5) +
         scale_color_manual(values=my_colrs) + coord_cartesian(ylim = c(-0.01, 0.16)) +
         ylab(expression(paste("Partial R"^"2"))) + xlab("European Ancestry Proportion") +
         theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.title.y = element_text(size = 18), axis.title.x=element_text(size=18),axis.text.x=element_text(size=15), 
@@ -60,16 +60,21 @@ ALL2<-readRDS('~/height_prediction/loc_anc_analysis/output/eur_only.Rds')
 
 
 B_plot<-ggplot(ALL2, aes(x=Med_Eur_Anc, y=R_sq,colour=Dataset)) +
-        geom_point(aes(shape=Dataset), size=1.5, fill="white", alpha=0.8) + stat_smooth(data=ALL2,method = "lm", mapping = aes(weight = W), col='black') +
+        geom_point(aes(shape=Dataset), size=5, fill="white", alpha=0.8) + stat_smooth(data=ALL2[Dataset!="HRS_eur"],method = "lm", mapping = aes(weight = W), col='darkgray', lty=2, lwd=1, fullrange=T) +
         geom_errorbar(aes(x=Med_Eur_Anc, group=Dataset, colour=Dataset,ymin=boots_perc_L, ymax=boots_perc_U), width=0.05, size=0.8) +
         #geom_line(color='lightgray')+
-        geom_errorbarh(aes(x=Med_Eur_Anc, group=Dataset, colour=Dataset, xmin=HVB_L, xmax=HVB_U), width=0.05, size=0.5) +
+        #geom_errorbarh(aes(x=Med_Eur_Anc, group=Dataset, colour=Dataset, xmin=HVB_L, xmax=HVB_U), width=0.05, size=0.5) +
         scale_color_manual(values=my_colrs) + coord_cartesian(ylim = c(-0.01, 0.16)) + 
         ylab(expression(paste("Partial R"^"2"))) + xlab("European Ancestry Proportion") +
         theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.title.y = element_text(size = 18), axis.title.x=element_text(size=18),axis.text.x=element_text(size=15),
         axis.text.y=element_text(size=15), legend.key=element_blank(), legend.background=element_blank(), legend.title=element_blank(), legend.text=element_text(size=15),legend.position = c(0.25,0.85))
         print(B_plot)
 
-png('~/height_prediction/figs_for_paper/figs/Fig1.png', res=300, unit="in", height=8, width=12)
+png('~/height_prediction/figs_for_paper/figs/Fig1_v1.png', res=300, unit="in", height=8, width=12)
 plot_grid(A_plot, B_plot, nrow=1, labels=c('A', 'B'))
 dev.off()
+
+png('~/height_prediction/figs_for_paper/figs/Fig1_v2.png', res=300, unit="in", height=12, width=8)
+plot_grid(A_plot, B_plot, nrow=2, labels=c('A', 'B'))
+dev.off()
+
