@@ -5,10 +5,14 @@ library(dplyr)
 ##read in a pruned set of SNPs and retain CHR and POS and write it into a file
 library(TeachingDemos)
 txtStart(paste0("~/height_prediction/figs_for_paper/gen_phen_varianct.txt"))
-dtsets<-vector("list", 6)
-names(dtsets)<-c("WHI","JHS", "ukb_afr", "HRS_afr", "ukb_eur", "HRS_eur")
+#dtsets<-vector("list", 6)
+dtsets<-vector("list", 4)
 
-for(I in names(dtsets)[c(1,6)]){
+#names(dtsets)<-c("WHI","JHS", "ukb_afr", "HRS_afr", "ukb_eur", "HRS_eur")
+
+names(dtsets)<-c("ukb_afr", "HRS_afr", "ukb_eur", "HRS_eur")
+
+for(I in names(dtsets)){
 	readRDS(paste0('~/height_prediction/gwas/', I, '/output/hei_phys_100000_0.0005_v2.Rds'))-> betas
 	betas<-lapply(betas, function(X) X[,.(CHR,POS, MarkerName, REF, ALT, Allele1, Allele2, b, SE, p, N)])
 	betas<-do.call(rbind, betas)

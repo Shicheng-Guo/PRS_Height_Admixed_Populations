@@ -36,4 +36,12 @@ done
 
 Rscript --vanilla scripts/pheno_pred.R
 Rscript --vanilla scripts/pheno_pred_UKB.R
+
+
+#headers
+
+gunzip -c ~/height_prediction/imputed/output/HRS_afr_100000_0.0005_chr_22.vcf.gz|head -7 > ~/height_prediction/imputed/header_HRS_afr.txt
+gunzip -c ~/height_prediction/imputed/output/HRS_eur_100000_0.0005_chr_22.vcf.gz|head -7 > ~/height_prediction/imputed/header_HRS_eur.txt
+gunzip -c ~/height_prediction/imputed/output/UKB_afr_100000_0.0005_chr_22.vcf.gz|head -7 > ~/height_prediction/imputed/header_UKB_afr.txt
+gunzip -c ~/height_prediction/imputed/output/UKB_eur_100000_0.0005_chr_22.vcf.gz|head -7 > ~/height_prediction/imputed/header_UKB_eur.txt
 ```

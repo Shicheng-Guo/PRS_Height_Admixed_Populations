@@ -117,11 +117,10 @@ plot1<-ggplot(df, aes(x=Quantile, y=R2, colour=Dataset)) +
 geom_point(position=pd) +
 geom_errorbar(aes(ymin=Perc_L, ymax=Perc_U), position = pd) +
 facet_wrap(. ~Set, scales='free_y') + 
-labs(y=expression(paste("Partial R"^"2")), x="Recombination Distance (cM)")+  
+labs(y=expression(paste("Partial R"^"2")), x="Recombination Rate (cm/20Kb)")+  
 scale_colour_manual(values=c(brewer.pal(4, 'Set1'),"#101010")) +
 theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"),legend.title=element_blank(), axis.title.y = element_text(size = 18), axis.title.x=element_text(size=18),axis.text.x=element_text(size=15), axis.text.y=element_text(size=15),legend.text=element_text(size=13),legend.position = "bottom", strip.text.x = element_text(size = 16)) + 
-scale_x_discrete(labels=c("Low", expression(symbol('\256')), expression(symbol('\256')), "High"))
-
+scale_x_discrete(labels=c("[0-0.001]", "(0.001-0.004]", "(0.004-0.2]", "(0.2-0.8]"))
 #print(plot1)
 #ggsave(paste0('~/height_prediction/strat_prs/figs/v2_barplot_AA_', dtset,'.pdf'))
 
@@ -136,9 +135,9 @@ plot2<-ggplot(df2, aes(x=Quantile, y=R2, colour=Dataset)) +
 geom_point(position=pd) +
 geom_errorbar(aes(ymin=Perc_L, ymax=Perc_U), position = pd) +
 #faet_grid(. ~Map) +
-labs(y=expression(paste("Partial R"^"2")),x="Recombination Rate") +
+labs(y=expression(paste("Partial R"^"2")),x="Recombination Rate (cM/20kb)") +
 scale_colour_manual(values=c(brewer.pal(4, 'Set1'),"#101010")) +
-theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), legend.position = "right", legend.direction='vertical', legend.title=element_blank(), axis.title.y = element_text(size = 18), axis.title.x=element_text(size=18),axis.text.x=element_text(size=15), axis.text.y=element_text(size=15), legend.text=element_text(size=10)) + scale_x_discrete(labels=c("Low", expression(symbol('\256')), expression(symbol('\256')), "High"))
+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), legend.position = "right", legend.direction='vertical', legend.title=element_blank(), axis.title.y = element_text(size = 18), axis.title.x=element_text(size=18),axis.text.x=element_text(size=15), axis.text.y=element_text(size=15), legend.text=element_text(size=10)) + scale_x_discrete(labels=c("[0-0.001]", "(0.001-0.004]", "(0.004-0.2]", "(0.2-0.8]"))
 ########################
 ########################
 ########################
@@ -227,11 +226,11 @@ nrow(BETA)
 BETA<-BETA[Beta_Diff_Chisq<=15]
 nrow(BETA)
 plot3<-ggplot(BETA, aes(x=AA.rate, y=Beta_Diff_Chisq)) + 
-geom_point(cex=0.5, col='light gray') + 
-geom_smooth(method='lm', se=T, lwd=1, col="black") + 
-labs(y=expression(chi[diff]^2), x="Recombination Distance (cM)") + 
+geom_point(cex=0.5, col='black', alpha=0.6) + 
+geom_smooth(method='lm', se=T, lwd=1, col="darkgray", lty=2) + 
+labs(y=expression(chi[diff]^2), x="Recombination Rate (cM/20Kb)") + 
 geom_point(aes(x=MedianRecRate, y=MeanBetaDiffChisq, col="red"), cex=0.5) + 
-annotate("text", x=0.4, y=5, label=paste("p=", round(pval,4)), size=6) +
+annotate("text", x=0.6, y=4, label=paste("p=", round(pval,4)), size=4) +
 theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), legend.position = "none", legend.title=element_blank(), axis.title.y = element_text(size = 18), axis.title.x=element_text(size=18),axis.text.x=element_text(size=15), axis.text.y=element_text(size=15), legend.text=element_text(size=15))
 plot1a<-plot1 + guides(fill=FALSE)
 cat('CHECKPOINT\n')
@@ -258,7 +257,7 @@ lm_test<-lm(Beta_Diff_Chisq~L2, data=test)
 require(broom)
 glance(lm_test)
 pval<-glance(lm_test)$p.value
-plot4<-ggplot(test, aes(x=L2, y=Beta_Diff_Chisq)) + geom_point(cex=0.5, col='light gray') + geom_smooth(method='lm', se=T, col='black') + 
+plot4<-ggplot(test, aes(x=L2, y=Beta_Diff_Chisq)) + geom_point(cex=0.5, col='black', alpha=0.6) + geom_smooth(method='lm', se=T, col='darkgray') + 
 labs(y=expression(chi[diff]^2), x="LD Score" ) + 
 geom_point(aes(x=MedianL2, y=MeanBetaDiffChisq, col="red"), cex=0.5) + 
 annotate("text", x=270, y=5, label=paste("p=", round(pval,4)), size=4) +
@@ -268,7 +267,7 @@ png('~/height_prediction/figs_for_paper/figs/SM_10.png', res=300, unit="in", hei
 print(plot4)
 dev.off()
 
-png(paste0('~/height_prediction/figs_for_paper/figs/Fig3.png'), res=300, width=12, height=12, units="in")
+png(paste0('~/height_prediction/figs_for_paper/figs/Fig3.png'), res=300, width=14, height=12, units="in")
 plot_grid(plot1,plot_grid(c_plot,plot3,labels = c("C", "D"), nrow=1), nrow=2, labels="A", align="v")
 dev.off()
 #The End
