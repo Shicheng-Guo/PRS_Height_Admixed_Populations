@@ -11,28 +11,20 @@ for chr in {1..22};
 do
 for alpha in $(seq 0 0.01 1);
 do
-bsub -M 90000 -o ~/height_prediction/loc_anc_analysis/split_chr${chr} -e ~/height_prediction/loc_anc_analysis/split_chr${chr} Rscript --vanilla ~/height_prediction/loc_anc_analysis/run_PRS_v2.R phys_100000_0.0005 ${chr} ${alpha} scaled
-bsub -M 90000 -o ~/height_prediction/loc_anc_analysis/split_chr${chr} -e ~/height_prediction/loc_anc_analysis/split_chr${chr} Rscript --vanilla ~/height_prediction/loc_anc_analysis/run_PRS_v2.R phys_100000_0.0005 ${chr} ${alpha} unscaled
+bsub -M 90000 -o ~/height_prediction/loc_anc_analysis/split_chr${chr} Rscript --vanilla ~/height_prediction/loc_anc_analysis/run_PRS_v2.R phys_100000_0.0005 ${chr} ${alpha} scaled
+bsub -M 90000 -o ~/height_prediction/loc_anc_analysis/split_chr${chr} Rscript --vanilla ~/height_prediction/loc_anc_analysis/run_PRS_v2.R phys_100000_0.0005 ${chr} ${alpha} unscaled
 done
 done
 ```
-
-```
-#Evaluate prediction power
-run_partial_r2.r
-```
-
 
 ```
 #Run local ancestry specific PRS for each chromosome and using different alpha values: Rscript --vanilla run_PRS_v3.R <pruned_set> <chr> <alpha>
 #This version uses only SNPs in EUR ancestry blocks.
 for chr in {1..22};
 do
-bsub -M 90000 -o ~/height_prediction/loc_anc_analysis/split_chr${chr} -e ~/height_prediction/loc_anc_analysis/split_chr${chr} Rscript --vanilla ~/height_prediction/loc_anc_analysis/run_PRS_v3.R phys_100000_0.0005 ${chr} 0 scaled
-bsub -M 90000 -o ~/height_prediction/loc_anc_analysis/split_chr${chr} -e ~/height_prediction/loc_anc_analysis/split_chr${chr} Rscript --vanilla ~/height_prediction/loc_anc_analysis/run_PRS_v3.R phys_100000_0.0005 ${chr} 0 unscaled
+bsub -M 90000 -o ~/height_prediction/loc_anc_analysis/split_chr${chr} Rscript --vanilla ~/height_prediction/loc_anc_analysis/run_PRS_v3.R phys_100000_0.0005 ${chr}
 done
 ```
-
 
 ```
 #JHS
@@ -41,18 +33,16 @@ for chr in {1..22};
 do
 for alpha in $(seq 0 0.01 1);
 do
-bsub -M 70000 -o ~/height_prediction/loc_anc_analysis/split_chr${chr} -e ~/height_prediction/loc_anc_analysis/split_chr${chr} Rscript --vanilla ~/height_prediction/loc_anc_analysis/run_PRS_v2_JHS.R phys_100000_0.0005 ${chr} ${alpha} scaled
-bsub -M 70000 -o ~/height_prediction/loc_anc_analysis/split_chr${chr} -e ~/height_prediction/loc_anc_analysis/split_chr${chr} Rscript --vanilla ~/height_prediction/loc_anc_analysis/run_PRS_v2_JHS.R phys_100000_0.0005 ${chr} ${alpha} unscaled
+bsub -M 70000 -o ~/height_prediction/loc_anc_analysis/split_chr${chr} Rscript --vanilla ~/height_prediction/loc_anc_analysis/run_PRS_v2_JHS.R phys_100000_0.0005 ${chr} ${alpha} scaled
+bsub -M 70000 -o ~/height_prediction/loc_anc_analysis/split_chr${chr} Rscript --vanilla ~/height_prediction/loc_anc_analysis/run_PRS_v2_JHS.R phys_100000_0.0005 ${chr} ${alpha} unscaled
 done
 done
 
 for chr in {1..22};
 do
-bsub -M 80000 -o ~/height_prediction/loc_anc_analysis/split_chr${chr} -e ~/height_prediction/loc_anc_analysis/split_chr${chr} Rscript --vanilla ~/height_prediction/loc_anc_analysis/run_PRS_v3_JHS.R phys_100000_0.0005 ${chr} 0 scaled
-bsub -M 80000 -o ~/height_prediction/loc_anc_analysis/split_chr${chr} -e ~/height_prediction/loc_anc_analysis/split_chr${chr} Rscript --vanilla ~/height_prediction/loc_anc_analysis/run_PRS_v3_JHS.R phys_100000_0.0005 ${chr} 0 unscaled
+bsub -M 80000 -o ~/height_prediction/loc_anc_analysis/split_chr${chr} Rscript --vanilla ~/height_prediction/loc_anc_analysis/run_PRS_v3_JHS.R phys_100000_0.0005 ${chr}
 done
 ```
-
 
 ```
 #HRS
@@ -60,15 +50,14 @@ for chr in {1..22};
 do
 for alpha in $(seq 0 0.01 1);
 do
-bsub -M 70000 -o ~/height_prediction/loc_anc_analysis/split_chr${chr} -e ~/height_prediction/loc_anc_analysis/split_chr${chr} Rscript --vanilla ~/height_prediction/loc_anc_analysis/run_PRS_v2_HRS_afr.R phys_100000_0.0005 ${chr} ${alpha} scaled
-bsub -M 70000 -o ~/height_prediction/loc_anc_analysis/split_chr${chr} -e ~/height_prediction/loc_anc_analysis/split_chr${chr} Rscript --vanilla ~/height_prediction/loc_anc_analysis/run_PRS_v2_HRS_afr.R phys_100000_0.0005 ${chr} ${alpha} unscaled
+bsub -M 70000 -o ~/height_prediction/loc_anc_analysis/split_chr${chr} Rscript --vanilla ~/height_prediction/loc_anc_analysis/run_PRS_v2_HRS_afr.R phys_100000_0.0005 ${chr} ${alpha} scaled
+bsub -M 70000 -o ~/height_prediction/loc_anc_analysis/split_chr${chr} Rscript --vanilla ~/height_prediction/loc_anc_analysis/run_PRS_v2_HRS_afr.R phys_100000_0.0005 ${chr} ${alpha} unscaled
 done
 done
 
 for chr in {1..22};
 do
-bsub -M 80000 -o ~/height_prediction/loc_anc_analysis/split_chr${chr} -e ~/height_prediction/loc_anc_analysis/split_chr${chr} Rscript --vanilla ~/height_prediction/loc_anc_analysis/run_PRS_v3_HRS_afr.R phys_100000_0.0005 ${chr} 0 scaled
-bsub -M 80000 -o ~/height_prediction/loc_anc_analysis/split_chr${chr} -e ~/height_prediction/loc_anc_analysis/split_chr${chr} Rscript --vanilla ~/height_prediction/loc_anc_analysis/run_PRS_v3_HRS_afr.R phys_100000_0.0005 ${chr} 0 unscaled
+bsub -M 80000 -o ~/height_prediction/loc_anc_analysis/split_chr${chr} Rscript --vanilla ~/height_prediction/loc_anc_analysis/run_PRS_v3_HRS_afr.R phys_100000_0.0005 ${chr}
 done
 ```
 
@@ -78,15 +67,11 @@ done
 
 for chr in {1..22};
 do
-bsub -M 90000 -o ~/height_prediction/loc_anc_analysis/split_chr${chr} -e ~/height_prediction/loc_anc_analysis/split_chr${chr} Rscript --vanilla ~/height_prediction/loc_anc_analysis/run_PRS_v3_UKB_afr.R phys_100000_0.0005 ${chr} 0 scaled
-bsub -M 90000 -o ~/height_prediction/loc_anc_analysis/split_chr${chr} -e ~/height_prediction/loc_anc_analysis/split_chr${chr} Rscript --vanilla ~/height_prediction/loc_anc_analysis/run_PRS_v3_UKB_afr.R phys_100000_0.0005 ${chr} 0 unscaled
+bsub -M 90000 -o ~/height_prediction/loc_anc_analysis/split_chr${chr} Rscript --vanilla ~/height_prediction/loc_anc_analysis/run_PRS_v3_UKB_afr.R phys_100000_0.0005 ${chr}
 done
 
 #Plots:
-Rscript --vanilla ~/height_prediction/loc_anc_analysis/run_partial_r2_EuR.r scaled #makes partial-r2vsEUR_ANC plots using LA PRS using only EUR segments
-Rscript --vanilla ~/height_prediction/loc_anc_analysis/run_partial_r2_EuR.r unscaled
+Rscript --vanilla ~/height_prediction/loc_anc_analysis/run_partial_r2_EuR.r #makes partial-r2vsEUR_ANC plots using LA PRS using only EUR segments
 Rscript --vanilla ~/height_prediction/loc_anc_analysis/run_partial_r2_all.r unscaled
 Rscript --vanilla ~/height_prediction/loc_anc_analysis/run_partial_r2_all.r scaled
-
-
 ```
