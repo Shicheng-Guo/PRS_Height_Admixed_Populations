@@ -15,109 +15,134 @@ use --help for detailed options. This step requires at least one genotype file (
 ```
 1000G EUR (except FIN) as LD panel
 
-grep EUR /project/mathilab/data/1kg/20130502_phase3_final/integrated_call_samples_v3.20130502.ALL.panel |grep -v FIN|awk 'OFS="\t"{print $1, $1}' > EUR_samples.txt
+grep EUR /project/mathilab/data/1kg/20130502_phase3_final/integrated_call_samples_v3.20130502.ALL.panel |grep -v FIN|awk 'OFS="\t"{print $1}' > EUR_samples.txt
+cat EUR_samples.txt | tr ” ” “\n” > EUR_sample_byline.txt
+
+```
+
+```
+for chr in {22..1};
+do
+bcftools view -Oz -S EUR_sample_byline.txt -m2 -M2 -v snps /project/mathilab/data/1kg/20130502_phase3_final/ALL.chr${chr}.phase3_shapeit2_mvncall_integrated_v5.20130502.genotypes.vcf.gz |bcftools annotate --set-id +'%CHROM\_%POS\_%REF\_%FIRST_ALT' -Oz > output/1000g_chr${chr}.vcf.gz
+done
+
+#combine all chromosomes
+bcftools concat output/1000g_chr1.vcf.gz output/1000g_chr2.vcf.gz output/1000g_chr3.vcf.gz output/1000g_chr4.vcf.gz output/1000g_chr5.vcf.gz output/1000g_chr6.vcf.gz output/1000g_chr7.vcf.gz output/1000g_chr8.vcf.gz output/1000g_chr9.vcf.gz output/1000g_chr10.vcf.gz output/1000g_chr11.vcf.gz output/1000g_chr12.vcf.gz output/1000g_chr13.vcf.gz output/1000g_chr14.vcf.gz output/1000g_chr15.vcf.gz output/1000g_chr16.vcf.gz output/1000g_chr17.vcf.gz output/1000g_chr18.vcf.gz output/1000g_chr19.vcf.gz output/1000g_chr20.vcf.gz output/1000g_chr21.vcf.gz output/1000g_chr22.vcf.gz -Oz > output/1000g_all.vcf.gz
+
+#convert to plink
+plink --vcf output/1000g_all.vcf.gz --keep-allele-order --make-bed --out output/1000g_all
+#change ID column to be compatible with sumstats
+awk '{$2=$1"_"$4;print $0}' output/1000g_all.bim > output/tmp && mv output/tmp output/1000g_all.bim
+
+
+#UKB_EUR imputed (1000g does not have enough people for LD panel)
+
+Rscript --vanilla parse_ukb_imputed.r #generates files with positions to keep
+
+#print only IDs that are not duplicated
+sort output/keep_hrs_eur_RS.txt |uniq -u > output/tmp && mv output/tmp output/keep_hrs_eur_RS.txt
+sort output/keep_hrs_afr_RS.txt |uniq -u > output/tmp && mv output/tmp output/keep_hrs_afr_RS.txt
+sort output/keep_whi_RS.txt |uniq -u > output/tmp && mv output/tmp output/keep_whi_RS.txt
+sort output/keep_jhs_RS.txt |uniq -u > output/tmp && mv output/tmp output/keep_jhs_RS.txt
+
+for chr in {22..1}; 
+do
+plink --bfile /project/mathilab/data/UKB/imputed/ukb_imp_chr${chr}_eur --extract output/keep_hrs_eur_RS.txt --make-bed --out output/UKB_EUR_imp_chr${chr}
+done
 
 for chr in {22..1};
 do
-bcftools view -m2 -M2 -v snps /project/mathilab/data/1kg/20130502_phase3_final/ALL.chr${chr}.phase3_shapeit2_mvncall_integrated_v5.20130502.genotypes.vcf.gz > tmp${chr} && mv tmp${chr} output/1000g_chr${chr}.vcf && bgzip output/1000g_chr${chr}.vcf &&
-plink2 --vcf output/1000g_chr${chr}.vcf.gz  --snps-only --keep EUR_samples.txt --make-bed --out output/1000g_chr${chr}
-awk '{$2=$1"_"$4;print $0}' output/1000g_chr${chr}.bim > output/tmp && mv output/tmp output/1000g_chr${chr}.bim
+plink --bfile /project/mathilab/data/UKB/imputed/ukb_imp_chr${chr}_eur --extract output/keep_whi_RS.txt --make-bed --out output/UKB_EUR_whi_imp_chr${chr}
 done
 
-#merge all vcfs into one
-Rscript --vanilla remove_dups.R
+
+for chr in {22..1};
+do
+plink --bfile /project/mathilab/data/UKB/imputed/ukb_imp_chr${chr}_eur --extract output/keep_jhs_RS.txt --make-bed --out output/UKB_EUR_jhs_imp_chr${chr}
+done
 
 rm output/mergelist.txt
-for i in {1..22}
+for chr in {1..22}
 do
-echo output/1000g_chr$i >> output/mergelist.txt
+echo ~/height_prediction/ldpred/output/UKB_EUR_jhs_imp_chr${chr} >> output/mergelist.txt
 done
 
-plink --merge-list output/mergelist.txt --make-bed --out output/1000g_all
+bsub -M 95000 -o ~/height_prediction/ldpred/logs/logplink -e ~/height_prediction/ldpred/logs/logplink "plink --merge-list ~/height_prediction/ldpred/output/mergelist.txt --make-bed --out ~/height_prediction/ldpred/output/UKB_EUR_jhs_imp_all"
 
-#UKB_EUR
-awk '{print $2,$1,$3,$4}' /project/mathilab/data/UKB/UKB_EUR_pheno.txt > My_Pheno_UKB_eur.txt
-Rscript --vanilla format_pheno.R My_Pheno_UKB_eur.txt
+rm output/mergelist.txt
+for chr in {1..22}
+do
+echo ~/height_prediction/ldpred/output/UKB_EUR_whi_imp_chr${chr} >> output/mergelist.txt
+done
+
+bsub -M 95000 -o ~/height_prediction/ldpred/logs/logplink -e ~/height_prediction/ldpred/logs/logplink "plink --merge-list ~/height_prediction/ldpred/output/mergelist.txt --make-bed --out ~/height_prediction/ldpred/output/UKB_EUR_whi_imp_all"
+
+
+awk 'OFS="\t"{$2=$1"_"$4;print $0}' output/UKB_EUR_jhs_imp_all.bim > output/tmp && mv output/tmp output/UKB_EUR_jhs_imp_all.bim
+sed -i 's/\s/\t/g'  output/UKB_EUR_jhs_imp_all.bim
+
+awk 'OFS="\t"{$2=$1"_"$4;print $0}' output/UKB_EUR_whi_imp_all.bim > output/tmp && mv output/tmp output/UKB_EUR_whi_imp_all.bim
+sed -i 's/\s/\t/g'  output/UKB_EUR_whi_imp_all.bim
+
+```
+```
+#Summary statistics file
 Rscript --vanilla format_sumstat.R #format summary statistics file
 
-#LDpred does not support filtering of samples and SNPs, so therefore we must generate a new QC'ed genotype file using plink:
+#LDpred does not support filtering of samples and SNPs, so therefore we must generate a new QCed genotype file using plink:
+
 plink2 \
     --bfile /project/mathilab/data/UKB/UKB_EUR \ 
-    --pheno Pheno_UKB_eur.txt \
     --keep /project/mathilab/data/UKB/UKB_EUR_IDS \
     --make-bed \
     --out ~/height_prediction/ldpred/output/UKB_EUR.ldpred 
 #
 #UKB_AFR
-awk '{print $2,$1,$3,$4}' /project/mathilab/data/UKB/UKB_AFR_pheno.txt > My_Pheno_UKB_afr.txt
-Rscript --vanilla format_pheno.R My_Pheno_UKB_afr.txt
 
 plink2 \
     --bfile /project/mathilab/data/UKB/UKB_AFR \
-    --pheno Pheno_UKB_afr.txt \
     --keep /project/mathilab/data/UKB/UKB_AFR_IDS \
     --make-bed \
     --out ~/height_prediction/ldpred/output/UKB_AFR.ldpred
 #
 #HRS_AFR
-awk '{print $2,$1,$3,$4}' /project/mathilab/data/HRS/data/HRS_AFR_phenotypes.txt |sed s/SEX/Sex/|sed  s/HEIGHT/Height/ |sed s/AGE/Age/ > My_Pheno_HRS_afr.txt
-Rscript --vanilla format_pheno.R My_Pheno_HRS_afr.txt
 
 plink2 \
     --bfile /project/mathilab/data/HRS/data/HRS_AFR_b37_strand_include \
     --keep /project/mathilab/data/HRS/data/HRS_AFR_IDS.fam \
-    --pheno Pheno_HRS_afr.txt \
-    --mac 1 \
     --make-bed \
     --out ~/height_prediction/ldpred/output/HRS_AFR.ldpred
 #
 #HRS_EUR
-awk '{print $2,$1,$3,$4}' /project/mathilab/data/HRS/data/HRS_EUR_phenotypes.txt |sed s/SEX/Sex/|sed  s/HEIGHT/Height/ |sed s/AGE/Age/ > My_Pheno_HRS_eur.txt
-Rscript --vanilla format_pheno.R My_Pheno_HRS_eur.txt
 
 plink2 \
     --bfile /project/mathilab/data/HRS/data/HRS_EUR_b37_strand_include \
     --keep /project/mathilab/data/HRS/data/HRS_EUR_IDS.fam \
-    --pheno Pheno_HRS_eur.txt \
-    --mac 1 \
     --make-bed \
     --out ~/height_prediction/ldpred/output/HRS_EUR.ldpred
 #WHI
-awk '{print $5,$1,$87, $9}' /project/mathilab/data/WHI/data/WHI_phenotypes.txt |sed  s/HEIGHTX/Height/ |sed s/AGE/Age/|sed s/SEX/Sex/|sed s/SUBJID/ID/ > My_Pheno_WHI.txt
-Rscript --vanilla format_pheno.R My_Pheno_HRS_eur.txt
 
 plink2 \
     --bfile /project/mathilab/data/WHI/data/WHI_b37_strand_include \
-    --pheno Pheno_WHI.txt \
-    --mac 1 \
     --make-bed \
+     --autosome \
     --out ~/height_prediction/ldpred/output/WHI.ldpred
 
 #JHS
-cp /project/mathilab/data/JHS/data/JHS_phenotypes.txt .
-sed -i 's/African American/African_American/' JHS_phenotypes.txt
-awk '{print $5, $1, $2,$15, $10}' JHS_phenotypes.txt|sed 's/SUBJID/ID/'|sed 's/height_baseline/Height/'|sed 's/age_baseline/Age/'|sed 's/SEX/Sex/' > My_Pheno_JHS.txt
-cp /project/mathilab/data/JHS/data/JHS_b37_strand* .
-awk '{print $2, $1, $3, $4, $5, $6}' JHS_b37_strand.fam > tmp && mv tmp JHS_b37_strand.fam
 
 plink2 \
     --bfile JHS_b37_strand \
-    --pheno Pheno_JHS.txt \
-    --mac 1 \
     --make-bed \
+    --autosome \
     --out ~/height_prediction/ldpred/output/JHS.ldpred
+```
 
-```
-**Merge**
-```
-Rscript --vanilla merge_hrs_ukb.R
 ```
 **COORD**
-```
 #Preprocessing the base data file:
 
-# There are 361,194 samples in the Height GWAS
-
+# There are 360,388 samples in the Height GWAS
+Rscript --vanilla merge_hrs_ukb_v2.R #change SNP ID column
 #UKB_EUR
 ldpred coord \
     --rs SNP \
@@ -129,11 +154,11 @@ ldpred coord \
     --eff BETA \
     --ssf-format CUSTOM \
     --eff_type LINREG\
-    --N 361194  \
-    --ssf output/Height.QC.gz \ 
-    --out output/UKB_EUR.coord \
-    --gf output/UKB_EUR_UKB_EUR.ldpred
-
+    --N 360388  \
+    --vgf ~/height_prediction/ldpred/output/UKB_EUR.ldpred \
+    --ssf ~/height_prediction/ldpred/output/Height.QC.gz \ 
+    --out ~/height_prediction/ldpred/output/UKB_EUR.coord \
+    --gf ~/height_prediction/ldpred/output/UKB_EUR.ldpred > ~/height_prediction/ldpred/logs/log_coord_ukb_eur.log
 #HRS_AFR
 ldpred coord \
     --rs SNP \
@@ -145,12 +170,11 @@ ldpred coord \
     --eff BETA \
     --ssf-format CUSTOM \
     --eff_type LINREG\
-    --N 361194 \
-    --vbim output/HRS_AFR_UKB_EUR.ldpred.bim \
-    --ssf output/Height.QC.gz \
-    --out output/UKB_EUR_HRS_AFR.coord \
-    --gf output/UKB_EUR_UKB_EUR.ldpred
-
+    --N 360388 \
+    --vgf ~/height_prediction/ldpred/output/HRS_AFR.ldpred \
+    --ssf ~/height_prediction/ldpred/output/Height.QC.gz \
+    --out ~/height_prediction/ldpred/output/HRS_AFR.coord \
+    --gf ~/height_prediction/ldpred/output/UKB_EUR_imp_all > ~/height_prediction/ldpred/logs/log_coord_hrs_afr.log
 #HRS_EUR
 ldpred coord \
     --rs SNP \
@@ -162,11 +186,11 @@ ldpred coord \
     --eff BETA \
     --ssf-format CUSTOM \
     --eff_type LINREG\
-    --N 361194 \
-    --vbim output/HRS_EUR_UKB_EUR.ldpred.bim \
-    --ssf output/Height.QC.gz \
-    --out output/UKB_EUR_HRS_EUR.coord \
-    --gf output/UKB_EUR_UKB_EUR.ldpred
+    --N 360388 \
+    --vgf ~/height_prediction/ldpred/output/HRS_EUR.ldpred \
+    --ssf ~/height_prediction/ldpred/output/Height.QC.gz \
+    --out ~/height_prediction/ldpred/output/HRS_EUR.coord \
+    --gf ~/height_prediction/ldpred/output/UKB_EUR_imp_all  > ~/height_prediction/ldpred/logs/log_coord_hrs_eur.log
 #UKB_AFR
 ldpred coord \
     --rs SNP \
@@ -178,11 +202,11 @@ ldpred coord \
     --eff BETA \
     --ssf-format CUSTOM \
     --eff_type LINREG\
-    --N 361194 \
-    --vbim output/UKB_AFR_UKB_EUR.ldpred.bim \
-    --ssf output/Height.QC.gz \
-    --out output/UKB_EUR_UKB_AFR.coord \
-    --gf output/UKB_EUR_UKB_EUR.ldpred 
+    --N 360388 \
+    --vgf ~/height_prediction/ldpred/output/UKB_AFR.ldpred \
+    --ssf ~/height_prediction/ldpred/output/Height.QC.gz \
+    --out ~/height_prediction/ldpred/output/UKB_AFR.coord \
+    --gf ~/height_prediction/ldpred/output/UKB_EUR.ldpred > ~/height_prediction/ldpred/logs/log_coord_ukb_afr.log
 #WHI
 ldpred coord \
     --rs SNP \
@@ -194,11 +218,11 @@ ldpred coord \
     --eff BETA \
     --ssf-format CUSTOM \
     --eff_type LINREG\
-    --N 361194 \
-    --vbim output/WHI_UKB_EUR.ldpred.bim \
-    --ssf output/Height.QC.gz \
-    --out output/UKB_EUR_WHI.coord \
-    --gf output/UKB_EUR_UKB_EUR.ldpred
+    --N 360388 \
+    --vgf ~/height_prediction/ldpred/output/WHI.ldpred \
+    --ssf ~/height_prediction/ldpred/output/Height.QC.gz \
+    --out ~/height_prediction/ldpred/output/WHI.coord \
+    --gf ~/height_prediction/ldpred/output/UKB_EUR_whi_imp_all > ~/height_prediction/ldpred/logs/log_coord_whi.log
 #JHS
 ldpred coord \
     --rs SNP \
@@ -210,11 +234,11 @@ ldpred coord \
     --eff BETA \
     --ssf-format CUSTOM \
     --eff_type LINREG\
-    --N 361194 \
-    --vbim output/JHS_UKB_EUR.ldpred.bim \
-    --ssf output/Height.QC.gz \
-    --out output/UKB_EUR_JHS.coord \
-    --gf output/UKB_EUR_UKB_EUR.ldpred
+    --N 360388 \
+    --vgf ~/height_prediction/ldpred/output/JHS.ldpred \
+    --ssf ~/height_prediction/ldpred/output/Height.QC.gz \
+    --out ~/height_prediction/ldpred/output/JHS.coord \
+    --gf ~/height_prediction/ldpred/output/UKB_EUR_jhs_imp_all > ~/height_prediction/ldpred/logs/log_coord_jhs.log
 ```
 
 2. Adjust the effect size estimates
@@ -223,110 +247,94 @@ ldpred coord \
 # LDpred recommend radius to be Total number of SNPs in target / 3000. E.g. 784256/3000=261
 #Regarding choice of the LD panel, its LD structure should ideally be similar to the training data for which the summary statistics are calculated.(UKB_EUR)
 
-#UKB_EUR 558565/3000~186
-bsub -q denovo "ldpred gibbs  --cf ~/height_prediction/ldpred/output/UKB_EUR.coord  --ldr 250 --ldf ~/height_prediction/ldpred/output/UKB_EUR.ld --out ~/height_prediction/ldpred/output/UKB_EUR.weight --no-ld-compression --n-iter 1000 --n-burn-in 50 > ~/height_prediction/ldpred/logs/gibbs_ukb_eur.log"
-#UKB_AFR  same as UKB_Eur
-#HRS_eur 215580/3000~72
-bsub -q denovo "ldpred gibbs  --cf ~/height_prediction/ldpred/output/UKB_EUR_HRS_EUR.coord  --ldr 250 --ldf ~/height_prediction/ldpred/output/HRS_EUR.ld --out ~/height_prediction/ldpred/output/HRS_EUR.weight --no-ld-compression --n-iter 1000 --n-burn-in 50 >  ~/height_prediction/ldpred/logs/gibbs_hrs_eur.log"
-#HRS_afr 215504/3000~72
-bsub -q denovo "ldpred gibbs  --cf ~/height_prediction/ldpred/output/UKB_EUR_HRS_AFR.coord  --ldr 250 --ldf ~/height_prediction/ldpred/output/HRS_AFR.ld --out ~/height_prediction/ldpred/output/HRS_AFR.weight --no-ld-compression --n-iter 1000 --n-burn-in 50 > ~/height_prediction/ldpred/logs/gibbs_hrs_afr.log"
-#WHI 72425/3000 ~ 24
-bsub -q denovo "ldpred gibbs  --cf ~/height_prediction/ldpred/output/UKB_EUR_WHI.coord  --ldr 250 --ldf ~/height_prediction/ldpred/output/WHI.ld --out ~/height_prediction/ldpred/output/WHI.weight --no-ld-compression --n-iter 1000 --n-burn-in 50 > ~/height_prediction/ldpred/logs/gibbs_whi.log"
-#JHS 68988/3000 23
-bsub -q denovo "ldpred gibbs  --cf ~/height_prediction/ldpred/output/UKB_EUR_JHS.coord --ldr 250 --ldf ~/height_prediction/ldpred/output/JHS.ld --out ~/height_prediction/ldpred/output/JHS.weight --no-ld-compression --n-iter 1000 --n-burn-in 50 > ~/height_prediction/ldpred/logs/gibbs_jhs.log"
+#UKB_EUR 506723/3000~169
+ldpred gibbs  --cf ~/height_prediction/ldpred/output/UKB_EUR.coord  --ldr 169 --ldf ~/height_prediction/ldpred/output/UKB_EUR.ldpred --out ~/height_prediction/ldpred/output/UKB_EUR.weight
+#UKB_AFR 479048/3000~159
+ldpred gibbs  --cf ~/height_prediction/ldpred/output/UKB_AFR.coord  --ldr 159 --ldf ~/height_prediction/ldpred/output/UKB_AFR.ldpred --out ~/height_prediction/ldpred/output/UKB_AFR.weight
+#HRS_eur 1058065/3000~357
+ldpred gibbs  --cf ~/height_prediction/ldpred/output/HRS_EUR.coord  --ldr 357 --ldf ~/height_prediction/ldpred/output/HRS_EUR.ldpred --out ~/height_prediction/ldpred/output/HRS_EUR.weight
+#HRS_afr 960309/3000~320
+ldpred gibbs  --cf ~/height_prediction/ldpred/output/HRS_AFR.coord  --ldr 320 --ldf ~/height_prediction/ldpred/output/HRS_AFR.ldpred --out ~/height_prediction/ldpred/output/HRS_AFR.weight
+#WHI 735278/3000 ~ 246
+ldpred gibbs  --cf ~/height_prediction/ldpred/output/WHI.coord  --ldr 245 --ldf ~/height_prediction/ldpred/output/WHI.ldpred --out ~/height_prediction/ldpred/output/WHI.weight
+#JHS 699041/3000 233
+ldpred gibbs  --cf ~/height_prediction/ldpred/output/JHS.coord --ldr 233 --ldf ~/height_prediction/ldpred/output/JHS.ld --out ~/height_prediction/ldpred/output/JHS.weight
 
 #P+T
-ldpred p+t --cf ~/height_prediction/ldpred/output/UKB_EUR.coord  --ldr 250 --out ~/height_prediction/ldpred/output/UKB_EUR_pt.weight > logs/pt_ukb_eur.log
-ldpred p+t --cf ~/height_prediction/ldpred/output/UKB_EUR_HRS_EUR.coord  --ldr 250 --out ~/height_prediction/ldpred/output/HRS_EUR_pt.weight  > logs/pt_hrs_eur.log
-ldpred p+t --cf ~/height_prediction/ldpred/output/UKB_EUR_HRS_AFR.coord  --ldr 250 --out ~/height_prediction/ldpred/output/HRS_AFR_pt.weight > logs/pt_hrs_afr.log
-ldpred p+t --cf ~/height_prediction/ldpred/output/UKB_EUR_WHI.coord  --ldr 250 --out ~/height_prediction/ldpred/output/WHI_pt.weight > logs/pt_whi.log
-ldpred p+t --cf ~/height_prediction/ldpred/output/UKB_EUR_JHS.coord --ldr 250 --out ~/height_prediction/ldpred/output/JHS_pt.weight > logs/pt_JHS.log
-ldpred p+t --cf ~/height_prediction/ldpred/output/UKB_EUR_UKB_AFR.coord --ldr 250 --out ~/height_prediction/ldpred/output/UKB_AFR_pt.weight  > logs/pt_ukb_afr.log
+ldpred p+t --cf ~/height_prediction/ldpred/output/UKB_EUR.coord  --ldr 169 --out ~/height_prediction/ldpred/output/UKB_EUR_pt.weight > ~/height_prediction/ldpred/logs/log_pt_ukb_eur.log
+ldpred p+t --cf ~/height_prediction/ldpred/output/HRS_EUR.coord  --ldr 357 --out ~/height_prediction/ldpred/output/HRS_EUR_pt.weight  > ~/height_prediction/ldpred/logs/log_pt_hrs_eur.log
+ldpred p+t --cf ~/height_prediction/ldpred/output/HRS_AFR.coord  --ldr 320 --out ~/height_prediction/ldpred/output/HRS_AFR_pt.weight > ~/height_prediction/ldpred/logs/log_pt_hrs_afr.log
+ldpred p+t --cf ~/height_prediction/ldpred/output/WHI.coord  --ldr 245 --out ~/height_prediction/ldpred/output/WHI_pt.weight > ~/height_prediction/ldpred/logs/log_pt_whi.log
+ldpred p+t --cf ~/height_prediction/ldpred/output/JHS.coord --ldr 233 --out ~/height_prediction/ldpred/output/JHS_pt.weight > ~/height_prediction/ldpred/logs/log_pt_JHS.log
+ldpred p+t --cf ~/height_prediction/ldpred/output/UKB_AFR.coord --ldr 159 q--out ~/height_prediction/ldpred/output/UKB_AFR_pt.weight  > ~/height_prediction/ldpred/logs/log_pt_ukb_afr.log
 ```
 
 3. Calculate the PRS
 ```
 #For just PRS (no validation), run below code (UKB_EUR)
 ldpred score \
-    --gf output/UKB_EUR_UKB_EUR.ldpred \
+    --gf output/UKB_EUR.ldpred \
     --rf output/UKB_EUR.weight \
     --out output/UKB_EUR.score \
-    --only-score \
-     --summary-file 
-    --pf-format LSTANDARD 
-
+    --only-score 
 ldpred score \
-    --gf output/UKB_EUR_UKB_EUR.ldpred \
+    --gf output/UKB_EUR.ldpred \
     --rf output/UKB_EUR_pt.weight \
-    --out output/UKB_EUR_pt.score \
-    --only-score \
-    --pf-format LSTANDARD > logs/score_pt_ukb_eur.log
-
+    --out output/UKB_EUR.score \
+    --only-score
 #ukb afr
 ldpred score \
-    --gf output/UKB_AFR_UKB_EUR.ldpred \
+    --gf output/UKB_AFR.ldpred \
     --rf output/UKB_AFR.weight \
     --out output/UKB_AFR.score \
-    --only-score \
-    --pf-format LSTANDARD > logs/logscore_ukb_afr
+    --only-score
 ldpred score \
-    --gf output/UKB_AFR_UKB_EUR.ldpred \
+    --gf output/UKB_AFR.ldpred \
     --rf output/UKB_AFR_pt.weight \
-    --out output/UKB_AFR_pt.score \
-    --only-score \
-    --pf-format LSTANDARD > logs/score_pt_ukb_afr.log
-
+    --out output/UKB_AFR.score \
+    --only-score
 #HRS_EUR
 ldpred score \
-    --gf output/HRS_EUR_UKB_EUR.ldpred \
+    --gf output/HRS_EUR.ldpred \
     --rf output/HRS_EUR.weight \
     --out output/HRS_EUR.score \
-    --only-score \
-    --pf-format LSTANDARD > logs/score_hrs_eur.log
+    --only-score 
 ldpred score \
-    --gf output/HRS_EUR_UKB_EUR.ldpred \
+    --gf output/HRS_EUR.ldpred \
     --rf output/HRS_EUR_pt.weight \
-    --out output/HRS_EUR_pt.score \
-    --only-score \
-    --pf-format LSTANDARD > logs/score_pt_hrs_eur.log
-
+    --out output/HRS_EUR.score \
+    --only-score
 #HRS_afr
 ldpred score \
-    --gf output/HRS_AFR_UKB_EUR.ldpred \
+    --gf output/HRS_AFR.ldpred \
     --rf output/HRS_AFR.weight \
     --out output/HRS_AFR.score \
-    --only-score \
-    --pf-format LSTANDARD > logs/score_hrs_afr.log
+    --only-score
 ldpred score \
-    --gf output/HRS_AFR_UKB_EUR.ldpred \
+    --gf output/HRS_AFR.ldpred \
     --rf output/HRS_AFR_pt.weight \
-    --out output/HRS_AFR_pt.score \
-    --only-score \
-    --pf-format LSTANDARD > logs/score_pt_hrs_afr.log
+    --out output/HRS_AFR.score \
+    --only-score
 #WHI
 ldpred score \
-    --gf output/WHI_UKB_EUR.ldpred \
+    --gf output/WHI.ldpred \
     --rf output/WHI.weight \
     --out output/WHI.score \
-    --only-score \
-    --pf-format LSTANDARD 
+    --only-score 
 ldpred score \
-    --gf output/WHI_UKB_EUR.ldpred \
+    --gf output/WHI.ldpred \
     --rf output/WHI_pt.weight \
-    --out output/WHI_pt.score \
-    --only-score \
-    --pf-format LSTANDARD > logs/score_pt_whi.log
+    --out output/WHI.score \
+    --only-score
 #JHS
 ldpred score \
-    --gf output/JHS_UKB_EUR.ldpred \
+    --gf output/JHS.ldpred \
     --rf output/JHS.weight \
     --out output/JHS.score \
-    --only-score \
-    --pf-format LSTANDARD
+    --only-score 
 ldpred score \
-    --gf output/JHS_UKB_EUR.ldpred \
+    --gf output/JHS.ldpred \
     --rf output/JHS_pt.weight \
-    --out output/JHS_pt.score \
-    --only-score \
-    --pf-format LSTANDARD > logs/score_pt_jhs.log
+    --out output/JHS.score \
+    --only-score
 ```
