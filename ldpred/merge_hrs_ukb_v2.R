@@ -5,7 +5,7 @@ fread('~/height_prediction/ldpred/output/UKB_EUR.ldpred.bim')-> ukb_eur
 colnames(ukb_eur)<-c('CHR', 'SNP', 'V3', 'POS', 'REF', 'ALT')
 
 #fwrite(final2, file="output/HRS_AFR.ldpred.bim", sep="\t", col.names=F)
-ukb_eur[,SNP:=paste0(CHR,":", POS)]
+ukb_eur[,SNP:=paste0(CHR,"_", POS)]
 
 fwrite(ukb_eur, file="~/height_prediction/ldpred/output/UKB_EUR.ldpred.bim", sep="\t", col.names=F)
 
@@ -14,7 +14,7 @@ fwrite(ukb_eur, file="~/height_prediction/ldpred/output/UKB_EUR.ldpred.bim", sep
 fread('~/height_prediction/ldpred/output/UKB_AFR.ldpred.bim')-> ukb_afr
 colnames(ukb_afr)<-c('CHR', 'SNP', 'V3', 'POS', 'REF', 'ALT')
 
-ukb_afr[, SNP:=paste0(CHR, ":", POS)]
+ukb_afr[, SNP:=paste0(CHR, "_", POS)]
 
 fwrite(ukb_afr, file="~/height_prediction/ldpred/output/UKB_AFR.ldpred.bim", sep="\t", col.names=F)
 #######################
@@ -22,7 +22,7 @@ fwrite(ukb_afr, file="~/height_prediction/ldpred/output/UKB_AFR.ldpred.bim", sep
 fread('~/height_prediction/ldpred/output/HRS_AFR.ldpred.bim')-> hrs_afr
 colnames(hrs_afr)<-c('CHR', 'SNP', 'V3', 'POS', 'REF', 'ALT')
 
-hrs_afr[, SNP:=paste0(CHR, ":", POS)]
+hrs_afr[, SNP:=paste0(CHR, "_", POS)]
 
 fwrite(hrs_afr, file="~/height_prediction/ldpred/output/HRS_AFR.ldpred.bim", sep="\t", col.names=F)
 
@@ -31,7 +31,7 @@ fwrite(hrs_afr, file="~/height_prediction/ldpred/output/HRS_AFR.ldpred.bim", sep
 fread('~/height_prediction/ldpred/output/HRS_EUR.ldpred.bim')-> hrs_eur
 colnames(hrs_eur)<-c('CHR', 'SNP', 'V3', 'POS', 'REF', 'ALT')
 #
-hrs_eur[, SNP:=paste0(CHR, ":", POS)]
+hrs_eur[, SNP:=paste0(CHR, "_", POS)]
 
 fwrite(hrs_eur, file="~/height_prediction/ldpred/output/HRS_EUR.ldpred.bim", sep="\t", col.names=F)
 
@@ -39,10 +39,10 @@ fwrite(hrs_eur, file="~/height_prediction/ldpred/output/HRS_EUR.ldpred.bim", sep
 #WHI
 fread('~/height_prediction/ldpred/output/WHI.ldpred.bim')-> whi
 colnames(whi)<-c('CHR', 'SNP', 'V3', 'POS', 'REF', 'ALT')
-whi<-whi[CHR %in% 1:22]
-whi$CHR<-as.integer(whi$CHR)
+#whi<-whi[CHR %in% 1:22]
+#whi$CHR<-as.integer(whi$CHR)
 #
-whi[, SNP:=paste0(CHR, ":", POS)]
+whi[, SNP:=paste0(CHR, "_", POS)]
 
 fwrite(whi, file="~/height_prediction/ldpred/output/WHI.ldpred.bim", sep="\t", col.names=F)
 
@@ -50,14 +50,12 @@ fwrite(whi, file="~/height_prediction/ldpred/output/WHI.ldpred.bim", sep="\t", c
 #JHS
 fread('~/height_prediction/ldpred/output/JHS.ldpred.bim')-> jhs
 colnames(jhs)<-c('CHR', 'SNP', 'V3', 'POS', 'REF', 'ALT')
-jhs<-jhs[CHR %in% 1:22]
-jhs$CHR<-as.integer(jhs$CHR)
+#jhs<-jhs[CHR %in% 1:22]
+#jhs$CHR<-as.integer(jhs$CHR)
 #
-jhs[, SNP:=paste0(CHR, ":", POS)]
+jhs[, SNP:=paste0(CHR, "_", POS)]
 
 fwrite(jhs, file="~/height_prediction/ldpred/output/JHS.ldpred.bim", sep="\t", col.names=F)
 #####
-intersect(intersect(intersect(intersect(intersect(hrs_afr$SNP, hrs_eur$SNP), whi$SNP), jhs$SNP), ukb_afr$SNP), ukb_eur$SNP)-> all
-fread('zcat output/Height.QC.gz')-> sum_stats
-all2<-intersect(sum_stats$SNP, all)
-ukb_eur[SNP %in% all2]-> ukb_eur2
+
+

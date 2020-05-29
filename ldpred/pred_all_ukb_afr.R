@@ -18,7 +18,7 @@ a1<-lapply(a , function(X) paste0('~/height_prediction/ldpred/output/UKB_AFR.sco
 b1<-lapply(b, function(X) paste0('~/height_prediction/ldpred/output/UKB_AFR.score_LDpred', X, '.txt'))
 
 d<-c(unlist(a1), unlist(b1))
-lapply(d , function(X) fread(x))-> PGS_UKB_afr
+lapply(a1 , function(X) fread(X))-> PGS_UKB_afr
 names(PGS_UKB_afr)<-a
 fread('~/height_prediction/input/ukb_afr/UKB_AFR_pheno.txt')-> Pheno_UKB_afr
 #a partial R2 function

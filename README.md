@@ -4,6 +4,7 @@
 
 Height is a very polygenic trait and well-studied in humans. GWAS summary statistics for height used hundreds of thousands of individuals of European ancestry. It is unclear how well polygenic risk scores (PRS) predict height in non-Europeans in comparison to Europeans. Here we explore and quantify this, and then provide improvements.
 
+This repo includes all analyses reported in our manuscript: https://www.biorxiv.org/content/10.1101/2020.04.08.030361v2
 *Subdirectories in this repo*
 
 -WHI, JHS, etc: names of datasets
