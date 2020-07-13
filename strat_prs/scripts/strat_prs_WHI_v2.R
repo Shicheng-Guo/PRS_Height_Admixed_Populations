@@ -4,11 +4,12 @@ if (length(args)==0) {
   stop("At least one argument must be supplied (a name for this run).n", call.=FALSE)
 }
 #Load packages #########################
-library("optparse")
+suppressPackageStartupMessages({library("optparse")
 library(data.table)
 library(dplyr)
 library(asbio)
 library(boot)
+})
 options(scipen=999)
 ########################################
 home<-"/home/bbita"
@@ -25,15 +26,24 @@ rate.dist<-as.numeric(args[1])
 w_map<-args[2]
 PRS<-vector('list', 22)
 whi<-do.call(rbind, readRDS(paste0('~/height_prediction/', args[3], '/WHI/output/hei_phys_100000_0.0005_v2.Rds')))[,.(CHR,POS,MarkerName,REF,ALT,Allele1,Allele2,b,p)]
+if(args[2]=='AA'){
 lapply(1:22, function(chr) fread(paste0('zcat /project/mathilab/data/maps/hm2/hm2/genetic_map_GRCh37_chr', chr,'.txt.gz'))[,CHR:=gsub("chr","",Chromosome)][, Chromosome:=NULL])-> rec #need to fix this path
 for(chr in 1:22){colnames(rec[[chr]])<-c('POS', 'RATE_cM_Mb', 'MAP_cM', 'CHR')}
-lapply(1:22, function(chr) fread(paste0('zcat /project/mathilab/data/maps_b37/maps_chr.', chr, '.gz')))-> maps #need to fix this path
+lapply(1:22, function(chr) fread(paste0('zcat /project/mathilab/data/maps/maps_b37/maps_chr.', chr, '.gz')))-> maps #need to fix this path
 for(chr in 1:22){colnames(maps[[chr]])[1]<-"POS"}
 lapply(1:22, function(chr) setkey(rec[[chr]],POS))
 lapply(1:22, function(chr) setkey(maps[[chr]],POS))
 lapply(1:22, function(chr) maps[[chr]][rec[[chr]], nomatch=0])-> map
-lapply(1:22, function(chr) map[[chr]][,POS2:=POS])
 remove(maps)
+} else if(args[2]=='CEU'){
+lapply(1:22, function(chr) fread(paste0('/project/mathilab/data/maps/1000_genomes_maps/hg19/CEU/CEU_recombination_map_hapmap_format_hg19_chr_', chr, '.txt')))-> map
+for(chr in 1:22){colnames(map[[chr]])[2]<-"POS"}
+for(chr in 1:22){map[[chr]][,CHR:=gsub("chr", "", Chromosome)][,Chromosome:=NULL]}
+for(chr in 1:22){colnames(map[[chr]])<-c('POS', 'RATE_cM_Mb', 'MAP_cM', 'CHR')}
+}
+lapply(1:22, function(chr) map[[chr]][,POS2:=POS])
+lapply(1:22, function(chr) arrange(map[[chr]], CHR, POS))
+lapply(1:22, function(chr) setDT(map[[chr]]))
 cat('loading done\n')
 chrs<-vector('list',22)
 for (chr in 22:1){
@@ -49,7 +59,7 @@ for (chr in 22:1){
 		f[, diff:=AA.rate(f$POS2)-AA.rate(f$POS)][, CHR:=chr]
 		chrs[[chr]]<-f
 		} else if (w_map=="CEU"){
-                CEU.rate<-approxfun(map[[chr]]$POS, map[[chr]]$CEU_LD, rule=2)
+                CEU.rate<-approxfun(map[[chr]]$POS, map[[chr]]$MAP_cM, rule=2)
                 e<-data.table(POS=a, POS2=b, Win=paste0(a,"|",b))
                 setkey(e, POS, POS2)
                 setkey(map[[chr]], POS, POS2)
@@ -81,6 +91,7 @@ q1<-split(whi, by='Quantile')[[1]]
 q2<-split(whi, by='Quantile')[[2]]
 q3<-split(whi, by='Quantile')[[3]]
 q4<-split(whi, by='Quantile')[[4]]
+whi$Quantile
 cat('checkpoint\n')
 #calculate PRS for each of these quantiles
 hei<-lapply(1:22, function(chr) readRDS(paste0('~/height_prediction/', args[3], '/WHI/output/hei_phys_100000_0.0005_v2.Rds'))[[chr]]) #need to fix this path
@@ -136,6 +147,7 @@ anc_WHI<-ancestry %>% group_by(SUBJID) %>% summarise(AFR_ANC=mean(AFR_ANC), EUR_
 
 setkey(anc_WHI, SUBJID)
 
+cat('All good so far\n')
 
 Pheno_WHI[anc_WHI, nomatch=0]-> PGS_WHI
 PGS_WHI[,AGE2:=AGE^2]
@@ -143,7 +155,7 @@ sd1_f<-sd(PGS_WHI$HEIGHTX, na.rm=T)
 m1_f<-mean(PGS_WHI$HEIGHTX, na.rm=T)
 PGS_WHI<-PGS_WHI[HEIGHTX>=m1_f-(2*sd1_f) & HEIGHTX<=m1_f+(2*sd1_f)]
 nrow(PGS_WHI)
-setkey(PGS_WHI, ID)
+setkey(PGS_WHI, SUBJID)
 nrow(PGS_WHI)
 
 PGS2_WHI<-vector('list', 4)

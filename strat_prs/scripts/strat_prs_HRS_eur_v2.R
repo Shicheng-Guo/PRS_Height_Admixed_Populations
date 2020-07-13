@@ -4,11 +4,12 @@ if (length(args)==0) {
   stop("At least one argument must be supplied (a name for this run).n", call.=FALSE)
 }
 #Load packages #########################
-library("optparse")
+suppressPackageStartupMessages({library("optparse")
 library(data.table)
 library(dplyr)
 library(asbio)
 library(boot)
+})
 options(scipen=999)
 ########################################
 home<-"/home/bbita"
@@ -27,15 +28,24 @@ PRS<-vector('list', 22)
 #eur<-fread('/project/mathilab/bbita/gwas_admix/new_height/ukb_eur_betas_100000_0.0005.txt') #need to fix this path
 #CHR,POS,MarkerName,i.MarkerName,REF,ALT,Allele1,Allele2,b,SE,p,N
 eur<-do.call(rbind, readRDS(paste0('~/height_prediction/', args[3], '/HRS_eur/output/hei_phys_100000_0.0005_v2.Rds')))[,.(CHR,POS,MarkerName,MarkerName,REF,ALT,Allele1,Allele2,b,p)]
+if(args[2]=='AA'){
 lapply(1:22, function(chr) fread(paste0('zcat /project/mathilab/data/maps/hm2/hm2/genetic_map_GRCh37_chr', chr,'.txt.gz'))[,CHR:=gsub("chr","",Chromosome)][, Chromosome:=NULL])-> rec #need to fix this path
 for(chr in 1:22){colnames(rec[[chr]])<-c('POS', 'RATE_cM_Mb', 'MAP_cM', 'CHR')}
-lapply(1:22, function(chr) fread(paste0('zcat /project/mathilab/data/maps_b37/maps_chr.', chr, '.gz')))-> maps #need to fix this path
+lapply(1:22, function(chr) fread(paste0('zcat /project/mathilab/data/maps/maps_b37/maps_chr.', chr, '.gz')))-> maps #need to fix this path
 for(chr in 1:22){colnames(maps[[chr]])[1]<-"POS"}
 lapply(1:22, function(chr) setkey(rec[[chr]],POS))
 lapply(1:22, function(chr) setkey(maps[[chr]],POS))
 lapply(1:22, function(chr) maps[[chr]][rec[[chr]], nomatch=0])-> map
-lapply(1:22, function(chr) map[[chr]][,POS2:=POS])
 remove(maps)
+} else if(args[2]=='CEU'){
+lapply(1:22, function(chr) fread(paste0('/project/mathilab/data/maps/1000_genomes_maps/hg19/CEU/CEU_recombination_map_hapmap_format_hg19_chr_', chr, '.txt')))-> map
+for(chr in 1:22){colnames(map[[chr]])[2]<-"POS"}
+for(chr in 1:22){map[[chr]][,CHR:=gsub("chr", "", Chromosome)][,Chromosome:=NULL]}
+for(chr in 1:22){colnames(map[[chr]])<-c('POS', 'RATE_cM_Mb', 'MAP_cM', 'CHR')}
+}
+lapply(1:22, function(chr) map[[chr]][,POS2:=POS])
+lapply(1:22, function(chr) arrange(map[[chr]], CHR, POS))
+lapply(1:22, function(chr) setDT(map[[chr]]))
 cat('loading done\n')
 chrs<-vector('list',22)
 for (chr in 22:1){
@@ -51,7 +61,7 @@ for (chr in 22:1){
                 f[, diff:=AA.rate(f$POS2)-AA.rate(f$POS)][,CHR:=chr]
                 chrs[[chr]]<-f
                 } else if (w_map=="CEU"){
-                CEU.rate<-approxfun(map[[chr]]$POS, map[[chr]]$CEU_LD, rule=2)
+                CEU.rate<-approxfun(map[[chr]]$POS, map[[chr]]$MAP_cM, rule=2)
                 e<-data.table(POS=a, POS2=b, Win=paste0(a,"|",b))
                 setkey(e, POS, POS2)
                 setkey(map[[chr]], POS, POS2)
