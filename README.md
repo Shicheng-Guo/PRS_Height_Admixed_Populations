@@ -22,6 +22,10 @@ Height is a very polygenic trait and well-studied in humans. GWAS summary statis
 
 -PCA_and_GWAS:PCA analysis of UKB_afr and GWAS for height in UKB_afr_imputed (subdirectory)
 
+-ldpred: analyses with LDpred1 for comparison with C+T
+
+-imputed: analyses with imputed genotype files when available (HRS, UKB)
+
 *output: where Rds files and such are stored, not to be pushed to repo.
 
 *figs: where figures are stored, not to be pushed to repo.
@@ -51,8 +55,8 @@ Once the input data is formatted, we can do some pruning/clumping using both the
 ```
 for D in JHS WHI ukb_afr ukb_eur HRS_eur HRS_afr;  #for each dataset
 do
-Rscript --vanilla ~/height_prediction/scripts/make_vcf.R temp sib_betas $D
-Rscript --vanilla ~/height_prediction/scripts/make_vcf.R temp gwas $D
+Rscript --vanilla scripts/make_vcf.R temp sib_betas $D
+Rscript --vanilla scripts/make_vcf.R temp gwas $D
 done
 ```
 
@@ -60,8 +64,8 @@ done
 ```
 for D in JHS WHI ukb_afr ukb_eur HRS_eur HRS_afr;
 do
-~/height_prediction/scripts/LD_prun.bash sib_betas $D
-~/height_prediction/scripts/LD_prun.bash gwas $D
+scripts/LD_prun.bash sib_betas $D
+scripts/LD_prun.bash gwas $D
 done
 ```
 
@@ -70,8 +74,8 @@ done
 ```
 for D in JHS WHI ukb_afr ukb_eur HRS_eur HRS_afr;
 do
-~/height_prediction/scripts/combine_Rds_v2.sh sib_betas $D
-~/height_prediction/scripts/combine_Rds_v2.sh gwas $D
+scripts/combine_Rds_v2.sh sib_betas $D
+scripts/combine_Rds_v2.sh gwas $D
 done
 ```
 
@@ -81,11 +85,18 @@ Now we are ready to calculate polygenic risk scores for each set of SNPs (gwas, 
 ```
 for D in JHS WHI ukb_afr ukb_eur HRS_eur HRS_afr;
 do
-~/height_prediction/scripts/calc_PGS.sh sib_betas $D
-~/height_prediction/scripts/calc_PGS.sh gwas $D;
-~/height_prediction/unweighted_prs/calc_PGS.sh gwas $D
+scripts/calc_PGS.sh sib_betas $D
+scripts/calc_PGS.sh gwas $D;
+unweighted_prs/calc_PGS.sh gwas $D
 done
 ```
+##
+
+*LDpred analyses*
+
+See [README.md in the ldpred directory](ldpred/README.md)
+
+##
 
 *Combine PRS results*
 
@@ -93,49 +104,48 @@ Combine all PRS results per dataset:
 ```
 for D in JHS WHI ukb_afr ukb_eur HRS_eur HRS_afr;
 do
-rm ~/height_prediction/gwas/${D}/scripts/test2.txt;
-rm ~/height_prediction/sib_betas/${D}/scripts/test2.txt;
-rm ~/height_prediction/gwas/${D}/scripts/run_this_PGS.sh;
-rm ~/height_prediction/sib_betas/${D}/scripts/run_this_PGS.sh;
-rm ~/height_prediction/unweighted_prs/${D}/run_this_PGS.sh;
-rm ~/height_prediction/unweighted_prs/${D}/test2.txt;
-~/height_prediction/scripts/combine_Rds_PGS.sh sib_betas $D
-~/height_prediction/scripts/combine_Rds_PGS.sh gwas $D
-~/height_prediction/unweighted_prs/combine_Rds_PGS.sh unweighted_prs $D
+rm gwas/${D}/scripts/test2.txt;
+rm sib_betas/${D}/scripts/test2.txt;
+rm gwas/${D}/scripts/run_this_PGS.sh;
+rm sib_betas/${D}/scripts/run_this_PGS.sh;
+rm unweighted_prs/${D}/run_this_PGS.sh;
+rm unweighted_prs/${D}/test2.txt;
+scripts/combine_Rds_PGS.sh sib_betas $D
+scripts/combine_Rds_PGS.sh gwas $D
+unweighted_prs/combine_Rds_PGS.sh unweighted_prs $D
 done
 ```
 
 
-*Plots*
-
-```
-Rscript --vanilla ~/height_prediction/sib_betas/WHI/scripts/Plots_WHI.R
-Rscript --vanilla ~/height_prediction/sib_betas/JHS/scripts/Plots_JHS.R
-Rscript --vanilla ~/height_prediction/sib_betas/ukb_afr/scripts/Plots_ukb_afr.R
-Rscript --vanilla ~/height_prediction/sib_betas/ukb_eur/scripts/Plots_ukb_eur.R
-Rscript --vanilla ~/height_prediction/sib_betas/HRS_afr/scripts/Plots_HRS_afr.R
-Rscript --vanilla ~/height_prediction/sib_betas/HRS_eur/scripts/Plots_HRS_eur.R
-Rscript --vanilla ~/height_prediction/gwas/WHI/scripts/Plots_WHI.R
-Rscript --vanilla ~/height_prediction/gwas/JHS/scripts/Plots_JHS.R
-Rscript --vanilla ~/height_prediction/gwas/ukb_afr/scripts/Plots_ukb_afr.R
-Rscript --vanilla ~/height_prediction/gwas/ukb_eur/scripts/Plots_ukb_eur.R
-Rscript --vanilla ~/height_prediction/gwas/HRS_afr/scripts/Plots_HRS_afr.R
-Rscript --vanilla ~/height_prediction/gwas/HRS_eur/scripts/Plots_HRS_eur.R
-Rscript --vanilla ~/height_prediction/unweighted_prs/WHI/scripts/Plots_WHI.R
-Rscript --vanilla ~/height_prediction/unweighted_prs/JHS/scripts/Plots_JHS.R
-Rscript --vanilla ~/height_prediction/unweighted_prs/ukb_afr/scripts/Plots_ukb_afr.R
-Rscript --vanilla ~/height_prediction/unweighted_prs/ukb_eur/scripts/Plots_ukb_eur.R
-Rscript --vanilla ~/height_prediction/unweighted_prs/HRS_afr/scripts/Plots_HRS_afr.R
-Rscript --vanilla ~/height_prediction/unweighted_prs/HRS_eur/scripts/Plots_HRS_eur.R
-```
-
-
-*Combine datasets into Fig 1, Fig S7, Fig 5*
+*Plot & Combine datasets*
 
 These scripts will produce plots for each pruning/clumping strategy. Throughout the paper we show the one called "phys_100000_0.0005":
 
 ```
-Rscript --vanilla ~/height_prediction/scripts/combine_datasets.R gwas
-Rscript --vanilla ~/height_prediction/combine_datasets.R  sib_betas
-Rscript --vanilla~/height_prediction/unweighted_prs/combine_datasets.R
+for J in gwas sib_betas unweighted_prs;
+do
+Rscript --vanilla ${J}/WHI/scripts/Plots_WHI.R
+Rscript --vanilla ${J}JHS/scripts/Plots_JHS.R
+Rscript --vanilla ${J}ukb_afr/scripts/Plots_ukb_afr.R
+Rscript --vanilla ${J}ukb_eur/scripts/Plots_ukb_eur.R
+Rscript --vanilla ${J}HRS_afr/scripts/Plots_HRS_afr.R
+Rscript --vanilla ${J}HRS_eur/scripts/Plots_HRS_eur.R
+done
+for J in gwas sib_betas;
+do
+Rscript --vanilla scripts/combine_datasets.R ${J
+done
+Rscript --vanilla unweighted_prs/combine_datasets.R
+```
+
+
+*Make all figures and supplementary tables in the paper*
+
+```
+Rscript --vanilla scripts/Fig1.R
+Rscript --vanilla scripts/Fig2.R
+Rscript --vanilla scripts/Fig3.R
+Rscript --vanilla scripts/Fig4.R
+Rscript --vanilla scripts/Fig5.R
+Rscript --vanilla scripts/make_all_tables.R
 ```
