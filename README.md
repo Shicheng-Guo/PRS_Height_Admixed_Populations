@@ -2,6 +2,21 @@
 
 [Link to manuscript](https://www.biorxiv.org/content/10.1101/2020.04.08.030361v2)
 
+## Contents
+
+# Table of contents
+1. [Introduction](#intro)
+2. [Understand subdirectories](#subdirectories-in-this-repository)
+3. [Clone this repo and recreate analyses](#recreating-all-analyses-in-the paper.)
+	1. [Prerequisites](#prerequisites)
+	1. [Preparing input data](#prepare-genotype-input-data)
+	2. [C+T and PRS](#get-data-ready-for-clumping/pruning)
+	3. [LDpred](#ldpred-analyses)
+	4. [PRS incorporating local ancestry]()
+	5. [Stratified PRS by bins of recombination rate]()
+	6. [Effect size vs frequencies across ancestries]()
+	7. [PCA and GWAS in the UKB indivudals with admixed African ancestry]()
+4. [Skip details. Take me to the scripts to recreate tables and figures in the paper](#make-all-figures-and-supplementary-tables-in-the-paper)
 
 ## Intro
 
@@ -9,8 +24,6 @@ Height is a very polygenic trait and well-studied in humans. GWAS summary statis
 
 
 ![Height PRS prediction as a function of European ancestry](figs/Fig1.png)
-
-TL;dr: If you simply want to recreate figures and tables in the paper, you can [skip the details](#make-all-figures-and-supplementary-tables-in-the-paper). If you want more detail, read this entire document and follow the steps.
 
 # Subdirectories in this repository
 
@@ -40,8 +53,16 @@ Note: This will be updated as needed.
 
 ## Recreating all analyses in the paper.
 
+### Prerequisites
 
-This is a bit long. Will try to make it shorter in the future. 
+*R and packages listed in the scripts.
+*shell
+*python (for ldpred1 analyses)
+*ldpred
+*PLINK and PLINK2
+*bcftools
+*there is an assumption that you have access to the datasets used in this paper. We are not allowed to share the raw data.
+
 
 Go to a direcotry in your computer and clone this repo:
 
@@ -50,15 +71,13 @@ git clone https://github.com/mathilab/Height_Prediction_PRS.git
 #from now on it is assumed your project root directory is called "Height_Prediction_PRS".
 ```
 
-### Prepare genotype input data from HRS, UKBB, JHS, WHI. 
+### Prepare genotype input data
 
 Go to the [input directory](input/README.md) and follow instructions. 
 
 Within each dataset's directory you will find a README.md with instructions on how to prepare input data. 
 
-**Note:** there is an assumption that you have access to the datasets used in this paper. We are not allowed to share the raw data.
-
-**Note:** also, if you do get access to the data you will need to fix the path to the data accordingly. 
+**Note: if you do get access to the data you will need to fix the path to the data accordingly. 
 
 ### Get data ready for clumping/pruning
 
@@ -106,11 +125,6 @@ done
 done
 ```
 
-### LDpred analyses
-
-See [README.md in the ldpred directory](ldpred/README.md)
-
-##
 
 ### Combine PRS results
 
@@ -129,6 +143,13 @@ done
 done
 
 ```
+
+
+### LDpred analyses
+
+See [README.md in the ldpred directory](ldpred/README.md)
+
+
 
 ### Plots
 
@@ -162,3 +183,6 @@ Rscript --vanilla scripts/Fig4.R
 Rscript --vanilla scripts/Fig5.R
 Rscript --vanilla scripts/make_all_tables.R
 ```
+
+
+
