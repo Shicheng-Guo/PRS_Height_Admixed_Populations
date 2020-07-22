@@ -1,17 +1,15 @@
-## Polygenic scores for height in admixed populations
+# Polygenic scores for height in admixed populations
 
 [Link to manuscript](https://www.biorxiv.org/content/10.1101/2020.04.08.030361v2)
 
 
-# Intro
+## Intro
 
 Height is a very polygenic trait and well-studied in humans. GWAS summary statistics for height used hundreds of thousands of individuals of European ancestry. It is unclear how well polygenic risk scores (PRS) predict height in non-Europeans in comparison to Europeans. Here we explore and quantify this, and then provide improvements.
 
 TL;dr: If you simply want to recreate figures and tables in the paper, you can [skip the details](#make-all-figures-and-supplementary-tables-in-the-paper). If you want more detail, read this entire document and follow the steps.
 
-##
-
-# Subdirectories in this repository
+## Subdirectories in this repository
 
 Within each dataset's directory you will find a README.md.
 
@@ -44,9 +42,9 @@ Within each dataset's directory you will find a README.md.
 -input_files: where modified input files are stored.
 
 Note: This will be updated as needed.
-##
 
-## RECREATING ANALYSES IN THE PAPER
+# Recreating all analyses in the paper.
+
 
 This is a bit long. Will try to make it shorter in the future. 
 
@@ -57,7 +55,7 @@ git clone https://github.com/mathilab/Height_Prediction_PRS.git
 #from now on it is assumed your project root directory is called "Height_Prediction_PRS".
 ```
 
-# Prepare genotype input data from HRS, UKBB, JHS, WHI. 
+## Prepare genotype input data from HRS, UKBB, JHS, WHI. 
 
 ```
 cd input/
@@ -69,8 +67,9 @@ Within each dataset's directory you will find a README.md with instructions on h
 
 **Note:** also, if you do get access to the data you will need to fix the path to the data accordingly. 
 
+##
 
-# Get data ready for clumping/pruning
+## Get data ready for clumping/pruning
 
 Once the input data is formatted, we can do some pruning/clumping using both the GWAS effect sizes ('gwas') and the sibling-estimated effect sizes ('sib_betas'). In both cases, p-values used for clumping come from thefull UKB GWAS.
 
@@ -84,7 +83,10 @@ done
 done
 ```
 
-# Prune/clump using different methods and combine results
+##
+
+## Prune/clump using different methods and combine results
+
 ```
 for D in JHS WHI ukb_afr ukb_eur HRS_eur HRS_afr;
 do
@@ -101,8 +103,9 @@ scripts/combine_Rds_v2.sh $F $D
 done
 done
 ```
+##
 
-# Run polygenic scores
+## Run polygenic scores
 Now we are ready to calculate polygenic risk scores for each set of SNPs (gwas, sib_betas and unweighted_prs which, as the name suggest, is the unweighted version of the PRS):
 
 ```
@@ -115,13 +118,15 @@ unweighted_prs/calc_PGS.sh F $D
 done
 done
 ```
+##
 
-# LDpred analyses
+## LDpred analyses
 
 See [README.md in the ldpred directory](ldpred/README.md)
 
+##
 
-# Combine PRS results
+## Combine PRS results
 
 Combine all PRS results per dataset:
 ```
@@ -139,8 +144,9 @@ done
 
 ```
 
+##
 
-# Plot & Combine datasets*
+## Plots
 
 These scripts will produce plots for each pruning/clumping strategy. Throughout the paper we show the one called "phys_100000_0.0005":
 
@@ -162,7 +168,7 @@ Rscript --vanilla unweighted_prs/combine_datasets.R
 ```
 ##
 
-## Make all figures and supplementary tables in the paper
+# Make all figures and supplementary tables in the paper
 
 ```
 Rscript --vanilla scripts/Fig1.R
