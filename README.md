@@ -43,7 +43,7 @@ Within each dataset's directory you will find a README.md.
 
 Note: This will be updated as needed.
 
-# Recreating all analyses in the paper.
+## Recreating all analyses in the paper.
 
 
 This is a bit long. Will try to make it shorter in the future. 
@@ -55,7 +55,7 @@ git clone https://github.com/mathilab/Height_Prediction_PRS.git
 #from now on it is assumed your project root directory is called "Height_Prediction_PRS".
 ```
 
-## Prepare genotype input data from HRS, UKBB, JHS, WHI. 
+### Prepare genotype input data from HRS, UKBB, JHS, WHI. 
 
 ```
 cd input/
@@ -67,9 +67,7 @@ Within each dataset's directory you will find a README.md with instructions on h
 
 **Note:** also, if you do get access to the data you will need to fix the path to the data accordingly. 
 
-##
-
-## Get data ready for clumping/pruning
+### Get data ready for clumping/pruning
 
 Once the input data is formatted, we can do some pruning/clumping using both the GWAS effect sizes ('gwas') and the sibling-estimated effect sizes ('sib_betas'). In both cases, p-values used for clumping come from thefull UKB GWAS.
 
@@ -82,10 +80,7 @@ Rscript --vanilla scripts/make_vcf.R temp $F $D
 done
 done
 ```
-
-##
-
-## Prune/clump using different methods and combine results
+### Prune/clump using different methods and combine results
 
 ```
 for D in JHS WHI ukb_afr ukb_eur HRS_eur HRS_afr;
@@ -103,9 +98,8 @@ scripts/combine_Rds_v2.sh $F $D
 done
 done
 ```
-##
 
-## Run polygenic scores
+### Run polygenic scores
 Now we are ready to calculate polygenic risk scores for each set of SNPs (gwas, sib_betas and unweighted_prs which, as the name suggest, is the unweighted version of the PRS):
 
 ```
@@ -118,15 +112,14 @@ unweighted_prs/calc_PGS.sh F $D
 done
 done
 ```
-##
 
-## LDpred analyses
+### LDpred analyses
 
 See [README.md in the ldpred directory](ldpred/README.md)
 
 ##
 
-## Combine PRS results
+### Combine PRS results
 
 Combine all PRS results per dataset:
 ```
@@ -144,9 +137,7 @@ done
 
 ```
 
-##
-
-## Plots
+### Plots
 
 These scripts will produce plots for each pruning/clumping strategy. Throughout the paper we show the one called "phys_100000_0.0005":
 
@@ -168,7 +159,7 @@ Rscript --vanilla unweighted_prs/combine_datasets.R
 ```
 ##
 
-# Make all figures and supplementary tables in the paper
+## Make all figures and supplementary tables in the paper
 
 ```
 Rscript --vanilla scripts/Fig1.R
