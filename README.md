@@ -152,7 +152,7 @@ See [README.md in the stratified prs directory](strat_prs/README.md)
 ### PCA and GWAS in UKB individuals with admixed African ancestry
 
 
-See [README.md in the PCA and GWAS directory](PCA_and_GWAS/README.md)
+See [README.md in the PCA and GWAS directory](PCA_and_GWAS/UKB_AFR_imputed/README.md)
 
 
 ### PRS incorporating local ancestry
