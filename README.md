@@ -6,7 +6,7 @@
 
 # Table of contents
 1. [Introduction](#intro)
-2. [Clone this repo and recreate analyses](#recreating-all-analyses-in-the paper)
+2. [Clone this repo and recreate analyses](#recreating-all-analyses-in-the-paper)
 	1. [Prerequisites](#prerequisites)
 	2. [Preparing input data](#prepare-genotype-input-data)
 	3. [C+T and PRS](#Prune/clump-using-different-methods-and-combine-results)
@@ -22,7 +22,7 @@
 
 Height is a very polygenic trait and well-studied in humans. GWAS summary statistics for height used hundreds of thousands of individuals of European ancestry. It is unclear how well polygenic risk scores (PRS) predict height in non-Europeans in comparison to Europeans. Here we explore and quantify this, and then provide improvements.
 
-## Recreating all analyses in the paper.
+## Recreating all analyses in the paper
 
 ### Prerequisites
 
