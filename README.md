@@ -7,39 +7,34 @@
 
 Height is a very polygenic trait and well-studied in humans. GWAS summary statistics for height used hundreds of thousands of individuals of European ancestry. It is unclear how well polygenic risk scores (PRS) predict height in non-Europeans in comparison to Europeans. Here we explore and quantify this, and then provide improvements.
 
+
+![Height PRS prediction as a function of European ancestry](figs/Fig1.png)
+
 TL;dr: If you simply want to recreate figures and tables in the paper, you can [skip the details](#make-all-figures-and-supplementary-tables-in-the-paper). If you want more detail, read this entire document and follow the steps.
 
-## Subdirectories in this repository
+# Subdirectories in this repository
 
 Within each dataset's directory you will find a README.md.
 
--WHI, JHS, etc: names of datasets
+-[input](input_files/README.md): where modified input files are stored.
 
--gwas: analysis of predictive power of height PRS using UK Biobank GWAS summary statistics.
+-[gwas](gwas/README.md): analysis of predictive power of height PRS using UK Biobank GWAS summary statistics.
 
--sib_betas: analysis of predictive power of height PRS using effect sizes estimated from pairs of white British sibblings from the UK Biobank.
+-[sib_betas](sib_betas/README.md): analysis of predictive power of height PRS using effect sizes estimated from pairs of white British sibblings from the UK Biobank.
 
--strat_prs: analysis of predictive power of PRS as a function of recombination rates of SNPs.
+-[strat_prs](strat_prs/README.md): analysis of predictive power of PRS as a function of recombination rates of SNPs.
 
--unweighted_prs: analysis using an unweighted version of the PRS calculation, where effect sizes are ignored and replaced by +1 or -1 (for positive and negative effects, respectively)
+-[loc_anc_analysis](loc_anc_analysis/README.md): analyses using local ancestry in the PRS.
 
--random_effect_prs: PRS without effect size or signal (only adding variants)
+-[unweighted_prs](unweighted_prs/README.md): analysis using an unweighted version of the PRS calculation, where effect sizes are ignored and replaced by +1 or -1 (for positive and negative effects, respectively)
 
--PCA_and_GWAS:PCA analysis of UKB_afr and GWAS for height in UKB_afr_imputed (subdirectory)
+-[random_effect_prs](random_effect_prs/README.md): PRS without effect size or signal (only adding variants)
 
--ldpred: analyses with LDpred1 for comparison with C+T
+-[PCA_and_GWAS](PCA_and_GWAS/README.md):PCA analysis of UKB_afr and GWAS for height in UKB_afr_imputed (subdirectory)
 
--imputed: analyses with imputed genotype files when available (HRS, UKB)
+-[ldpred](ldpred/README.md): analyses with LDpred1 for comparison with C+T
 
--output: where Rds files and such are stored.
-
--logs: where logs files are stores.
-
--figs: where all figures are stored.
-
--figs_for_paper: where the figures that are in the paper are stored. 
-
--input_files: where modified input files are stored.
+-[imputed](imputed/README.md): analyses with imputed genotype files when available (HRS, UKB)
 
 Note: This will be updated as needed.
 
@@ -57,9 +52,7 @@ git clone https://github.com/mathilab/Height_Prediction_PRS.git
 
 ### Prepare genotype input data from HRS, UKBB, JHS, WHI. 
 
-```
-cd input/
-```
+Go to the [input directory](input/README.md) and follow instructions. 
 
 Within each dataset's directory you will find a README.md with instructions on how to prepare input data. 
 
@@ -69,7 +62,7 @@ Within each dataset's directory you will find a README.md with instructions on h
 
 ### Get data ready for clumping/pruning
 
-Once the input data is formatted, we can do some pruning/clumping using both the GWAS effect sizes ('gwas') and the sibling-estimated effect sizes ('sib_betas'). In both cases, p-values used for clumping come from thefull UKB GWAS.
+Pruning/clumping using both the GWAS effect sizes ('gwas') and the sibling-estimated effect sizes ('sib_betas'). In both cases, p-values used for clumping come from the full UKB GWAS.
 
 ```
 for D in JHS WHI ukb_afr ukb_eur HRS_eur HRS_afr;  #for each dataset
