@@ -48,7 +48,7 @@ Go to the [input directory](input/README.md) and follow instructions.
 
 Within each dataset's directory you will find a README.md with instructions on how to prepare input data. 
 
-**Note: if you do get access to the data you will need to fix the path to the data accordingly. 
+*Note:* if you do get access to the data you will need to fix the path to the data accordingly. 
 
 
 Pruning/clumping using both the GWAS effect sizes ('gwas') and the sibling-estimated effect sizes ('sib_betas'). In both cases, p-values used for clumping come from the full UKB GWAS.
