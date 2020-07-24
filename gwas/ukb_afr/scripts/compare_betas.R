@@ -58,8 +58,6 @@ fwrite(combo_local, file="~/height_prediction/gwas/ukb_afr/output/plink_local_an
 #now restrict to onlu PRS snps
 prs_snp<-do.call(rbind, readRDS('~/height_prediction/gwas/ukb_afr/output/hei_phys_100000_0.0005.Rds'))[,1:5]
 setkey(combo_local, CHR,POS)
-final_plink[ukb_height, nomatch=0]-> combo
-remove(ukb_height, final_plink)
 colnames(prs_snp)[1]<-'CHR'
 setkey(prs_snp, CHR, POS)
 combo_prs<-combo_local[prs_snp, nomatch=0]
@@ -70,3 +68,26 @@ fwrite(combo_prs, file='~/height_prediction/gwas/ukb_afr/output/combo_prs.txt')
 with(combo_prs, cor.test(PLINK,ALL)) #77.8%
 
 with(combo_local, cor.test(PLINK,ALL)) #70.5%
+
+###
+
+
+##QQ plot for plink UKB
+
+observed <- sort(combo_local$UNADJ)
+lobs <- -(log10(observed))
+
+expected <- c(1:length(observed))
+lexp <- -(log10(expected / (length(expected)+1)))
+
+observed2 <- sort(combo_local$GC)
+lobs2 <- -(log10(observed2))
+
+expected2 <- c(1:length(observed2))
+lexp2 <- -(log10(expected2 / (length(expected2)+1)))
+
+df<-data.table(Obs=c(lobs, lobs2), Exp=c(lexp, lexp2), Class=c(rep("UNADJ", length(observed)),rep("GC", length(observed2))))
+
+ggplot(df, aes(x=Exp, y=Obs, colour=Class)) + geom_point() +   geom_abline(intercept = 0, slope = 1, col="black") + ggtitle("Plink GWAS for UKB admixed inviduals")
+ggsave('~/height_prediction/runSmartpCA-master/UKB_AFR/figs/qqplot_plink_UKB.pdf')
+

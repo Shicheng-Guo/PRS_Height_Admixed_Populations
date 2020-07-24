@@ -10,10 +10,10 @@ library(data.table)
 library(readr)
 
 #add ancestry
-what<-paste0("/project/mathilab/data/HRS/HRS_AFR_b37_strand_include_kgCY_chr", args[1]) #Pop1 is AFR
+what<-paste0("/project/mathilab/data/HRS/data/phased/hapi-ur/HRS_AFR_b37_strand_include_kgCY_chr", args[1]) #Pop1 is AFR
 #what <- paste0("~/height_prediction/input/HRS_afr/HRS_AFR_b37_strand_include_kgCY_chr", args[1])  #pop1 is AFR
 #ancestry <- read_fwf(paste0(what, "_rfmix_out.0.Viterbi.txt.gz"), fwf_empty(paste0(what, "_rfmix_out.0.Viterbi.txt.gz")))
-ancestry<- read_fwf(paste0(what, "_rfmix_out.0.Viterbi.txt.gz"), fwf_empty(paste0(what, "_rfmix_out.0.Viterbi.txt.gz")))
+ancestry<- read_fwf(paste0("/project/mathilab/data/HRS/local_ancestry/RFMix/HRS_AFR_b37_strand_include_kgCY_chr", args[1], "_rfmix_out.0.Viterbi.txt.gz"), fwf_empty(paste0("/project/mathilab/data/HRS/local_ancestry/RFMix/HRS_AFR_b37_strand_include_kgCY_chr", args[1], "_rfmix_out.0.Viterbi.txt.gz")))
 gc()
 
 ind<-read.table(paste0(what, ".phind"), as.is=TRUE)

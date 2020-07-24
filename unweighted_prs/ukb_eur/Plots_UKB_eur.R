@@ -53,7 +53,7 @@ lapply(PGS2_UKB_eur, function(X) lm(Height~PGS+age2, X))-> lm6_UKB_eur
 lapply(PGS2_UKB_eur, function(X) lm(Height~Sex+Age+age2+EUR_ANC, X))-> lm7_UKB_eur
 lapply(PGS2_UKB_eur, function(X) lm(Height~Sex+Age+age2+EUR_ANC+PGS, X))-> lm8_UKB_eur
 
-partial.R2(lm7_UKB_eur[[35]],lm8_UKB_eur[[35]]) ##0.2119167
+partial.R2(lm7_UKB_eur[[35]],lm8_UKB_eur[[35]])  #0.2064238
 
 partial_r2_UKB_eur<-lapply(1:length(PGS2_UKB_eur), function(X) partial.R2(lm7_UKB_eur[[X]], lm8_UKB_eur[[X]])) #
 names(partial_r2_UKB_eur)<-names(PGS2_UKB_eur)
@@ -73,8 +73,8 @@ data.table(Nr=unlist(Nr_SNPs), Name=names(Nr_SNPs), Part_R2=unlist(partial_r2_UK
 saveRDS(A_table, file='~/height_prediction/unweighted_prs/output/Nr_SNPs_UKB_eur.Rds')
 
 #
-cor.test(unlist(Nr_SNPs), unlist(partial_r2_UKB_eur))# 0.21
-summary(lm(Part_R2~Nr,data=A_table))$r.squared #0.04641226
+cor.test(unlist(Nr_SNPs), unlist(partial_r2_UKB_eur))# 
+summary(lm(Part_R2~Nr,data=A_table))$r.squared #
 
 for(I in 1:length(PGS2_UKB_eur)){
         A<-ggpairs(PGS2_UKB_eur[[I]][,.(Height, Sex, PGS, Age, age2)])

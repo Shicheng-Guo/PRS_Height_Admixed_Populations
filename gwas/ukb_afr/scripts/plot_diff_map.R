@@ -15,26 +15,31 @@ beta<-vector('list', 22)
 prun<-args[1]
 #prun<-"phys_100000_0.0005"
 hei<-readRDS(paste0('~/height_prediction/gwas/ukb_afr/output/hei_', prun, '_v2.Rds'))
-for(chr in 1:22){
+for(chr in 22:1){
 #chr<-22
 cat('start chr ')
 cat(chr)
 cat('\n')
 #rate.dist <- 20000
 rate.dist<-as.numeric(args[2])
-betas <-read.table(paste0('~/height_prediction/gwas/ukb_afr/output/AS_Beta_chr', chr, 'example.txt'), as.is=T, header=T)
+#betas <-read.table(paste0('~/height_prediction/gwas/ukb_afr/output/AS_Beta_chr', chr, 'example.txt'), as.is=T, header=T)
+betas<-fread('~/height_prediction/gwas/ukb_afr/output/plink_local_anc_effect_sizes.txt')[CHR==chr]
+setkey(betas,CHR, POS)
+
 maps<-fread(paste0('zcat /project/mathilab/data/maps_b37/maps_chr.', chr, '.gz'))
-snps <- read.table(paste0("~/height_prediction/input/ukb_afr/UKB_kgCY_chr", chr, ".phsnp"), as.is=TRUE)
+snps <- read.table(paste0("/project/mathilab/data/UKB/phased/hapi-ur/UKB_kgCY_chr", chr, ".phsnp"), as.is=TRUE)
 colnames(snps) <- c("ID", "CHR", "Map", "POS", "REF", "ALT")
+setDT(snps)
+setkey(snps, CHR, POS)
 betas <- cbind(snps, betas)
-setDT(betas)
+betas[snps,nomatch=0]-> betas
 snp_list<-hei[[chr]]
 #snp_list<-readRDS(paste0('/project/mathilab/bbita/gwas_admix/new_height/WHI/prunned_1kg/LD_prunned_hei_chr', chr, "_", prun, ".Rds"))
-grch37_snp = useMart(biomart="ENSEMBL_MART_SNP", host="grch37.ensembl.org", path="/biomart/martservice",dataset="hsapiens_snp")
-ID_posgrch37<-getBM(attributes = c('refsnp_id','allele', 'chr_name','chrom_start'),filters = 'snp_filter',values = snp_list$i.MarkerName,mart = grch37_snp)
-setDT(ID_posgrch37)
-colnames(ID_posgrch37)<-c('MarkerName','Allele','CHR','POS')
-ID_posgrch37[CHR==chr]-> ID_posgrch37
+#grch37_snp = useMart(biomart="ENSEMBL_MART_SNP", host="grch37.ensembl.org", path="/biomart/martservice",dataset="hsapiens_snp")
+#ID_posgrch37<-getBM(attributes = c('refsnp_id','allele', 'chr_name','chrom_start'),filters = 'snp_filter',values = snp_list$i.MarkerName,mart = grch37_snp)
+#setDT(ID_posgrch37)
+#colnames(ID_posgrch37)<-c('MarkerName','Allele','CHR','POS')
+#ID_posgrch37[CHR==chr]-> ID_posgrch37
 
 cat('checkpoint \n')
 AA.rate <- approxfun(maps$Physical_Pos, maps$AA_Map)
@@ -60,15 +65,19 @@ for(i in 1:NROW(betas)){
     betas$COMBINED.rate[i]<-COMBINED.x
     betas$CEU_YRI_diff.rate[i] <- abs(CEU.x-YRI.x)
 }
-betas$y <- abs(betas$POP1-betas$POP2)
+#betas$y <- abs(betas$POP1-betas$POP2)
 #At this point you will restrict the betas to the SNPS that you are using in the PRS. 
-betas<-betas[which(betas$POS %in% ID_posgrch37$POS),] 
+betas<-betas[which(betas$POS %in% snp_list$POS),] 
 setkey(betas, CHR, POS)
 setkey(snp_list, CHR, POS)
 betas[snp_list[,.(CHR, POS, b,SE)]]-> betas
 betas[,Tstat_ukb:=b/SE]
 betas[,y2:=abs(betas$b-betas$POP1)]
-betas[,Beta_Diff_Chisq:=((Tstat_pop1-Tstat_ukb)^2)/2]
+betas[, SE_pop1:=POP1/Tstat_pop1]
+betas[, SE_pop1:=POP2/Tstat_pop2]
+betas[, SE_all:=ALL/Tstat_all]
+betas[,Beta_Diff_Chisq:=((ALL-b)/(sqrt(((SE_all)^2+(SE)^2))))^2]
+betas[, Beta_Diff_Chisq:=((PLINK-b)^2)/((SE)^2+(i.SE)^2)]
 beta[[chr]]<-betas
 cat('chr ')
 cat(chr)

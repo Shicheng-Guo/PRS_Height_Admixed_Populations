@@ -15,7 +15,7 @@ beta<-vector('list', 22)
 prun<-args[1]
 #prun<-"phys_100000_0.0005"
 hei<-readRDS(paste0('~/height_prediction/gwas/WHI/output/hei_', prun, '_v2.Rds'))
-for(chr in 1:22){
+for(chr in 22:1){
 #chr<-22
 cat('start chr ')
 cat(chr)
@@ -70,8 +70,8 @@ betas[,Tstat_ukb:=b/SE]
 betas[,y2:=abs(betas$b-betas$POP1)]
 betas[, SE_pop1:=POP1/Tstat_pop1]
 betas[, SE_pop1:=POP2/Tstat_pop2]
-betas[, SE_pop1:=ALL/Tstat_all]
-betas[,Beta_Diff_Chisq:=((POP1-b)/(sqrt(((SE_pop1)^2+(SE)^2))))^2]
+betas[, SE_all:=ALL/Tstat_all]
+betas[,Beta_Diff_Chisq:=((ALL-b)/(sqrt(((SE_all)^2+(SE)^2))))^2]
 beta[[chr]]<-betas
 cat('chr ')
 cat(chr)

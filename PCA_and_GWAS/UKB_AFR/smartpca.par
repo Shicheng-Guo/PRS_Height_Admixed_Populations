@@ -1,4 +1,4 @@
-D1:	/project/mathilab/bbita/gwas_admix/new_height/runSmartpCA-master/UKB_AFR
+D1:	/home/bbita/height_prediction/PCA_and_GWAS/UKB_AFR
 indivname:	D1/UKB_AFR.bas_renamed_pops.ind
 snpname:	D1/UKB_AFR.bas.snp
 genotypename:	D1/UKB_AFR.bas.geno
