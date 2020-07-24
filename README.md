@@ -182,5 +182,5 @@ Rscript --vanilla scripts/make_all_tables.R
 Rscript --vanilla scripts/FigS7.R
 ```
 
-
+*Note:* I have tried my best to make this research reproducible. Please do reach out if you have any suggestions on how to improve that if you have any trouble.
 
