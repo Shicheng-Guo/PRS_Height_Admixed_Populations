@@ -179,6 +179,7 @@ Rscript --vanilla scripts/Fig3.R
 Rscript --vanilla scripts/Fig4.R
 Rscript --vanilla scripts/Fig5.R
 Rscript --vanilla scripts/make_all_tables.R
+Rscript --vanilla scripts/FigS7.R
 ```
 
 
