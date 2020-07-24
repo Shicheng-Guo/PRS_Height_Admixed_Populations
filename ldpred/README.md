@@ -59,7 +59,6 @@ do
 plink --bfile ${PATH2}/ukb_imp_chr${chr}_eur --extract output/keep_whi_RS.txt --make-bed --out output/UKB_EUR_whi_imp_chr${chr}
 done
 
-
 for chr in {22..1};
 do
 plink --bfile ${PATH2}/imputed/ukb_imp_chr${chr}_eur --extract output/keep_jhs_RS.txt --make-bed --out output/UKB_EUR_jhs_imp_chr${chr}
@@ -81,14 +80,12 @@ done
 
 bsub -M 95000 -o ${MY_PATH}/logs/logplink -e ${MY_PATH}/logs/logplink "plink --merge-list ${MY_PATH}/output/mergelist.txt --make-bed --out ${MY_PATH}/ldpred/output/UKB_EUR_whi_imp_all"
 
-
 awk 'OFS="\t"{$2=$1"_"$4;print $0}' output/UKB_EUR_jhs_imp_all.bim > output/tmp && mv output/tmp output/UKB_EUR_jhs_imp_all.bim
 sed -i 's/\s/\t/g'  output/UKB_EUR_jhs_imp_all.bim
 
 awk 'OFS="\t"{$2=$1"_"$4;print $0}' output/UKB_EUR_whi_imp_all.bim > output/tmp && mv output/tmp output/UKB_EUR_whi_imp_all.bim
 sed -i 's/\s/\t/g'  output/UKB_EUR_whi_imp_all.bim
 
-```
 ```
 ## 2. Summary statistics file
 Rscript --vanilla ../scripts/format_sumstat.R #format summary statistics file
@@ -104,39 +101,30 @@ plink2 \
     --keep /project/mathilab/data/UKB/UKB_EUR_IDS \
     --make-bed \
     --out  ${MY_PATH}/output/UKB_EUR.ldpred 
-#
-#UKB_AFR
 
 plink2 \
     --bfile /project/mathilab/data/UKB/UKB_AFR \
     --keep /project/mathilab/data/UKB/UKB_AFR_IDS \
     --make-bed \
     --out ${MY_PATH}/output/UKB_AFR.ldpred
-#
-#HRS_AFR
 
 plink2 \
     --bfile /project/mathilab/data/HRS/data/HRS_AFR_b37_strand_include \
     --keep /project/mathilab/data/HRS/data/HRS_AFR_IDS.fam \
     --make-bed \
     --out ${MY_PATH}/output/HRS_AFR.ldpred
-#
-#HRS_EUR
 
 plink2 \
     --bfile /project/mathilab/data/HRS/data/HRS_EUR_b37_strand_include \
     --keep /project/mathilab/data/HRS/data/HRS_EUR_IDS.fam \
     --make-bed \
     --out ${MY_PATH}/output/HRS_EUR.ldpred
-#WHI
 
 plink2 \
     --bfile /project/mathilab/data/WHI/data/WHI_b37_strand_include \
     --make-bed \
      --autosome \
     --out ${MY_PATH}/output/WHI.ldpred
-
-#JHS
 
 plink2 \
     --bfile JHS_b37_strand \
@@ -150,7 +138,6 @@ plink2 \
 # There are 360,388 samples in the Height GWAS
 Rscript --vanilla merge_hrs_ukb_v2.R #change SNP ID column
 
-#UKB_EUR
 ldpred coord \
     --rs SNP \
     --A1 A1 \
@@ -165,8 +152,6 @@ ldpred coord \
     --vgf ${MY_PATH}/UKB_EUR.ldpred \
     --ssf ${MY_PATH}/output/Height.QC.gz \ 
     --out ${MY_PATH}/output/UKB_EUR.coord \
-    --gf ${MY_PATH}/output/UKB_EUR.ldpred > ${MY_PATH}/logs/log_coord_ukb_eur.log
-#HRS_AFR
 ldpred coord \
     --rs SNP \
     --A1 A1 \
@@ -182,7 +167,6 @@ ldpred coord \
     --ssf ${MY_PATH}/output/Height.QC.gz \
     --out ${MY_PATH}/output/HRS_AFR.coord \
     --gf ${MY_PATH}/output/UKB_EUR_imp_all > ${MY_PATH}/logs/log_coord_hrs_afr.log
-#HRS_EUR
 ldpred coord \
     --rs SNP \
     --A1 A1 \
@@ -198,7 +182,6 @@ ldpred coord \
     --ssf ${MY_PATH}/output/Height.QC.gz \
     --out ${MY_PATH}/output/HRS_EUR.coord \
     --gf  ${MY_PATH}/output/UKB_EUR_imp_all  > ~/height_prediction/ldpred/logs/log_coord_hrs_eur.log
-#UKB_AFR
 ldpred coord \
     --rs SNP \
     --A1 A1 \
@@ -214,7 +197,6 @@ ldpred coord \
     --ssf ${MY_PATH}/output/Height.QC.gz \
     --out ${MY_PATH}/output/UKB_AFR.coord \
     --gf ${MY_PATH}/output/UKB_EUR.ldpred > ${MY_PATH}/logs/log_coord_ukb_afr.log
-#WHI
 ldpred coord \
     --rs SNP \
     --A1 A1 \
@@ -230,7 +212,6 @@ ldpred coord \
     --ssf ${MY_PATH}/output/Height.QC.gz \
     --out ${MY_PATH}/output/WHI.coord \
     --gf  ${MY_PATH}/output/UKB_EUR_whi_imp_all > ${MY_PATH}/logs/log_coord_whi.log
-#JHS
 ldpred coord \
     --rs SNP \
     --A1 A1 \
