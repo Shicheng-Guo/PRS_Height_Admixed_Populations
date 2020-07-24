@@ -37,6 +37,7 @@ done
 
 *Combine PGS results*
 
+```
 for D in JHS WHI ukb_afr ukb_eur  HRS_eur HRS_afr;
 do
 bash ../scripts/combine_Rds_PGS.sh gwas $D
