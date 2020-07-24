@@ -1,10 +1,13 @@
+## Running a GWAS on UK Biobank individuals with admixed African ancestry
+
 *Get SNP CHR and POS for each dataset*
 
 ```
-cat ~/height_prediction/input/JHS/JHS_b37_strand.bas.vcf |grep -v "^#"|awk 'OFS="\t"{print $1,$2}' > JHS.txt
-cat ~/height_prediction/input/WHI/WHI_b37_strand_include.bas.vcf |grep -v "^#"|awk 'OFS="\t"{print $1,$2}' > WHI.txt
-cat ~/height_prediction/input/HRS_afr/HRS_AFR_b37_strand_include.bas.vcf |grep -v "^#"|awk 'OFS="\t"{print $1,$2}' > HRS_afr.txt
-cat ~/height_prediction/input/ukb_afr/UKB_AFR.bas.vcf |grep -v "^#"|awk 'OFS="\t"{print $1,$2}' > UKB_afr.txt
+PATH=../../input
+cat ${PATH}/JHS/JHS_b37_strand.bas.vcf |grep -v "^#"|awk 'OFS="\t"{print $1,$2}' > JHS.txt
+cat ${PATH}/WHI/WHI_b37_strand_include.bas.vcf |grep -v "^#"|awk 'OFS="\t"{print $1,$2}' > WHI.txt
+cat ${PATH}HRS_afr/HRS_AFR_b37_strand_include.bas.vcf |grep -v "^#"|awk 'OFS="\t"{print $1,$2}' > HRS_afr.txt
+cat ${PATH}ukb_afr/UKB_AFR.bas.vcf |grep -v "^#"|awk 'OFS="\t"{print $1,$2}' > UKB_afr.txt
 ```
 
 *Combine them into one file*
@@ -35,14 +38,16 @@ grep -F -f /project/mathilab/data/UKB/imputed/UKB_AFR_IDS /project/mathilab/data
 
 Only SNPs present in the sorted.txt file are kept.
 ```
+PATH_imp=/project/mathilab/data/UKB/imputed #path to UK Biobank imputed data
+
 for chr in {1..22};
 do
 awk '$1=='${chr}'{print $2}' sorted.txt > tmp${chr}
-grep -F -f tmp${chr} /project/mathilab/data/UKB/imputed/ukb_imp_chr${chr}_afr.bim  > ~/height_prediction/PCA_and_GWAS/UKB_AFR_imputed/out${chr}.txt
+grep -F -f tmp${chr} ${PATH_imp}/ukb_imp_chr${chr}_afr.bim  > out${chr}.txt
 awk '{print $2}' out${chr}.txt |sort|uniq -u > tmp_${chr}.txt #keep only bi-allelic SNPs
 grep -F -f tmp_${chr}.txt out${chr}.txt| awk 'length($5)<2'|awk 'OFS="\t"{print $2,$5}' > ref_chr${chr}.txt
-plink2 --bgen /project/mathilab/data/UKB/imputed/ukb_imp_chr${chr}_afr.bgen --sample ~/height_prediction/PCA_and_GWAS/UKB_AFR_imputed/my_samples.sample --extract tmp_${chr}.txt  --ref-allele force ~/height_prediction/PCA_and_GWAS/UKB_AFR_imputed/ref_chr${chr}.txt --recode vcf --out ~/height_prediction/PCA_and_GWAS/UKB_AFR_imputed/chr${chr}
-bgzip ~/height_prediction/PCA_and_GWAS/UKB_AFR_imputed/chr${chr}.vcf
+plink2 --bgen ${PATH_imp}/ukb_imp_chr${chr}_afr.bgen --sample my_samples.sample --extract tmp_${chr}.txt  --ref-allele force ref_chr${chr}.txt --recode vcf --out chr${chr}
+bgzip chr${chr}.vcf
 echo ${chr}
 echo 'done'
 done
@@ -50,17 +55,10 @@ done
 *Combine individual chromosomes VCFs into one VCF*
 
 ```
-bcftools concat chr1.vcf.gz chr2.vcf.gz -Oz -o chr1_2.vcf.gz
-bcftools concat chr3.vcf.gz chr4.vcf.gz -Oz -o chr3_4.vcf.gz
-bcftools concat chr5.vcf.gz chr6.vcf.gz -Oz -o chr5_6.vcf.gz
-bcftools concat chr7.vcf.gz chr8.vcf.gz -Oz -o chr7_8.vcf.gz
-bcftools concat chr9.vcf.gz chr10.vcf.gz -Oz -o chr9_10.vcf.gz
-bcftools concat chr11.vcf.gz chr12.vcf.gz -Oz -o chr11_12.vcf.gz
-
-bcftools concat chr13.vcf.gz chr14.vcf.gz chr15.vcf.gz chr16.vcf.gz chr17.vcf.gz chr18.vcf.gz -Oz -o chr13_18.vcf.gz
-bcftools concat chr1_2.vcf.gz chr3_4.vcf.gz chr5_6.vcf.gz chr7_8.vcf.gz chr9_10.vcf.gz chr11_12.vcf.gz -Oz -o chr1_12.vcf.gz
-bcftools concat chr19.vcf.gz chr20.vcf.gz chr21.vcf.gz chr22.vcf.gz -Oz -o chr19_22.vcf.gz
-bcftools concat chr1_12.vcf.gz chr13_18.vcf.gz chr19_22.vcf.gz  -Oz -o chr1_22.vcf.gz
+bcftools concat chr1.vcf.gz chr2.vcf.gz chr3.vcf.gz chr4.vcf.gz chr5.vcf.gz\
+chr6.vcf.gz chr7.vcf.gz chr8.vcf.gz chr9.vcf.gz chr10.vcf.gz chr11.vcf.gz\
+chr12.vcf.gz chr13.vcf.gz chr14.vcf.gz chr15.vcf.gz chr16.vcf.gz chr17.vcf.gz \
+chr18.vcf.gz chr19.vcf.gz chr20.vcf.gz chr21.vcf.gz chr22.vcf.gz -Oz -o chr1_22.vcf.gz
 tabix -p vcf chr1_22.vcf.gz
 ```
 
@@ -70,7 +68,6 @@ for chr in {1..22};
 do
 rm chr${chr}.vcf.gz
 done
-rm chr1_2.vcf.gz chr3_4.vcf.gz chr5_6.vcf.gz chr7_8.vcf.gz chr9_10.vcf.gz chr11_12.vcf.gz chr1_12.vcf.gz chr19_22.vcf.gz chr13_18.vcf.gz chr13_22.vcf.gz
 ```
 
 *Get SNP IDs and clean up temp files*
@@ -82,8 +79,8 @@ rm tmp*
 *Set up phenotype file and copy header and PCA files*
 
 ```
-awk '{print $2,$1,$3,$4}' ~/height_prediction/input/ukb_afr/UKB_AFR_pheno.txt|grep -v 6007195 > My_Pheno.txt
-cp ~/height_prediction/PCA_and_GWAS/UKB_AFR/UKB_AFR.bas.evec .
+awk '{print $2,$1,$3,$4}' ${PATH}/ukb_afr/UKB_AFR_pheno.txt|grep -v 6007195 > My_Pheno.txt
+mv ~/height_prediction/PCA_and_GWAS/UKB_AFR.bas.evec .
 head -1 UKB_AFR.bas.evec > header.txt
 sed -i "1d" UKB_AFR.bas.evec 
 sort UKB_AFR.bas.evec > tp
@@ -91,14 +88,14 @@ mv tp UKB_AFR.bas.evec
 sort -nms My_Pheno.txt > MyPheno.txt
 echo "SUBJID PC1 PC2 PC3 PC4 PC5 PC6 PC7 PC8 PC9 PC10 POP" > tmp
 cat UKB_AFR.bas.evec >> tmp
-Rscript --vanilla ~/height_prediction/PCA_and_GWAS/UKB_AFR_imputed/R_script.R #further configure phenotype file
+Rscript --vanilla ../../scripts/config_pheno_for_GWAS.R #further configure phenotype file
 #and then
 awk '{print $1,$2,$18}' Pheno.txt > PHENO.txt #use residual height
 ```
 
 *Convert back to plink format and keep only required columns in .fam file*
 ```
-plink --vcf ~/height_prediction/PCA_and_GWAS/UKB_AFR_imputed/chr1_22.vcf.gz --out ~/height_prediction/PCA_and_GWAS/UKB_AFR_imputed/chr1_22
+plink --vcf chr1_22.vcf.gz --out chr1_22
 awk 'OFS="";{print $1, "_", $1, "\t",$2, "_", $2, "\t", $3, "\t", $4, "\t", $5, "\t", $6}' chr1_22.fam > temp
 mv temp chr1_22.fam
 ```
@@ -106,7 +103,7 @@ mv temp chr1_22.fam
 *Run GWAS and clean output file*
 
 ```
-plink2 --bfile ~/height_prediction/PCA_and_GWAS/UKB_AFR_imputed/chr1_22  --pheno PHENO.txt --allow-no-sex --covar Pheno.txt --covar-name Age2,Sex,PC1,PC2,PC3,PC4,PC5,PC6,PC7,PC8,PC9,PC10 -out ~/height_prediction/PCA_and_GWAS/UKB_AFR_imputed/association_v3 --glm --adjust
+plink2 --bfile chr1_22  --pheno PHENO.txt --allow-no-sex --covar Pheno.txt --covar-name Age2,Sex,PC1,PC2,PC3,PC4,PC5,PC6,PC7,PC8,PC9,PC10 -out association_v3 --glm --adjust
 grep ADD association_v3.Res.Height.glm.linear > plink_ukb_afr_height_glm_linear.txt
 paste <(awk 'OFS="\t"{print $2,$1,$3,$4}' association_v3.Res.Height.glm.linear.adjusted|sort -k 1) <(sort -k 3 <(grep ADD association_v3.Res.Height.glm.linear)|awk 'OFS="\t"{print $3,$1,$2,$4,$5,$6,$7,$8,$9,$10,$11,$12}')|awk '$1==$5;OFS="\t"{print $1,$2,$3,$4,$7,$8,$9,$10,$12,$13,$14,$15,$16}' > tmp1
 cat <(echo -e "ID\tCHR\tUNADJ\tGC\tPOS\tREF\tALT\tA1\tOBS_CT\tBETA\tSE\tT_STAT\tP") tmp1 > ukb_afr_gwas_AA_v3_imputed.txt

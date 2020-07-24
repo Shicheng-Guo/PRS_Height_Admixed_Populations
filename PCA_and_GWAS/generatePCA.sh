@@ -3,6 +3,7 @@
 #` samples to be projected.
 #' Directory should have panel.txt, add_pop_labels.R, list of populations and
 #` VCF files required.
+#This script was shared with me by @jude-anne: https://github.com/mathilab/skin-pigment/blob/0d72e1194fcc30727b68c24435e8e03765263022/pipeline/runPCA/generatePCA.sh
 
 source $1 # arguments in template of generatePCA_arg.txt
 
