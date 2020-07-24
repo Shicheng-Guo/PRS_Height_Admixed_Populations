@@ -1,4 +1,4 @@
-##Getting HRS_eur data ready for all downstream analyses
+## Getting HRS_eur data ready for all downstream analyses
 
 Goal: go from plink to vcf format. 
 

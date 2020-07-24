@@ -1,4 +1,4 @@
-##Getting JHS_afr data ready for all downstream analyses
+## Getting JHS_afr data ready for all downstream analyses
 
 Goal: go from plink to vcf format.
 

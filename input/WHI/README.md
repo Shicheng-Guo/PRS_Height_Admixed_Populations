@@ -1,4 +1,4 @@
-##Getting WHI_afr data ready for all downstream analyses
+## Getting WHI_afr data ready for all downstream analyses
 
 Goal: go from plink to vcf format.
 
