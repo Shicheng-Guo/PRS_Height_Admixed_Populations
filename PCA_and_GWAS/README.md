@@ -11,7 +11,7 @@ awk '{$8801="";print $0; OFS="\t"}' ~/height_prediction/input/ukb_afr/UKB_AFR.ba
 bgzip test.vcf
 mv test.vcf.gz UKB_AFR.bas.vcf.gz
 
-bsub -n 10 -M 40000 -R "span [hosts=1] rusage [mem=40480]" -o logPCA -e logPCA bash ~/height_prediction/PCA_and_GWAS/generatePCA.sh ~/height_prediction/PCA_and_GWAS/generatePCA_arg.txt
+bsub -n 10 -M 40000 -R "span [hosts=1] rusage [mem=40480]" -o logPCA -e logPCA bash scripts/generatePCA.sh generatePCA_arg.txt
 ```
 
 Go [here](UKB_AFR_imputed/README.md) and follow instructions.
