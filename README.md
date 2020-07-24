@@ -53,47 +53,13 @@ Within each dataset's directory you will find a README.md with instructions on h
 
 Pruning/clumping using both the GWAS effect sizes ('gwas') and the sibling-estimated effect sizes ('sib_betas'). In both cases, p-values used for clumping come from the full UKB GWAS.
 
-*Clump/prune using GWAS summmary statistics* 
+**Clump/prune/calculatePRS using GWAS summmary statistics* *
 
 Go to [gwas](gwas/README.md) and follow instructions. 
 
-*Clump/prune using sibling pairs summmary statistics*
+**Clump/prune/calculate PRS using sibling pairs summmary statistics**
 
 Go to [sib_betas](sib_betas/README.md) and follow instructions.
-
-
-
-```
-for D in JHS WHI ukb_afr ukb_eur HRS_eur HRS_afr;
-do
-for F in sib_betas gwas;
-do
-scripts/LD_prun.bash $F $D
-done
-done
-for D in JHS WHI ukb_afr ukb_eur HRS_eur HRS_afr;
-do
-for F in sib_betas gwas;
-do
-scripts/combine_Rds_v2.sh $F $D
-done
-done
-```
-
-### Run polygenic scores
-Now we are ready to calculate polygenic risk scores for each set of SNPs (gwas, sib_betas and unweighted_prs which, as the name suggest, is the unweighted version of the PRS):
-
-```
-for D in JHS WHI ukb_afr ukb_eur HRS_eur HRS_afr;
-do
-for F in sib_betas gwas;
-do
-scripts/calc_PGS.sh $F $D
-unweighted_prs/calc_PGS.sh F $D
-done
-done
-```
-
 
 ### Combine PRS results
 
