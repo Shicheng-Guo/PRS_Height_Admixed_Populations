@@ -53,17 +53,15 @@ Within each dataset's directory you will find a README.md with instructions on h
 
 Pruning/clumping using both the GWAS effect sizes ('gwas') and the sibling-estimated effect sizes ('sib_betas'). In both cases, p-values used for clumping come from the full UKB GWAS.
 
-### 
-```
-for D in JHS WHI ukb_afr ukb_eur HRS_eur HRS_afr;  #for each dataset
-do
-for F in sib_betas gwas;
-do
-Rscript --vanilla scripts/make_vcf.R temp $F $D
-done
-done
-```
-### Prune/clump using different methods and combine results
+*Clump/prune using GWAS summmary statistics* 
+
+Go to [gwas](gwas/README.md) and follow instructions. 
+
+*Clump/prune using sibling pairs summmary statistics*
+
+Go to [sib_betas](sib_betas/README.md) and follow instructions.
+
+
 
 ```
 for D in JHS WHI ukb_afr ukb_eur HRS_eur HRS_afr;
