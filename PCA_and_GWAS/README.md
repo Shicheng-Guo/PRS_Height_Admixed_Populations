@@ -16,4 +16,3 @@ bsub -n 10 -M 40000 -R "span [hosts=1] rusage [mem=40480]" -o logPCA -e logPCA b
 
 Go [here](UKB_AFR_imputed/README.md) and follow instructions.
 
-#https://www.researchgate.net/post/How_do_I_adjust_the_p_value_of_SNPs-phenotype_association_study_for_multiple_testing
