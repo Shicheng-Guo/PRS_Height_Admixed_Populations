@@ -1,1 +1,0 @@
-variant	minor_allele	minor_AF	low_confidence_variant	n_complete_samples	AC	ytx	beta	se	tstat	pval
