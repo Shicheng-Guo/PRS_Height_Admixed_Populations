@@ -1,5 +1,6 @@
-RUN A GWAS ON INDIVIDUALS WITH SOME LEVEL OF AFRICAN ANCESTRY
+## RUN A GWAS ON INDIVIDUALS WITH SOME LEVEL OF AFRICAN ANCESTRY
 
+```
 awk '{b=$1"_"$1;print b,"UKA"}' /project/mathilab/data/UKB/UKB_AFR.fam|grep -v '6007195'  > panel_file2.txt
 touch "pop2.txt"
 echo "UKA" > pop2.txt
@@ -11,7 +12,7 @@ bgzip test.vcf
 mv test.vcf.gz UKB_AFR.bas.vcf.gz
 
 bsub -n 10 -M 40000 -R "span [hosts=1] rusage [mem=40480]" -o logPCA -e logPCA bash ~/height_prediction/PCA_and_GWAS/generatePCA.sh ~/height_prediction/PCA_and_GWAS/generatePCA_arg.txt
-© 2020 GitHub, Inc.
+```
 
 Go [here](UKB_AFR_imputed/README.md) and follow instructions.
 
