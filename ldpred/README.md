@@ -1,9 +1,9 @@
-##Try to replicate R2xEUR_ANC plots using LDpred.
-##FOr now, using this tutorial as reference: https://choishingwan.github.io/PRS-Tutorial/ldpred/
-##And also the ldpred tutorial here: 
-source ~/ENV/bin/activate
+# Running LDpred on WHI, JHS, UKB, HRS genotype data, height summary statistics from the UK Biobank.
 
-1. Preprocessing the base data file and coordinating the data
+Hg19
+
+
+## 1.  Preprocessing required data sets
 The first step is a data synchronization step, where two or three data sets, genotypes and summary statistics are synchronized. This generates a HDF5 file which contains the synchronized genotypes. This step can be done by running
 
 ```
@@ -90,11 +90,15 @@ sed -i 's/\s/\t/g'  output/UKB_EUR_whi_imp_all.bim
 
 ```
 ```
-#Summary statistics file
+## 2. Summary statistics file
 Rscript --vanilla ../scripts/format_sumstat.R #format summary statistics file
 
 #LDpred does not support filtering of samples and SNPs, so therefore we must generate a new QCed genotype file using plink:
 
+
+## 3. Making genotype files in plink format
+
+```
 plink2 \
     --bfile /project/mathilab/data/UKB/UKB_EUR \ 
     --keep /project/mathilab/data/UKB/UKB_EUR_IDS \
@@ -141,12 +145,11 @@ plink2 \
     --out ${MY_PATH}/output/JHS.ldpred
 ```
 
+## 3. Coordinations step 
 ```
-**COORD**
-#Preprocessing the base data file:
-
 # There are 360,388 samples in the Height GWAS
 Rscript --vanilla merge_hrs_ukb_v2.R #change SNP ID column
+
 #UKB_EUR
 ldpred coord \
     --rs SNP \
@@ -245,7 +248,7 @@ ldpred coord \
     --gf ${MY_PATH}/output/UKB_EUR_jhs_imp_all > ${MY_PATH}/logs/log_coord_jhs.log
 ```
 
-2. Adjust the effect size estimates
+## 4. Adjusting the effect size estimates
 
 ```
 # LDpred recommend radius to be Total number of SNPs in target / 3000. E.g. 784256/3000=261
@@ -273,9 +276,8 @@ ldpred p+t --cf ${MY_PATH}/output/JHS.coord --ldr 233 --out ${MY_PATH}/output/JH
 ldpred p+t --cf ${MY_PATH}/output/UKB_AFR.coord --ldr 159 q--out ${MY_PATH}/output/UKB_AFR_pt.weight  > ${MY_PATH}/logs/log_pt_ukb_afr.log
 ```
 
-3. Calculate the PRS
+## 5. Calculating the PRS
 ```
-#For just PRS (no validation), run below code (UKB_EUR)
 ldpred score \
     --gf output/UKB_EUR.ldpred \
     --rf output/UKB_EUR.weight \
@@ -286,7 +288,6 @@ ldpred score \
     --rf output/UKB_EUR_pt.weight \
     --out output/UKB_EUR.score \
     --only-score
-#ukb afr
 ldpred score \
     --gf output/UKB_AFR.ldpred \
     --rf output/UKB_AFR.weight \
@@ -297,7 +298,6 @@ ldpred score \
     --rf output/UKB_AFR_pt.weight \
     --out output/UKB_AFR.score \
     --only-score
-#HRS_EUR
 ldpred score \
     --gf output/HRS_EUR.ldpred \
     --rf output/HRS_EUR.weight \
@@ -308,7 +308,6 @@ ldpred score \
     --rf output/HRS_EUR_pt.weight \
     --out output/HRS_EUR.score \
     --only-score
-#HRS_afr
 ldpred score \
     --gf output/HRS_AFR.ldpred \
     --rf output/HRS_AFR.weight \
@@ -319,7 +318,6 @@ ldpred score \
     --rf output/HRS_AFR_pt.weight \
     --out output/HRS_AFR.score \
     --only-score
-#WHI
 ldpred score \
     --gf output/WHI.ldpred \
     --rf output/WHI.weight \
@@ -330,7 +328,6 @@ ldpred score \
     --rf output/WHI_pt.weight \
     --out output/WHI.score \
     --only-score
-#JHS
 ldpred score \
     --gf output/JHS.ldpred \
     --rf output/JHS.weight \
