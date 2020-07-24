@@ -13,5 +13,5 @@ Follow instructions for [UKB_eur](ukb_eur/README.md)  and [UKB_afr](ukb_afr/READ
 Follow instructions for [WHI_afr](WHI/README.md).
 
 ## Jackson Heart Study (JHS)
-Follow instructions for [JHS_afr](JHS/README.md)
+Follow instructions for [JHS_afr](JHS/README.md).
 

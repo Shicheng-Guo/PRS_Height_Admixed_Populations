@@ -1,7 +1,14 @@
+##Getting HRS_afr data ready for all downstream analyses
+
+Goal: go from plink to vcf format.
 
 *copy files to my local directory*
 ```
-cp /project/mathilab/data/UKB/UKB_EUR* .
+PATH_to_data=/project/mathilab/data/UKB #change this accordingly.
+
+*copy files to my local directory*
+```
+cp ${PATH_to_data}/UKB_EUR* .
 rm UKB_EUR.afreq
 ```
 *convert to vcf format*

@@ -1,9 +1,17 @@
+##Getting WHI_afr data ready for all downstream analyses
+
+Goal: go from plink to vcf format.
+
 *copy files to my local directory*
 ```
-cp /project/mathilab/data/WHI/data/WHI_b37_strand_include* .
-cp /project/mathilab/data/WHI/data/WHI_phenotypes.txt .
-cp /project/mathilab/data/WHI/admxiture/WHI_b37_strand_prune_include.2.Q . ##order comes from file below
-cp /project/mathilab/data/WHI/data/WHI_b37_strand_prune_include.fam .  #the order of samples
+PATH_to_data=/project/mathilab/data/WHI #change this accordingly.
+
+*copy files to my local directory*
+```
+cp ${PATH_to_data}/data/WHI_b37_strand_include* .
+cp ${PATH_to_data}/data/WHI_phenotypes.txt .
+cp ${PATH_to_data}/admxiture/WHI_b37_strand_prune_include.2.Q . ##order comes from file below
+cp ${PATH_to_data}/data/WHI_b37_strand_prune_include.fam .  #the order of samples
 ```
 *convert to vcf format*
 

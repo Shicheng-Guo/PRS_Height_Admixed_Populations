@@ -1,10 +1,15 @@
+##Getting HRS_eur data ready for all downstream analyses
+
+Goal: go from plink to vcf format. 
 
 *copy files to my local directory*
 ```
-cp /project/mathilab/data/HRS/data/HRS_EUR_b37_strand_include* .
-cp /project/mathilab/data/HRS/data/HRS_EUR_phenotypes.txt .
-#cp /project/mathilab/data/HRS/admixture/HRS_AFR_b37_strand_prune_include.2.Q . ##order comes from file below
-cp /project/mathilab/data/HRS/data/HRS_EUR_b37_strand_include.fam .  #the order of samples
+PATH_to_data=/project/mathilab/data/HRS/ #change this accordingly.
+
+cp ${PATH_to_data}/data/HRS_EUR_b37_strand_include* . #plink files
+cp ${PATH_to_data}/data/HRS_EUR_phenotypes.txt .
+#cp ${PATH_to_data}/admixture/HRS_AFR_b37_strand_prune_include.2.Q . ##order comes from file below
+cp ${PATH_to_data}/data/HRS_EUR_b37_strand_include.fam .  #the order of samples
 ```
 *convert to vcf format*
 

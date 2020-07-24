@@ -1,9 +1,19 @@
+##Getting JHS_afr data ready for all downstream analyses
+
+Goal: go from plink to vcf format.
 
 *copy files to my local directory*
 ```
-cp /project/mathilab/data/JHS/data/JHS_b37_strand.* .
-cp /project/mathilab/data/JHS/data/JHS_phenotypes.txt .
-cp /project/mathilab/data/JHS/admixture/JHS_b37_strand_prune.2.Q . ##order comes from file below
+PATH_to_data=/project/mathilab/data/JHS #change this accordingly.
+
+*copy files to my local directory*
+```
+
+*copy files to my local directory*
+```
+cp ${PATH_to_data}/data/JHS_b37_strand.* .
+cp ${PATH_to_data}/data/JHS_phenotypes.txt .
+cp ${PATH_to_data}/admixture/JHS_b37_strand_prune.2.Q . ##order comes from file below
 ```
 *convert to vcf format*
 

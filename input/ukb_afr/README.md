@@ -1,7 +1,15 @@
+##Getting HRS_afr data ready for all downstream analyses
+
+Goal: go from plink to vcf format.
+
+*copy files to my local directory*
+```
+PATH_to_data=/project/mathilab/data/UKB #change this accordingly.
+
+
 cp /project/mathilab/data/UKB/UKB_AFR* .
 rm *prune*
 #File exclude_biobank is list of samples that as of Nov 2018 should not be included anymore.
-
 
 ```
 plink --allow-extra-chr --allow-no-sex --autosome \
