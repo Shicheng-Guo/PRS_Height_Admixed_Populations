@@ -3,6 +3,12 @@
 library(data.table)
 library(dplyr)
 ##read in a pruned set of SNPs and retain CHR and POS and write it into a file
+library(data.table)
+library(dplyr)
+library(rjson)
+library(optparse)
+library(httr)
+library(jsonlite)
 library(TeachingDemos)
 txtStart(paste0("~/height_prediction/figs_for_paper/gen_phen_varianct.txt"))
 #dtsets<-vector("list", 6)
