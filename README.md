@@ -9,8 +9,8 @@
 2. [Clone this repo and recreate analyses](#recreating-all-analyses-in-the-paper)
 	1. [Prerequisites](#prerequisites)
 	2. [Preparing input data](#prepare-genotype-input-data)
-	3. [C+T and PRS](#Prune/clump-using-different-methods-and-combine-results)
-	4. [PRS calculation and plots](#Combine-PRS-results)
+	3. [C+T and PRS](#clump/prune/calculate-prs)
+	4. [Plots](#plots)
 	5. [LDpred](#ldpred-analyses)
 	6. [Stratified PRS by bins of recombination rate](#stratified-prs)
 	7. [PCA and GWAS in the UKB indivudals with admixed African ancestry](#pca-and-gwas-in-ukb-individuals-with-admixed-African-ancestry)
@@ -51,13 +51,15 @@ Within each dataset's directory you will find a README.md with instructions on h
 *Note:* if you do get access to the data you will need to fix the path to the data accordingly. 
 
 
+### Clump/prune/calculate PRS
+
 Pruning/clumping using both the GWAS effect sizes ('gwas') and the sibling-estimated effect sizes ('sib_betas'). In both cases, p-values used for clumping come from the full UKB GWAS.
 
-**Clump/prune/calculatePRS using GWAS summmary statistics* *
+**Using GWAS summmary statistics* *
 
 Go to [gwas](gwas/README.md) and follow instructions. 
 
-**Clump/prune/calculate PRS using sibling pairs summmary statistics**
+**Using sibling pairs summmary statistics**
 
 Go to [sib_betas](sib_betas/README.md) and follow instructions.
 
