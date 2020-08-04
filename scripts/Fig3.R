@@ -4,12 +4,12 @@
 #Args:		<summary statistics: gwas/sib_betas> <recombination map:AA/CEU> <win size:3000_100000> <test_set(WHI, HRS_afr, HRS_eur, JHS> 
 #
 #Last modified:	July 13-2020
-#Usage:		Rscript --vanilla gwas CEU 20000 WHI
+#Usage:		Rscript --vanilla scripts/Fig3.r gwas CEU 20000 WHI
 ######################################################################################################################
-args = commandArgs(trailingOnly=TRUE)
-if (length(args)==0) {
-  stop("At least one argument must be supplied (a name for this run).n", call.=FALSE)
-}
+#args = commandArgs(trailingOnly=TRUE)
+#if (length(args)==0) {
+#  stop("At least one argument must be supplied (a name for this run).n", call.=FALSE)
+#}
 #Load packages #########################
 suppressPackageStartupMessages({library("optparse")
 library(ggplot2)
@@ -23,7 +23,7 @@ library(dplyr)
 require(broom)
 })
 options(scipen=999)
-source('~/height_prediction/strat_prs/scripts/fancy_scientific.R')
+source('scripts/fancy_scientific.R')
 dtset<-c()
 ci<-c()
 
@@ -35,8 +35,8 @@ names(ci)<-c("ukb_afr", "WHI", "JHS", "HRS_afr",  "HRS_eur")
 for(I in c("WHI","JHS","ukb_afr","HRS_eur", "HRS_afr")){
 	dtset[[I]]<-vector('list', 6)
 	ci[[I]]<-vector('list', 6)
-	dtset[[I]]<-readRDS(paste0('~/height_prediction/strat_prs/output/part_R2_', I,"_",args[1], "_", args[3],"_", args[2], "_v2.Rds"))
-	ci[[I]]<-readRDS(paste0('~/height_prediction/strat_prs/output/results_', I,"_",args[1], "_", args[3], "_", args[2], "_v2.Rds"))
+	dtset[[I]]<-readRDS(paste0('strat_prs/output/part_R2_', I,"_",args[1], "_", args[3],"_", args[2], "_v2.Rds"))
+	ci[[I]]<-readRDS(paste0('strat_prs/output/results_', I,"_",args[1], "_", args[3], "_", args[2], "_v2.Rds"))
 }
 
 cat('Done reading in stratified PRS results for ', args[2], ' map\n')
@@ -49,7 +49,7 @@ if(args[1]=='gwas'){ ##UKB_afr, WHI_afr, JHS_afr, HRS_afr,HRS_eur
 }
 cat('Read and edit quantiles\n')
 
-my_lev<-levels(readRDS(paste0("~/height_prediction/strat_prs/output/rec_quant_", args[4], "_", args[1], "_", args[3], "_", args[2], "_v2.Rds"))[,Q:=cut(diff, breaks=quantile(diff), na.rm=T, include.lowest=T, dig.lab=2)]$Q)
+my_lev<-levels(readRDS(paste0("strat_prs/output/rec_quant_", args[4], "_", args[1], "_", args[3], "_", args[2], "_v2.Rds"))[,Q:=cut(diff, breaks=quantile(diff), na.rm=T, include.lowest=T, dig.lab=1)]$Q)
 
 df1<-rbind(data.table(Quantile=c("q1","q2","q3","q4"),
 Dataset='HRS_eur',Win=c(rep(args[3], 4)),
@@ -121,7 +121,7 @@ geom_errorbar(aes(ymin=Perc_L, ymax=Perc_U), position = pd) +
 facet_wrap(. ~Set, scales='free_y') + 
 labs(y=expression(paste("Partial R"^"2")), x=paste0("Recombination Rate (cm/",as.character(as.integer(args[3])/10000),"Kb)"))+  
 scale_colour_manual(values=c(brewer.pal(4, 'Set1'),"#101010")) +
-theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"),legend.title=element_blank(), axis.title.y = element_text(size = 18), axis.title.x=element_text(size=18),axis.text.x=element_text(size=15), axis.text.y=element_text(size=15),legend.text=element_text(size=13),legend.position = "bottom", strip.text.x = element_text(size = 16))+
+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"),legend.title=element_blank(), axis.title.y = element_text(size = 18), axis.title.x=element_text(size=18),axis.text.x=element_text(size=11), axis.text.y=element_text(size=11),legend.text=element_text(size=11),legend.position = "bottom", strip.text.x = element_text(size = 13))+
 scale_x_discrete(labels=my_lev)
 #
 df2$Dataset<-factor(df2$Dataset, levels=c("UKB_afr", "WHI_afr", "JHS_afr", "HRS_afr",  "HRS_eur"))
@@ -139,8 +139,8 @@ scale_x_discrete(labels=my_lev)
 ########################
 
 if(args[1]=='gwas'){
-	beta<-dplyr::select(do.call(rbind,readRDS(paste0('~/height_prediction/gwas/', args[4],'/output/hei_phys_100000_0.0005_v2.Rds'))), CHR, POS, b, MarkerName, Allele1, SE) %>% as.data.table
-	beta1<-readRDS('~/height_prediction/loc_anc_analysis/output/final_plink.Rds')
+	beta<-dplyr::select(do.call(rbind,readRDS(paste0('gwas/', args[4],'/output/hei_phys_100000_0.0005_v2.Rds'))), CHR, POS, b, MarkerName, Allele1, SE) %>% as.data.table
+	beta1<-readRDS('loc_anc_analysis/output/final_plink.Rds')
 } else {
 #TO DO
 }
@@ -149,7 +149,7 @@ merge(beta, beta1, by=c('CHR', 'POS'))-> beta2
 cat('Read in betas\n')
 BETA<-vector('list', 22)
 prun<-"phys_100000_0.0005"
-hei<-readRDS(paste0('~/height_prediction/gwas/', args[4], '/output/hei_', prun, '_v2.Rds'))
+hei<-readRDS(paste0('gwas/', args[4], '/output/hei_', prun, '_v2.Rds'))
 gc()
 if(args[2]=='AA'){
 lapply(1:22, function(chr) fread(paste0('zcat /project/mathilab/data/maps/hm2/hm2/genetic_map_GRCh37_chr', chr,'.txt.gz'))[,CHR:=gsub("chr","",Chromosome)][, Chromosome:=NULL])-> rec #need to fix this path
@@ -175,7 +175,7 @@ for(chr in 22:1){
 	cat('\n')
 	rate.dist<-as.integer(args[3])
 	betas<-beta2[CHR==chr]
-	snps <- read.table(paste0("~/height_prediction/input/", args[4], "/", args[4], "_b37_strand_include_kgCY_chr", chr, ".phsnp"), as.is=TRUE)
+	snps <- read.table(paste0("input/", args[4], "/", args[4], "_b37_strand_include_kgCY_chr", chr, ".phsnp"), as.is=TRUE)
         colnames(snps) <- c("ID", "CHR", "Map", "POS", "REF", "ALT")
 	betas<-merge(snps, betas, by=c('CHR', 'POS'))
 	if(args[2]=='AA'){
@@ -201,13 +201,13 @@ for(chr in 22:1){
 }
 cat('sleep\n')
 cat('Checkpoint after rec rate\n')
-Sys.sleep(30)
+Sys.sleep(15)
 do.call(rbind, BETA)-> BETA
 setDT(BETA)
 BETA[order(CHR, POS)]-> BETA
 as.factor(BETA$CHR)-> BETA$CHR
 
-saveRDS(BETA, file=paste0('~/height_prediction/gwas/', args[4], '/output/plink_', toupper(args[4]),"_", args[1], "_", args[2], "_", args[3],".Rds"))
+saveRDS(BETA, file=paste0('gwas/', args[4], '/output/plink_', toupper(args[4]),"_", args[1], "_", args[2], "_", args[3],".Rds"))
 #########################
 ########################
 ########################
@@ -219,23 +219,24 @@ BETA[, MeanBetaDiffChisq:=mean(Beta_Diff_Chisq, na.rm=T), by=Quantile]
 BETA[, MedianRecRate:=median(rec.rate, na.rm=T), by=Quantile]
 lm_test0<-lm(Beta_Diff_Chisq~rec.rate, data=BETA)
 glance(lm_test0)
-pval<-glance(lm_test0)$p.value
+pval<-round(glance(lm_test0)$p.value,3)
 nrow(BETA)-sum(BETA$Beta_Diff_Chisq<=15) #10
 BETA<-BETA[Beta_Diff_Chisq<=15]
 nrow(BETA)
+tp<-as.character(as.integer(args[3])/10000)
 plot3<-ggplot(BETA, aes(x=rec.rate, y=Beta_Diff_Chisq)) + 
 geom_point(cex=0.5, col='black', alpha=0.6) + 
 geom_smooth(method='lm', se=T, lwd=1, col="darkgray", lty=2) + 
-labs(y=expression(chi[diff]^2), x="Recombination Rate (cM/", as.character(as.integer(args[3])/1000), "Kb)") + 
+labs(y=expression(chi[diff]^2), x=paste0("Recombination Rate (cM/", tp, "Kb)")) + 
 geom_point(aes(x=MedianRecRate, y=MeanBetaDiffChisq, col="red"), cex=0.5) + 
-annotate("text", x=0.6, y=4, label=paste("p=", round(pval,4)), size=4) +
+annotate("text", x=0.4, y=4, label=paste("p=", round(pval,4)), size=4) +
 theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), legend.position = "none", legend.title=element_blank(), axis.title.y = element_text(size = 18), axis.title.x=element_text(size=18),axis.text.x=element_text(size=15), axis.text.y=element_text(size=15), legend.text=element_text(size=15))
 plot1a<-plot1 + guides(fill=FALSE)
-cat('CHECKPOINT\n')
-c_plot<-readRDS(paste0('~/height_prediction/output/c_plot.Rds'))
+cat('CHECKPOINT 2\n')
+c_plot<-readRDS(paste0('output/c_plot.Rds'))
 my_list<-list(plot1, plot2, c_plot, plot3)
-saveRDS(my_list, paste0('~/height_prediction/strat_prs/output/my_list_', args[3], '.Rds'))
-ld<-do.call(rbind, lapply(1:22, function(X) fread(paste0('zcat ~/height_prediction/figs_for_paper/eur_w_ld_chr/', X,'.l2.ldscore.gz'))))
+saveRDS(my_list, paste0('strat_prs/output/my_list_', args[2], '_',args[3], '.Rds'))
+ld<-do.call(rbind, lapply(1:22, function(X) fread(paste0('eur_w_ld_chr/', X,'.l2.ldscore.gz'))))
 #beta<-readRDS('~/height_prediction/gwas/ukb_afr/output/betas_phys_100000_0.0005_20000.Rds')
 colnames(ld)[3]<-'POS'
 colnames(ld)[2]<-'MarkerName.y'
@@ -249,7 +250,7 @@ test<-merge(BETA,ld, by=c('CHR', 'POS','MarkerName.y'))
 test[,Quantile:=cut(L2, breaks=quantile(L2, probs=seq(0,1, by=0.05), na.rm=T), include.lowest=T)]
 test[, MeanBetaDiffChisq:=mean(Beta_Diff_Chisq, na.rm=T), by=Quantile]
 test[, MedianL2:=median(L2, na.rm=T), by=Quantile]
-
+cat('CHECKPOINT 3\n')
 #plot4<-ggplot(test, aes(x=MedianL2, y=MeanBetaDiffChisq)) + geom_point(cex=0.5, col='light gray') + geom_smooth(method='lm', se=F) + labs(y=expression(Mean~chi^2), x="LD Score" )
 lm_test<-lm(Beta_Diff_Chisq~L2, data=test)
 glance(lm_test)
@@ -260,20 +261,21 @@ geom_point(aes(x=MedianL2, y=MeanBetaDiffChisq, col="red"), cex=0.5) +
 annotate("text", x=270, y=5, label=paste("p=", round(pval,4)), size=4) +
 theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), legend.position = "none", legend.title=element_blank(), axis.title.y = element_text(size = 18), axis.title.x=element_text(size=18),axis.text.x=element_text(size=15), axis.text.y=element_text(size=15), legend.text=element_text(size=15))
 
-
-if(args[1]=='gwas' & args[2]=='AA'){
-png(paste0('figs/figs/SM_10_', args[2], '.png'), res=300, unit="in", height=8, width=7)
+cat('CHECKPOINT 4\n')
+if(args[2]=='AA'){
+png(paste0('figs/Fig3_', args[2], '.png'),  res=300, unit="cm", height=21, width=27)
+plot_grid(plot1,plot_grid(c_plot,plot3,labels = c("C", "D"), nrow=1, align='h', rel_widths=c(1,1), axis="t"), nrow=2, labels="A", align="h", axis="l")
+cat('sleep...\n')
+dev.off()
+cat('CHECKPOINT 5\n')
+png(paste0('figs/FigS11_', args[2], '.png'), res=600, unit="cm", height=12, width=12)
 print(plot4)
 dev.off()
-png(paste0('figs/figs/Fig3_', args[2], '.png'), res=300, width=14, height=12, units="in")
-plot_grid(plot1,plot_grid(c_plot,plot3,labels = c("C", "D"), nrow=1), nrow=2, labels="A", align="v")
+cat('CHECKPOINT 6\n')
+} else {
+png(paste0('figs/FigS14_', args[2], '.png'),  res=300, width=25, height=21, units="cm")
+plot_grid(plot1,plot_grid(c_plot,plot3,labels = c("C", "D"), nrow=1, align='h', rel_widths=c(1,1), axis="t"), nrow=2, labels="A", align="h", axis="l")
+cat('CHECKPOINT 7\n')
 dev.off()
-} else if (args[1]=='gwas' & args[2]=='CEU'){
-png(paste0('figs/figs/FigS11_', args[2], '.png'), res=300, unit="in", height=8, width=7)
-print(plot4)
-dev.off()
-png(paste0('figs/figs/FigS14', args[2], '.png'), res=300, width=14, height=12, units="in")
-plot_grid(plot1,plot_grid(c_plot,plot3,labels = c("C", "D"), nrow=1), nrow=2, labels="A", align="v")
-dev.off()
-#The End
+}
 #The End

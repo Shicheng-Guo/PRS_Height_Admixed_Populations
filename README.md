@@ -139,13 +139,19 @@ See [README.md in the epistasis directory](epistasis/README.md)
 
 
 ```
+#Figure 1
 Rscript --vanilla scripts/Fig1.R
+#Figure 2
 Rscript --vanilla scripts/Fig2.R
-Rscript --vanilla scripts/Fig3.R
+#Figures 3, S11, S14
+Rscript --vanilla scripts/qqplot_betadiff.R
+Rscript --vanilla scripts/Fig3.R gwas AA 20000 WHI  #Fig 3 & Fig S11
+Rscript --vanilla scripts/Fig3.R gwas CEU 20000 WHI  Fig S14
 Rscript --vanilla scripts/Fig4.R
 Rscript --vanilla scripts/Fig5.R
 Rscript --vanilla scripts/make_all_tables.R
 Rscript --vanilla scripts/FigS7.R
+Rscript --vanilla scripts/
 ```
 
 *Note:* I have tried my best to make this research reproducible. Please do reach out if you have any suggestions on how to improve that if you have any trouble.

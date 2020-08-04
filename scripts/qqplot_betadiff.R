@@ -30,11 +30,11 @@ qexp=function(df){
 }
 #############################
 
-beta1<-readRDS('~/height_prediction/loc_anc_analysis/output/final_plink.Rds')
+beta1<-readRDS('loc_anc_analysis/output/final_plink.Rds')
 setkey(beta1, CHR, POS)
 Store(beta1)
 gc()
-fread(paste0("zcat ~/height_prediction/gwas/input/50_raw_filtered.txt.gz"))-> ukb_height #read in GWAS summary statistics for height from the UK Biobank
+fread(paste0("zcat input/50_raw_filtered.txt.gz"))-> ukb_height #read in GWAS summary statistics for height from the UK Biobank
 gc()
 ukb_height[,c("CHR", "POS","Allele2","Allele1") := tstrsplit(variant, ":", fixed=TRUE)][,variant:=NULL]  #fix columns. In the UKB, variants are listed as CHR:POS: REF:ALT, where ALT is the effect allele.
 gc()
@@ -60,7 +60,7 @@ gc()
 beta2[,Beta_Diff:=b-PLINK]
 beta2[,Beta_Diff_Chisq:=(Beta_Diff/sqrt(((SE^2)+(SE_plink^2))))^2]
 gc()
-pdf('~/height_prediction/figs_for_paper/figs/diff_qqplot_all.pdf')
+pdf('figs/diff_qqplot_all.pdf')
 #ggplot(beta2, aes(sample=Beta_Diff_Chisq)) + stat_qq(distribution=qchisq,dparams=list(df=1)) + stat_qq_line(distribution=qchisq,dparams=list(df=1))  
 test_dat_all=qexp(beta2)
 ggplot(test_dat_all)+
@@ -77,8 +77,8 @@ dev.off()
 
 gc()
 cat('checkpoint number 4\n')
-whi<-readRDS('~/height_prediction/gwas/WHI/output/plink_whi.Rds')
-pdf('~/height_prediction/figs_for_paper/figs/diff_qqplot_PRS.pdf')
+whi<-readRDS('gwas/WHI/output/plink_whi.Rds')
+pdf('figs/diff_qqplot_PRS.pdf')
 #b_plot<-ggplot(whi, aes(sample=Beta_Diff_Chisq)) + stat_qq(distribution='qchisq',dparams=list(df=1)) + stat_qq_line(distribution=qchisq,dparams=list(df=1))
 test_dat=qexp(whi)
 b_plot<-ggplot(test_dat)+
@@ -110,7 +110,7 @@ cat('checkpoint number 6\n')
 beta3<-beta2[whi, nomatch=0][,i.Beta_Diff:=NULL][,i.Beta_Diff_Chisq:=NULL]
 summary(beta3[,.(PLINK, b)]) #here we can see that for PRS SNPs the distributions are pretty similar. 
 
-png('~/height_prediction/figs_for_paper/figs/beta_cor_all.png')
+png('figs/beta_cor_all.png')
 
 ggplot(beta2, aes(x=b, y=PLINK)) + geom_point() + geom_smooth(method='lm')
 dev.off()
@@ -120,10 +120,10 @@ gc()
 
 intcpt<-coefficients(lm(beta3$b~beta3$PLINK))[[1]]
 slop<-coefficients(lm(beta3$b~beta3$PLINK))[[2]]
-pdf('~/height_prediction/figs_for_paper/figs/beta_cor_PRS.pdf')
-a_plot<-ggplot(beta3, aes(x=b, y=PLINK)) + geom_point() + geom_smooth(method='lm', col="darkgray", lty=2) +
-annotate("text", x=0.5, y=-1, label=paste("intercept=", round(intcpt,4)), size=4) +
-annotate("text", x=0.5, y=-1.2, label=paste("slope=", round(slop,4)), size=4) +
+pdf('figs/beta_cor_PRS.pdf')
+a_plot<-ggplot(beta3, aes(x=b, y=PLINK)) + geom_point() + geom_smooth(method='lm', col="darkgray", lty=2) + coord_cartesian(xlim = c(-1.4, 1.4), ylim=c(-2.2, 2.2)) +
+annotate("text", x=0.7, y=-1, label=paste("intercept=", round(intcpt,4)), size=4) +
+annotate("text", x=0.7, y=-1.2, label=paste("slope=", round(slop,4)), size=4) +
 theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.title.y = element_text(size = 18) 
 , axis.title.x=element_text(size=18),axis.text.x=element_text(size=15), axis.text.y=element_text(size=15))+
 labs(x=bquote("UKB_eur"~beta), y=bquote("UKB_afr"~beta))
@@ -131,17 +131,17 @@ print(a_plot)
 dev.off()
 
 
-png('~/height_prediction/figs_for_paper/figs/panel_inset_fig3.png', res=300, width=9, height=8, units="in")
+png('figs/panel_inset_fig3.png', res=300, width=9, height=8, units="in")
 c_plot<-a_plot+  annotation_custom(
     ggplotGrob(b_plot), 
-    xmin = 0.25, xmax = 1, ymin = 1, ymax = 2
+    xmin = 0.35, xmax = 1.45, ymin = 0.6, ymax = 2.2
   )
 print(c_plot)
 #vp<-viewport(width = 0.4, height = 0.4, x = 0.8, y = 0.2)
 #print(b_plot, vp=vp)
 dev.off()
 Store(c_plot)
-saveRDS(c_plot, "~/height_prediction/output/c_plot.Rds")
+saveRDS(c_plot, "output/c_plot.Rds")
 ##################################################
 ##################################################
 ##################################################

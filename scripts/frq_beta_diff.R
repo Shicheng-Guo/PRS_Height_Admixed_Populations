@@ -14,9 +14,9 @@ W<-as.numeric(args[1])#window size
 #read in frequencies
 library(TeachingDemos)
 
-txtStart(paste0('~/height_prediction/epistasis/outout_', W, '.txt'))
-readRDS('~/height_prediction/epistasis/output/table_HRS_eur.Rds')->hrs_eur
-readRDS('~/height_prediction/epistasis/output/table_HRS_afr.Rds')->hrs_afr
+txtStart(paste0('epistasis/outout_', W, '.txt'))
+readRDS('output/table_HRS_eur.Rds')->hrs_eur
+readRDS('output/table_HRS_afr.Rds')->hrs_afr
 #calculate frequency difference per SNP
 
 setkey(hrs_eur, CHR, POS)

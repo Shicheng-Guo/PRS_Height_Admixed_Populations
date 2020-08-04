@@ -6,13 +6,13 @@ library(dplyr)
 library(cowplot)
 library(RColorBrewer)
 library(scales)
-source('~/height_prediction/strat_prs/scripts/Rsq_R2.R')
+source('scripts/Rsq_R2.R')
 ##panel figure
 
 #R2 vs ancestry for HRS_eur, HRS_afr, UKB_afr imputed data
 
 #barplot eur_afr, imp, non-imp, prunings
-comp<-readRDS('~/height_prediction/imputed/output/comparison.Rds')
+comp<-readRDS('imputed/output/comparison.Rds')
 
 dt<-comp[Name %in% c("phys_500000_0.000005", "phys_100000_0.0005")][, .(Name, HRS_afr_imp, HRS_afr, HRS_eur_imp, HRS_eur)]
 melt(dt)-> dt2
@@ -26,10 +26,10 @@ facet_wrap(~Dataset) + geom_bar(stat="identity",position=position_dodge(), alpha
 #scale_fill_brewer(name="Dataset", type="div", palette='Dark2') + 
 scale_fill_manual(values=c(brewer.pal(4, 'Set1')[4],"#101010")) +
 theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"),legend.position='bottom', legend.title=element_blank()) + labs(y=expression(Partial~R^2)) + scale_alpha_manual(values=c(0.1, 0.5))
-ggsave('~/height_prediction/figs_for_paper/test.pdf')
+ggsave('figs/test.pdf')
 
 
-comp_ukb<-readRDS('~/height_prediction/imputed/output/comparison_ukb.Rds')
+comp_ukb<-readRDS('output/comparison_ukb.Rds')
 dt_ukb<-comp_ukb[Name %in% c("phys_500000_0.000005", "phys_100000_0.0005")][, .(Name, UKB_afr_imp, UKB_afr)]
 melt(dt_ukb)-> dt2_ukb
 
@@ -47,7 +47,7 @@ ggplot(dt_final, aes(x=Name, y=value, fill=Method)) + facet_wrap(~Dataset) +
 geom_bar(stat="identity",position=position_dodge(), alpha=0.8) + 
 scale_fill_manual(values=c(brewer.pal(4, 'Set1')[c(1,4)],"#101010")) +
 theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), legend.position='bottom', legend.title=element_blank(), axis.text.x = element_text(angle = 45)) + labs(y=expression(Partial~R^2)) + scale_alpha_manual(values=c(0.1, 0.5))
-ggsave('~/height_prediction/figs_for_paper/Fig4_B.pdf')
+ggsave('~/figs/Fig4_B.pdf')
 
 
 #now do R2 vs anc
@@ -100,6 +100,6 @@ scale_fill_manual(values=c("#96a8b2", "#101010")) +
 theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_blank(), axis.line = element_line(colour = "black"), legend.position='bottom', legend.title=element_blank(), axis.title.y = element_text(size = 15), axis.title.x=element_blank(), axis.text.x=element_text(size=12), axis.text.y=element_text(size=15), legend.text=element_text(size=12)) + coord_cartesian(ylim = c(0, 1))+
 labs(y=expression(G[PRS]~ratio)) + scale_alpha_manual(values=c(0.1, 0.5))
 
-png('~/height_prediction/figs_for_paper/figs/Fig4.png',width = 7, height = 11, units = "in", res=300)
+png('figs/Fig4.png',width = 7, height = 11, units = "in", res=300)
 plot_grid(my_plotA, plot_grid(my_plotB, my_plotC, nrow=1, labels=c("B", "C")),nrow=2, labels="A")
 dev.off()
