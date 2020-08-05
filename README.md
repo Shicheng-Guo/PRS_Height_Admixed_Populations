@@ -151,7 +151,6 @@ Rscript --vanilla scripts/Fig4.R
 Rscript --vanilla scripts/Fig5.R
 Rscript --vanilla scripts/make_all_tables.R
 Rscript --vanilla scripts/FigS7.R
-Rscript --vanilla scripts/
 ```
 
 *Note:* I have tried my best to make this research reproducible. Please do reach out if you have any suggestions on how to improve that if you have any trouble.
