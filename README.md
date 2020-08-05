@@ -55,7 +55,7 @@ Within each dataset's directory you will find a README.md with instructions on h
 
 Pruning/clumping using both the GWAS effect sizes ('gwas') and the sibling-estimated effect sizes ('sib_betas'). In both cases, p-values used for clumping come from the full UKB GWAS.
 
-**Using GWAS summmary statistics* *
+**Using GWAS summmary statistics** 
 
 Go to [gwas](gwas/README.md) and follow instructions. 
 
